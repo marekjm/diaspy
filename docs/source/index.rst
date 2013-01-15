@@ -11,7 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. autoclass:: diaspy.diaspy.Client
+.. autoclass:: diaspy.Client
     :members:
 
 

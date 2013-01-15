@@ -3,6 +3,6 @@ setup(name='diaspy',
       version='1.0',
       author='Moritz Kiefer',
       author_email='moritz.kiefer@gmail.com',
-      py_modules=['diaspy.diaspy'],
+      py_modules=['diaspy'],
       requires=['requests']
       )

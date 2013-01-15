@@ -28,9 +28,9 @@ class Client:
         """This function is used to connect to the pod and log in.
         
         :param username: The username used to log in.
-        :type username: str.
+        :type username: str
         :param password: The password used to log in.
-        :type password: str.
+        :type password: str
         
         """
         self._username = username
@@ -51,7 +51,7 @@ class Client:
         :param text: Text to post.
         :type text: str
         :param aspect_id: Aspect id to send post to.
-        :type aspect_id: str.
+        :type aspect_id: str
         
         """
         r = self._session.get(self._pod + "/stream")
