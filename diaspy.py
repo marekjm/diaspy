@@ -1,5 +1,5 @@
 """
-.. module:: diaspora_api.diaspy
+.. module:: diaspy
    :platform: Unix, Windows
    :synopsis: Simple python api for diaspora
 
@@ -15,7 +15,7 @@ class Client:
 
     .. note::
 
-       Before calling any other function you have to call :func:`diaspy.diaspy.Client.login`.
+       Before calling any other function you have to call :func:`diaspy.Client.login`.
 
     """
 
