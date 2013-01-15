@@ -25,7 +25,14 @@ class Client:
         self._session = requests.Session()
 
     def login(self, username, password):
-        """blablablalbla"""
+        """This function is used to connect to the pod and log in.
+        
+        :param username: The username used to log in.
+        :type username: str.
+        :param password: The password used to log in.
+        :type password: str.
+        
+        """
         self._username = username
         self._password = password
         r = self._session.get(self._pod + "/users/sign_in")
@@ -39,7 +46,14 @@ class Client:
         r = self._session.post(self._pod + "/users/sign_in", data=data)
 
     def post(self, text, aspect_id='public'):
-        """blablablalbla"""
+        """This function sends a post to an aspect
+        
+        :param text: Text to post.
+        :type text: str
+        :param aspect_id: Aspect id to send post to.
+        :type aspect_id: str.
+        
+        """
         r = self._session.get(self._pod + "/stream")
         token = self._token_regex.search(r.text).group(1)
         data = {'aspect_ids': aspect_id,
