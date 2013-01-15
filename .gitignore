@@ -1,0 +1,4 @@
+*~
+*.swp
+doc/build/*
+diaspy/__pycache__/*
