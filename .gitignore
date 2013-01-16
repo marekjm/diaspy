@@ -2,4 +2,5 @@
 *.swp
 docs/build/*
 __pycache__/*
+.env
 

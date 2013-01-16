@@ -9,6 +9,7 @@
 """
 import requests
 import re
+import json
 
 class Client:
     """This is the client class to connect to diaspora.
@@ -60,3 +61,13 @@ class Client:
                 'status_message[text]': text,
                 'authenticity_token': token}
         r = self._session.post(self._pod + "/status_messages", data=data)
+
+    def getUserInfo(self):
+        """ This function return the current user's attributes
+        :returns dict -- json formatted user info
+
+        """
+        r = self._session.get(self._pod + "/stream")
+        regex = re.compile(r'window.current_user_attributes = ({.*})')
+        userdata = json.loads(regex.search(r.text).group(1))
+        return userdata
