@@ -27,6 +27,12 @@ class Client:
         self._pod = pod
         self._session = requests.Session()
 
+    def _get_token(self):
+        r = self._session.get(self._pod + "/stream")
+        token = self._token_regex.search(r.text).group(1)
+        return token
+
+
     def login(self, username, password):
         """This function is used to connect to the pod and log in.
 
@@ -57,11 +63,9 @@ class Client:
         :type aspect_id: str
 
         """
-        r = self._session.get(self._pod + "/stream")
-        token = self._token_regex.search(r.text).group(1)
         data = {'aspect_ids': aspect_id,
                 'status_message[text]': text,
-                'authenticity_token': token}
+                'authenticity_token': self._get_token()}
         r = self._session.post(self._pod + "/status_messages", data=data)
 
     def get_user_info(self):
@@ -83,10 +87,8 @@ class Client:
         :returns: dict -- json formatted like object.
 
         """
-        r = self._session.get(self._pod + "/stream")
-        token = self._token_regex.search(r.text).group(1)
 
-        data = {'authenticity_token': token}
+        data = {'authenticity_token': self._get_token()}
 
         r = self._session.post(self._pod + "/posts/" +
                 post_id + "/likes", data=data, headers={'accept': 'application/json'})
@@ -101,12 +103,24 @@ class Client:
         :type like_id: str
 
         """
-        r = self._session.get(self._pod + "/stream")
-        token = self._token_regex.search(r.text).group(1)
 
-        data = {'authenticity_token': token}
+        data = {'authenticity_token': self._get_token()}
 
         r = self._session.delete(self._pod + "/posts/" + 
                                  post_id + "/likes/" +
                                  like_id,
                                  data=data)
+
+    def reshare(self, post_guid):
+        """This function reshares a post
+
+        :param post_id: id of the post to resahre.
+        :type post_id: str
+
+        """
+
+        data = {'root_guid': post_guid,
+                'authenticity_token': self._get_token()}
+
+        r = self._session.post(self._pod + "/reshares", data=data)
+        print(r.text)
