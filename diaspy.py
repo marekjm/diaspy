@@ -11,12 +11,14 @@ import requests
 import re
 import json
 
+
 class Client:
     """This is the client class to connect to diaspora.
 
     .. note::
 
-       Before calling any other function you have to call :func:`diaspy.Client.login`.
+       Before calling any other function
+       you have to call :func:`diaspy.Client.login`.
 
     """
 
@@ -27,12 +29,12 @@ class Client:
 
     def login(self, username, password):
         """This function is used to connect to the pod and log in.
-        
+
         :param username: The username used to log in.
         :type username: str
         :param password: The password used to log in.
         :type password: str
-        
+
         """
         self._username = username
         self._password = password
@@ -42,18 +44,18 @@ class Client:
         data = {'user[username]': self._username,
                 'user[password]': self._password,
                 'authenticity_token': token,
-                'commit':''}
+                'commit': ''}
 
         r = self._session.post(self._pod + "/users/sign_in", data=data)
 
     def post(self, text, aspect_id='public'):
         """This function sends a post to an aspect
-        
+
         :param text: Text to post.
         :type text: str
         :param aspect_id: Aspect id to send post to.
         :type aspect_id: str
-        
+
         """
         r = self._session.get(self._pod + "/stream")
         token = self._token_regex.search(r.text).group(1)
@@ -62,12 +64,49 @@ class Client:
                 'authenticity_token': token}
         r = self._session.post(self._pod + "/status_messages", data=data)
 
-    def getUserInfo(self):
-        """ This function return the current user's attributes
-        :returns dict -- json formatted user info
+    def get_user_info(self):
+        """This function returns the current user's attributes.
+
+        :returns: dict -- json formatted user info.
 
         """
         r = self._session.get(self._pod + "/stream")
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
+
+    def like(self, post_id):
+        """This function likes a post
+
+        :param post_id: id of the post to like.
+        :type post_id: str
+        :returns: dict -- json formatted like object.
+
+        """
+        r = self._session.get(self._pod + "/stream")
+        token = self._token_regex.search(r.text).group(1)
+
+        data = {'authenticity_token': token}
+
+        r = self._session.post(self._pod + "/posts/" +
+                post_id + "/likes", data=data, headers={'accept': 'application/json'})
+        return r.json()
+
+    def rmlike(self, post_id, like_id):
+        """This function removes a like from a post
+
+        :param post_id: id of the post to remove the like from.
+        :type post_id: str
+        :param like_id: id of the like to remove.
+        :type like_id: str
+
+        """
+        r = self._session.get(self._pod + "/stream")
+        token = self._token_regex.search(r.text).group(1)
+
+        data = {'authenticity_token': token}
+
+        r = self._session.delete(self._pod + "/posts/" + 
+                                 post_id + "/likes/" +
+                                 like_id,
+                                 data=data)
