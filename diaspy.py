@@ -123,4 +123,37 @@ class Client:
                 'authenticity_token': self._get_token()}
 
         r = self._session.post(self._pod + "/reshares", data=data)
-        print(r.text)
+
+    def comment(self, post_id, text):
+        """This function comments on a post
+
+        :param post_id: id of the post to comment on.
+        :type post_id: str
+        :param text: text to comment.
+        :type text: str
+
+        """
+
+        data = {'text': text,
+                'authenticity_token': self._get_token()}
+
+        r = self._session.post(self._pod + "/posts/" + post_id + "/comments", data=data)
+
+        return r.json()
+    
+    def rmcomment(self, post_id, comment_id):
+        """This function removes a comment from a post
+
+        :param post_id: id of the post to remove the like from.
+        :type post_id: str
+        :param like_id: id of the like to remove.
+        :type like_id: str
+
+        """
+
+        data = {'authenticity_token': self._get_token()}
+
+        r = self._session.delete(self._pod + "/posts/" + 
+                                 post_id + "/comments/" +
+                                 comment_id,
+                                 data=data)
