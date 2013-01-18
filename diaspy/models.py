@@ -1,9 +1,30 @@
 import requests
+
+
 class Post:
+    """This class represents a post.
+
+    .. note::
+        Remember that you need to have access to the post.
+
+    :params post_id: id or guid of the post
+    :type post_id: str
+    :params client: client object used to authenticate
+    :type client: Client
+
+    .. note::
+        The login function of the client should be called,
+        before calling any of the post functions.
+
+    """
 
     def __init__(self, post_id, client):
+
         self._client = client
-        r = self._client.session.get(self._client.pod + '/posts/' + post_id + '.json')
+        r = self._client.session.get(self._client.pod +
+                                     '/posts/' +
+                                     post_id +
+                                     '.json')
         if r.status_code == 200:
             self.data = r.json()
         else:
@@ -33,10 +54,11 @@ class Post:
 
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete(self._client.pod + '/posts/' + 
+        r = self._client.session.delete(self._client.pod + '/posts/' +
                                         str(self.data['id']) +
                                         '/likes/' +
-                                        str(self.data['interactions']['likes'][0]['id']),
+                                        str(self.data['interactions']
+                                            ['likes'][0]['id']),
                                         data=data)
 
     def reshare(self):
@@ -66,10 +88,14 @@ class Post:
         data = {'text': text,
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post(self._client.pod + '/posts/' + str(self.data['id']) + '/comments', data=data)
+        r = self._client.session.post(self._client.pod +
+                                      '/posts/' +
+                                      str(self.data['id']) +
+                                      '/comments',
+                                      data=data)
 
         return r.json()
-    
+
     def rmcomment(self, comment_id):
         """This function removes a comment from a post
 
@@ -82,8 +108,8 @@ class Post:
 
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete(self._client.pod + '/posts/' + 
-                                str(self.data['id']) +
-                                '/comments/' +
-                                comment_id,
-                                data=data)
+        r = self._client.session.delete(self._client.pod + '/posts/' +
+                                        str(self.data['id']) +
+                                        '/comments/' +
+                                        comment_id,
+                                        data=data)

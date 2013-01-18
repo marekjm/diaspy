@@ -11,9 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: diaspy
-    :members:
-
+   modules
 
 Indices and tables
 ==================

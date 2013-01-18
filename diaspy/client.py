@@ -19,10 +19,15 @@ class Client:
         self.session = requests.Session()
 
     def get_token(self):
+        """This function gets a token needed for authentication in most cases
+
+        :returns: string -- token used to authenticate
+
+        """
+
         r = self.session.get(self.pod + "/stream")
         token = self._token_regex.search(r.text).group(1)
         return token
-
 
     def login(self, username, password):
         """This function is used to connect to the pod and log in.
