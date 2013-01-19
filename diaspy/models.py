@@ -7,18 +7,20 @@ class Post:
     .. note::
         Remember that you need to have access to the post.
 
-    :params post_id: id or guid of the post
-    :type post_id: str
-    :params client: client object used to authenticate
-    :type client: Client
-
-    .. note::
-        The login function of the client should be called,
-        before calling any of the post functions.
-
     """
 
     def __init__(self, post_id, client):
+        """
+        :param post_id: id or guid of the post
+        :type post_id: str
+        :param client: client object used to authenticate
+        :type client: client.Client
+
+        .. note::
+            The login function of the client should be called,
+            before calling any of the post functions.
+
+        """
 
         self._client = client
         r = self._client.session.get(self._client.pod +
@@ -40,11 +42,15 @@ class Post:
         data = {'authenticity_token': self._client.get_token()}
 
         r = self._client.session.post(self._client.pod +
-                                      "/posts/" +
+                                      '/posts/' +
                                       str(self.data['id']) +
-                                      "/likes",
+                                      '/likes',
                                       data=data,
                                       headers={'accept': 'application/json'})
+
+        if r.status_code != 201:
+            raise Exception(str(r.status_code) + ': Post could not be liked.')
+
         return r.json()
 
     def rmlike(self):
@@ -61,6 +67,10 @@ class Post:
                                             ['likes'][0]['id']),
                                         data=data)
 
+        if r.status_code != 204:
+            raise Exception(str(r.status_code) +
+                            ': Like could not be removed.')
+
     def reshare(self):
         """This function reshares a post
 
@@ -70,8 +80,13 @@ class Post:
                 'authenticity_token': self._client.get_token()}
 
         r = self._client.session.post(self._client.pod +
-                                      "/reshares",
-                                      data=data)
+                                      '/reshares',
+                                      data=data,
+                                      headers={'accept': 'application/json'})
+
+        if r.status_code != 201:
+            raise Exception(str(r.status_code) +
+                            ': Post could not be reshared.')
 
         return r.json()
 
@@ -92,7 +107,12 @@ class Post:
                                       '/posts/' +
                                       str(self.data['id']) +
                                       '/comments',
-                                      data=data)
+                                      data=data,
+                                      headers={'accept': 'application/json'})
+
+        if r.status_code != 201:
+            raise Exception(str(r.status_code) +
+                            ': Comment could not be posted.')
 
         return r.json()
 
@@ -112,4 +132,9 @@ class Post:
                                         str(self.data['id']) +
                                         '/comments/' +
                                         comment_id,
-                                        data=data)
+                                        data=data,
+                                        headers={'accept': 'application/json'})
+
+        if r.status_code != 204:
+            raise Exception(str(r.status_code) +
+                            ': Comment could not be deleted.')
