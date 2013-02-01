@@ -111,3 +111,20 @@ class Client:
             posts.append(diaspy.models.Post(str(post['id']), self))
 
         return posts
+
+    def get_notifications(self):
+        """This functions returns a list of notifications.
+
+        :returns: list -- list of json formatted notifications
+
+        """
+
+
+        data = {'authenticity_token': self.get_token()}
+        r = self.session.get(self.pod + "/notifications.json")
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        notifications = r.json()
+        return notifications
