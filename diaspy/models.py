@@ -21,11 +21,14 @@ class Post:
             before calling any of the post functions.
 
         """
-
         self._client = client
+        self.post_id = post_id
+
+
+    def fetch_data(self):
         r = self._client.session.get(self._client.pod +
                                      '/posts/' +
-                                     post_id +
+                                     self.post_id +
                                      '.json')
         if r.status_code == 200:
             self.data = r.json()
@@ -43,7 +46,7 @@ class Post:
 
         r = self._client.session.post(self._client.pod +
                                       '/posts/' +
-                                      str(self.data['id']) +
+                                      self.post_id +
                                       '/likes',
                                       data=data,
                                       headers={'accept': 'application/json'})
@@ -60,10 +63,12 @@ class Post:
 
         data = {'authenticity_token': self._client.get_token()}
 
+        post_data = self.fetch_data()
+
         r = self._client.session.delete(self._client.pod + '/posts/' +
-                                        str(self.data['id']) +
+                                        self.post_id +
                                         '/likes/' +
-                                        str(self.data['interactions']
+                                        str(post_data['interactions']
                                             ['likes'][0]['id']),
                                         data=data)
 
@@ -76,7 +81,9 @@ class Post:
 
         """
 
-        data = {'root_guid': self.data['guid'],
+        post_data = self.fetch_data()
+
+        data = {'root_guid': post_data['guid'],
                 'authenticity_token': self._client.get_token()}
 
         r = self._client.session.post(self._client.pod +
@@ -105,7 +112,7 @@ class Post:
 
         r = self._client.session.post(self._client.pod +
                                       '/posts/' +
-                                      str(self.data['id']) +
+                                      self.post_id +
                                       '/comments',
                                       data=data,
                                       headers={'accept': 'application/json'})
@@ -129,7 +136,7 @@ class Post:
         data = {'authenticity_token': self._client.get_token()}
 
         r = self._client.session.delete(self._client.pod + '/posts/' +
-                                        str(self.data['id']) +
+                                        self.post_id +
                                         '/comments/' +
                                         comment_id,
                                         data=data,
