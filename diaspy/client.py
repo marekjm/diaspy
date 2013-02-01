@@ -128,3 +128,27 @@ class Client:
 
         notifications = r.json()
         return notifications
+
+
+    def get_mentions(self):
+        """This functions returns a list of posts the current user is being mentioned in.
+
+        :returns: list -- list of Post objects
+
+        """
+
+
+        data = {'authenticity_token': self.get_token()}
+        r = self.session.get(self.pod + "/mentions.json")
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        mentions = r.json()
+
+        posts = []
+
+        for post in mentions:
+            posts.append(diaspy.models.Post(str(post['id']), self))
+
+        return posts
