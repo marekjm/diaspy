@@ -25,7 +25,7 @@ class Post:
         self.post_id = post_id
 
 
-    def fetch_data(self):
+    def get_data(self):
         r = self._client.session.get(self._client.pod +
                                      '/posts/' +
                                      self.post_id +
@@ -63,7 +63,7 @@ class Post:
 
         data = {'authenticity_token': self._client.get_token()}
 
-        post_data = self.fetch_data()
+        post_data = self.get_data()
 
         r = self._client.session.delete(self._client.pod + '/posts/' +
                                         self.post_id +
@@ -81,7 +81,7 @@ class Post:
 
         """
 
-        post_data = self.fetch_data()
+        post_data = self.get_data()
 
         data = {'root_guid': post_data['guid'],
                 'authenticity_token': self._client.get_token()}
