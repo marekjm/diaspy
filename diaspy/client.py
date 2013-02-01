@@ -1,6 +1,7 @@
 import requests
 import re
 import json
+import diaspy.models
 
 
 class Client:
@@ -88,3 +89,25 @@ class Client:
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
+
+    def get_stream(self):
+        """This functions returns a list of posts found in the stream.
+
+        :returns: list -- list of Post objects.
+
+        """
+
+        data = {'authenticity_token': self.get_token()}
+        r = self.session.get(self.pod + "/stream.json")
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        stream = r.json()
+
+        posts = []
+
+        for post in stream:
+            posts.append(diaspy.models.Post(str(post['id']), self))
+
+        return posts

@@ -31,7 +31,7 @@ class Post:
                                      self.post_id +
                                      '.json')
         if r.status_code == 200:
-            self.data = r.json()
+            return r.json()
         else:
             raise Exception('wrong status code: ' + str(r.status_code))
 
