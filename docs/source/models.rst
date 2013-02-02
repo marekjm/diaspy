@@ -1,7 +1,7 @@
 models Module
 =============
 
-.. automodule:: models
+.. automodule:: diaspy.models
     :members:
     :undoc-members:
     :show-inheritance:

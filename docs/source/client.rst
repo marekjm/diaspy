@@ -1,7 +1,7 @@
 client Module
 =============
 
-.. automodule:: client
+.. automodule:: diaspy.client
     :members:
     :undoc-members:
     :show-inheritance:
