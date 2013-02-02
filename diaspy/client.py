@@ -1,7 +1,7 @@
 import requests
 import re
 import json
-import models
+import diaspy.models
 
 
 class Client:
@@ -66,6 +66,8 @@ class Client:
         :param aspect_id: Aspect id to send post to.
         :type aspect_id: str
 
+        :returns: diaspy.models.Post -- the Post which has been created
+
         """
         data = {'aspect_ids': aspect_id,
                 'status_message[text]': text,
@@ -77,7 +79,7 @@ class Client:
         if r.status_code != 201:
             raise Exception(str(r.status_code) + ': Post could not be posted.')
 
-        return r.json()
+        return diaspy.models.Post(str(r.json()['id']), self)
 
     def get_user_info(self):
         """This function returns the current user's attributes.

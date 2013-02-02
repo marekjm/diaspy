@@ -1,2 +1,2 @@
-import client
-import models
+import diaspy.client
+import diaspy.models
