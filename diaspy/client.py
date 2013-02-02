@@ -2,16 +2,6 @@ import requests
 import re
 import json
 import diaspy.models
-from requests.adapters import HTTPAdapter
-from requests import Session
-import logging
-
-class Interceptor(HTTPAdapter):
-    def send(self, request, stream=False, timeout=None, verify=True,
-             cert=None, proxies=None):
-        print('{0.method} {0.url} {0.body}'.format(request))
-        return super(Interceptor, self).send(request, stream, timeout, verify,
-                                             cert, proxies)
 
 class Client:
     """This is the client class to connect to diaspora.
@@ -31,7 +21,6 @@ class Client:
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
-        self.session.mount('https://', Interceptor())
         self._login(username, password)
 
     def get_token(self):
