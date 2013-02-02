@@ -2,7 +2,16 @@ import requests
 import re
 import json
 import diaspy.models
+from requests.adapters import HTTPAdapter
+from requests import Session
+import logging
 
+class Interceptor(HTTPAdapter):
+    def send(self, request, stream=False, timeout=None, verify=True,
+             cert=None, proxies=None):
+        print('{0.method} {0.url} {0.body}'.format(request))
+        return super(Interceptor, self).send(request, stream, timeout, verify,
+                                             cert, proxies)
 
 class Client:
     """This is the client class to connect to diaspora.
@@ -22,6 +31,7 @@ class Client:
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
+        self.session.mount('https://', Interceptor())
         self._login(username, password)
 
     def get_token(self):
@@ -58,7 +68,7 @@ class Client:
         if r.status_code != 201:
             raise Exception(str(r.status_code) + ': Login failed.')
 
-    def post(self, text, aspect_id='public'):
+    def post(self, text, aspect_id='public', photos=None):
         """This function sends a post to an aspect
 
         :param text: Text to post.
@@ -70,12 +80,16 @@ class Client:
 
         """
         data = {'aspect_ids': aspect_id,
-                'status_message[text]': text,
-                'authenticity_token': self.get_token()}
+                'status_message': {'text': text}}
+
+        if photos:
+            data['photos'] = photos
         r = self.session.post(self.pod +
                               "/status_messages",
-                              data=data,
-                              headers={'accept': 'application/json'})
+                              data=json.dumps(data),
+                              headers={'content-type': 'application/json',
+                                       'accept': 'application/json',
+                                       'x-csrf-token': self.get_token()})
         if r.status_code != 201:
             raise Exception(str(r.status_code) + ': Post could not be posted.')
 
@@ -87,10 +101,31 @@ class Client:
         :returns: dict -- json formatted user info.
 
         """
-        r = self.session.get(self.pod + '/stream')
+        r = self.session.get(self.pod + '/bookmarklet')
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
+
+    def post_picture(self, filename):
+        aspects = self.get_user_info()['aspects']
+        params = {}
+        params['photo[pending]'] = 'true'
+        params['set_profile_image'] = ''
+        params['qqfile'] = filename
+        for i, aspect in enumerate(aspects):
+            params['photo[aspect_ids][%d]' % (i)] = aspect['id']
+
+        data = open(filename, 'rb')
+
+        headers = {'content-type': 'application/octet-stream',
+                   'x-csrf-token': self.get_token(),
+                   'x-file-name': filename}
+
+        r = self.session.post(self.pod + '/photos', params=params, data=data, headers=headers)
+
+        return r
+
+
 
     def get_stream(self):
         """This functions returns a list of posts found in the stream.
