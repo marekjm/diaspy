@@ -178,3 +178,46 @@ class Client:
             posts.append(diaspy.models.Post(str(post['id']), self))
 
         return posts
+
+    def add_user_to_aspect(self, user_id, aspect_id):
+        """ this function adds a user to an aspect.
+
+        :param user_id: User ID
+        :type user_id: str
+        :param aspect_id: Aspect ID
+        :type aspect_id: str
+
+        """
+
+        data = {'authenticity_token': self.get_token(),
+                'aspect_id': aspect_id,
+                'person_id': user_id}
+
+        r = self.session.post(self.pod + '/aspect_memberships.json',
+                              data=data)
+
+        if r.status_code != 201:
+            raise Exception('wrong status code: ' + str(r.status_code))
+        return r.json()
+
+    def remove_user_from_aspect(self, user_id, aspect_id):
+        """ this function removes a user from an aspect.
+
+        :param user_id: User ID
+        :type user_id: str
+        :param aspect_id: Aspect ID
+        :type aspect_id: str
+
+        """
+
+        data = {'authenticity_token': self.get_token(),
+                'aspect_id': aspect_id,
+                'person_id': user_id}
+
+        r = self.session.delete(self.pod + '/aspect_memberships/42.json',
+                                data=data)
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        return r.json()

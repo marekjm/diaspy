@@ -157,5 +157,3 @@ class Post:
                                         self.post_id,
                                         data=data,
                                         headers={'accept': 'application/json'})
-
-        return r
