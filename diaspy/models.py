@@ -56,7 +56,7 @@ class Post:
 
         return r.json()
 
-    def rmlike(self):
+    def delete_like(self):
         """This function removes a like from a post
 
         """
@@ -123,7 +123,7 @@ class Post:
 
         return r.json()
 
-    def rmcomment(self, comment_id):
+    def delete_comment(self, comment_id):
         """This function removes a comment from a post
 
         :param post_id: id of the post to remove the like from.
@@ -145,3 +145,17 @@ class Post:
         if r.status_code != 204:
             raise Exception(str(r.status_code) +
                             ': Comment could not be deleted.')
+
+    def delete(self):
+        """ This function deletes this post
+
+        """
+
+        data = {'authenticity_token': self._client.get_token()}
+
+        r = self._client.session.delete(self._client.pod + '/posts/' +
+                                        self.post_id,
+                                        data=data,
+                                        headers={'accept': 'application/json'})
+
+        return r
