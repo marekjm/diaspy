@@ -221,3 +221,29 @@ class Client:
             raise Exception('wrong status code: ' + str(r.status_code))
 
         return r.json()
+
+    def add_aspect(self, aspect_name, visible=0):
+        """ This function adds a new aspect.
+        """
+
+        data = {'authenticity_token': self.get_token(),
+                'aspect[name]': aspect_name,
+                'aspect[contacts_visible]': visible}
+
+        r = self.session.post(self.pod + '/aspects',
+                              data=data)
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+    def remove_aspect(self, aspect_id):
+        """ This function adds a new aspect.
+        """
+
+        data = {'authenticity_token': self.get_token()}
+
+        r = self.session.delete(self.pod + '/aspects/' + aspect_id,
+                              data=data}
+
+        if r.status_code != 404:
+            raise Exception('wrong status code: ' + str(r.status_code))
