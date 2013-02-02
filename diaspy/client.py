@@ -1,7 +1,7 @@
 import requests
 import re
 import json
-import diaspy.models
+import models
 
 
 class Client:
