@@ -243,7 +243,7 @@ class Client:
         data = {'authenticity_token': self.get_token()}
 
         r = self.session.delete(self.pod + '/aspects/' + aspect_id,
-                              data=data}
+                                data=data )
 
         if r.status_code != 404:
             raise Exception('wrong status code: ' + str(r.status_code))
