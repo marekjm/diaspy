@@ -41,13 +41,12 @@ class Client:
         """
         self._username = username
         self._password = password
-        r = self.session.get(self.pod + '/users/sign_in')
-        token = self._token_regex.search(r.text).group(1)
+        #r = self.session.get(self.pod + '/users/sign_in')
+        #token = self._token_regex.search(r.text).group(1)
 
         data = {'user[username]': self._username,
                 'user[password]': self._password,
-                'authenticity_token': token,
-                'commit': ''}
+                'authenticity_token': self.get_token()}
 
         r = self.session.post(self.pod +
                               '/users/sign_in',
