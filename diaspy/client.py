@@ -3,6 +3,7 @@ import re
 import json
 import diaspy.models
 
+
 class Client:
     """This is the client class to connect to diaspora.
 
@@ -109,11 +110,10 @@ class Client:
                    'x-csrf-token': self.get_token(),
                    'x-file-name': filename}
 
-        r = self.session.post(self.pod + '/photos', params=params, data=data, headers=headers)
+        r = self.session.post(self.pod + '/photos',
+                              params=params, data=data, headers=headers)
 
         return r
-
-
 
     def get_stream(self):
         """This functions returns a list of posts found in the stream.
@@ -144,7 +144,6 @@ class Client:
 
         """
 
-
         data = {'authenticity_token': self.get_token()}
         r = self.session.get(self.pod + "/notifications.json")
 
@@ -154,14 +153,13 @@ class Client:
         notifications = r.json()
         return notifications
 
-
     def get_mentions(self):
-        """This functions returns a list of posts the current user is being mentioned in.
+        """This functions returns a list of
+        posts the current user is being mentioned in.
 
         :returns: list -- list of Post objects
 
         """
-
 
         data = {'authenticity_token': self.get_token()}
         r = self.session.get(self.pod + "/mentions.json")
@@ -174,6 +172,30 @@ class Client:
         posts = []
 
         for post in mentions:
+            posts.append(diaspy.models.Post(str(post['id']), self))
+
+        return posts
+
+    def get_tag(self, tag):
+        """This functions returns a list of posts containing the tag.
+        :param tag: Name of the tag
+        :type tag: str
+
+        :returns: list -- list of Post objects
+
+        """
+
+        data = {'authenticity_token': self.get_token()}
+        r = self.session.get(self.pod + '/tags/' + tag + '.json')
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        tagged_posts = r.json()
+
+        posts = []
+
+        for post in tagged_posts:
             posts.append(diaspy.models.Post(str(post['id']), self))
 
         return posts
@@ -242,7 +264,7 @@ class Client:
         data = {'authenticity_token': self.get_token()}
 
         r = self.session.delete(self.pod + '/aspects/' + aspect_id,
-                                data=data )
+                                data=data)
 
         if r.status_code != 404:
             raise Exception('wrong status code: ' + str(r.status_code))

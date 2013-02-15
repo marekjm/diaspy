@@ -24,7 +24,6 @@ class Post:
         self._client = client
         self.post_id = post_id
 
-
     def get_data(self):
         r = self._client.session.get(self._client.pod +
                                      '/posts/' +
