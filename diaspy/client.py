@@ -268,3 +268,54 @@ class Client:
 
         if r.status_code != 404:
             raise Exception('wrong status code: ' + str(r.status_code))
+
+
+    def get_mailbox(self):
+        """This functions returns a list of messages found in the conversation.
+
+        :returns: list -- list of Conversation objects.
+
+        """
+
+        data = {'authenticity_token': self.get_token()}
+        r = self.session.get(self.pod + "/conversations.json")
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: ' + str(r.status_code))
+
+        mailbox = r.json()
+
+        conversations = []
+
+        for conversation in mailbox:
+            conversations.append(diaspy.conversations.Conversation(str(conversation['conversation']['id']), self))
+
+        return conversations
+
+    def new_conversation(self, contacts, subject, text):
+        """ start a new conversation
+
+        :param contacts: recipients ids, no guids, comma sperated.
+        :type contacts: str
+        :param subject: subject of the message.
+        :type subject: str
+        :param text: text of the message.
+        :type text: str
+
+        """
+
+        data = {'contact_ids': contacts,
+                'conversation[subject]': subject,
+                'conversation[text]': text,
+                'utf8': '&#x2713;',
+                'authenticity_token': self.get_token()}
+
+        r = self.session.post(self.pod +
+                                      '/conversations/',
+                                      data=data,
+                                      headers={'accept': 'application/json'})
+        if r.status_code != 200:
+            raise Exception(str(r.status_code) +
+                            ': Conversation could not be started.')
+
+        return r.json()
