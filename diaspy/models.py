@@ -99,8 +99,6 @@ class Post:
     def comment(self, text):
         """This function comments on a post
 
-        :param post_id: id of the post to comment on.
-        :type post_id: str
         :param text: text to comment.
         :type text: str
 
@@ -125,10 +123,8 @@ class Post:
     def delete_comment(self, comment_id):
         """This function removes a comment from a post
 
-        :param post_id: id of the post to remove the like from.
-        :type post_id: str
-        :param like_id: id of the like to remove.
-        :type like_id: str
+        :param comment_id: id of the comment to remove.
+        :type comment_id: str
 
         """
 
