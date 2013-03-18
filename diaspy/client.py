@@ -8,7 +8,6 @@ class Client:
     """This is the client class to connect to diaspora.
 
     """
-
     def __init__(self, pod, username, password):
         """
         :param pod: The complete url of the diaspora pod to use.
@@ -22,8 +21,8 @@ class Client:
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
-        self._setlogindata(self, username, password)
-        self._login()
+        self._setlogindata(username, password)
+        #   self._login()
 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
@@ -31,21 +30,19 @@ class Client:
         :returns: string -- token used to authenticate
 
         """
-
         r = self.session.get(self.pod + '/stream')
         token = self._token_regex.search(r.text).group(1)
         return token
 
     def _setlogindata(self, username, password):
         """This function is used to set data for login. 
+        
         .. note::
             It should be called before _login() function.
         """
-        self._username = username
-        self._password = password
         #r = self.session.get(self.pod + '/users/sign_in')
         #token = self._token_regex.search(r.text).group(1)
-
+        self._username, self._password = username, password
         self._login_data =  {
                             'user[username]': self._username,
                             'user[password]': self._password,
@@ -63,7 +60,7 @@ class Client:
                               headers={'accept': 'application/json'})
         if r.status_code != 201:
             raise Exception(str(r.status_code) + ': Login failed.')
-
+    
     def post(self, text, aspect_id='public', photos=None):
         """This function sends a post to an aspect
 
