@@ -7,7 +7,6 @@ class Conversation:
         Remember that you need to have access to the conversation.
 
     """
-
     def __init__(self, conv_id, client):
         """
         :param conv_id: id of the post and not the guid!
@@ -26,14 +25,11 @@ class Conversation:
     def get_data(self):
         """ returns the plain json data representing conversation.
         """
-        r = self._client.session.get(self._client.pod +
-                                     '/conversations/' +
-                                     self.conv_id +
-                                     '.json')
+        r = self._client.session.get('{0}/conversations/{1}.json'.format(self._client.pod, self.conv_id))
         if r.status_code == 200:
             return r.json()['conversation']
         else:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
     def answer(self, text):
         """ answer that conversation
@@ -47,15 +43,11 @@ class Conversation:
                 'utf8': '&#x2713;',
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post(self._client.pod +
-                                      '/conversations/' +
-                                      self.conv_id +
-                                      '/messages',
+        r = self._client.session.post('{0}/conversations/{1}/messages'.format(self._client.pod, self.conv_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
         if r.status_code != 200:
-            raise Exception(str(r.status_code) +
-                            ': Answer could not be posted.')
+            raise Exception('{0}: Answer could not be posted.'.format(r.status_code))
 
         return r.json()
 
@@ -65,15 +57,12 @@ class Conversation:
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete(self._client.pod + '/conversations/' +
-                                        self.conv_id +
-                                        '/visibility/',
+        r = self._client.session.delete('{0}/conversations/{1}/visibility/'.format(self._client.pod, self.conv_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
 
         if r.status_code != 404:
-            raise Exception(str(r.status_code) +
-                            ': Conversation could not be deleted.')
+            raise Exception('{0}: Conversation could not be deleted.'.format(r.status_code))
 
     def get_subject(self):
         """ return the subject of this conversation
