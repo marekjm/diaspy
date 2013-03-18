@@ -5,7 +5,7 @@ import diaspy.models
 
 
 class Client:
-    """This is the client class to connect to diaspora.
+    """This is the client class to connect to Diaspora.
 
     """
     def __init__(self, pod, username, password):
@@ -22,7 +22,6 @@ class Client:
         self.pod = pod
         self.session = requests.Session()
         self._setlogindata(username, password)
-        #   self._login()
 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
@@ -30,7 +29,7 @@ class Client:
         :returns: string -- token used to authenticate
 
         """
-        r = self.session.get(self.pod + '/stream')
+        r = self.session.get('{0}/stream'.format(self.pod))
         token = self._token_regex.search(r.text).group(1)
         return token
 
@@ -51,15 +50,12 @@ class Client:
 
     def _login(self):
         """This function is used to connect to the pod and log in.
-        .. note::
-           This function shouldn't be called manually.
         """
-        r = self.session.post(self.pod +
-                              '/users/sign_in',
-                              data=data,
+        r = self.session.post('{0}/users/sign_in'.format(self.pod),
+                              data=self._login_data,
                               headers={'accept': 'application/json'})
-        if r.status_code != 201:
-            raise Exception(str(r.status_code) + ': Login failed.')
+        
+        if r.status_code != 201: raise Exception('{0}: Login failed.'.format(r.status_code))
     
     def post(self, text, aspect_id='public', photos=None):
         """This function sends a post to an aspect
@@ -77,14 +73,12 @@ class Client:
 
         if photos:
             data['photos'] = photos
-        r = self.session.post(self.pod +
-                              "/status_messages",
+        r = self.session.post('{0}/status_messages'.format(self.pod),
                               data=json.dumps(data),
                               headers={'content-type': 'application/json',
                                        'accept': 'application/json',
                                        'x-csrf-token': self.get_token()})
-        if r.status_code != 201:
-            raise Exception(str(r.status_code) + ': Post could not be posted.')
+        if r.status_code != 201: raise Exception('{0}: Post could not be posted.'.format(r.status_code))
 
         return diaspy.models.Post(str(r.json()['id']), self)
 
@@ -94,7 +88,7 @@ class Client:
         :returns: dict -- json formatted user info.
 
         """
-        r = self.session.get(self.pod + '/bookmarklet')
+        r = self.session.get('{0}/bookmarklet'.format(self.pod))
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
@@ -114,7 +108,7 @@ class Client:
                    'x-csrf-token': self.get_token(),
                    'x-file-name': filename}
 
-        r = self.session.post(self.pod + '/photos',
+        r = self.session.post('{0}/photos'.format(self.pod),
                               params=params, data=data, headers=headers)
 
         return r
@@ -127,16 +121,16 @@ class Client:
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get(self.pod + "/stream.json")
+        r = self.session.get('{0}/stream.json'.format(self.pod))
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         stream = r.json()
 
         posts = []
 
-        for post in stream:
+        for post in stream: 
             posts.append(diaspy.models.Post(str(post['id']), self))
 
         return posts
@@ -149,10 +143,10 @@ class Client:
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get(self.pod + "/notifications.json")
+        r = self.session.get('{0}/notifications.json'.format(self.pod))
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         notifications = r.json()
         return notifications
@@ -166,10 +160,10 @@ class Client:
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get(self.pod + "/mentions.json")
+        r = self.session.get('/mentions.json'.format(self.pod))
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mentions = r.json()
 
@@ -190,10 +184,10 @@ class Client:
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get(self.pod + '/tags/' + tag + '.json')
+        r = self.session.get('{0}/tags/{1}.json'.format(self.pod, tag))
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         tagged_posts = r.json()
 
@@ -218,11 +212,11 @@ class Client:
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self.session.post(self.pod + '/aspect_memberships.json',
+        r = self.session.post('{0}/aspect_memberships.json'.format(self.pod),
                               data=data)
 
         if r.status_code != 201:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
         return r.json()
 
     def remove_user_from_aspect(self, user_id, aspect_id):
@@ -239,11 +233,11 @@ class Client:
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self.session.delete(self.pod + '/aspect_memberships/42.json',
+        r = self.session.delete('{0}/aspect_memberships/42.json'.format(self.pod),
                                 data=data)
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         return r.json()
 
@@ -255,11 +249,11 @@ class Client:
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
-        r = self.session.post(self.pod + '/aspects',
+        r = self.session.post('{0}/aspects'.format(self.pod),
                               data=data)
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
@@ -267,11 +261,11 @@ class Client:
 
         data = {'authenticity_token': self.get_token()}
 
-        r = self.session.delete(self.pod + '/aspects/' + aspect_id,
+        r = self.session.delete('{0}/aspects/{1}'.format(self.pod, aspect_id),
                                 data=data)
 
         if r.status_code != 404:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
@@ -281,10 +275,10 @@ class Client:
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get(self.pod + "/conversations.json")
+        r = self.session.get('{0}/conversations.json'.format(self.pod))
 
         if r.status_code != 200:
-            raise Exception('wrong status code: ' + str(r.status_code))
+            raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
 
@@ -313,12 +307,10 @@ class Client:
                 'utf8': '&#x2713;',
                 'authenticity_token': self.get_token()}
 
-        r = self.session.post(self.pod +
-                                      '/conversations/',
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+        r = self.session.post('{0}/conversations/'.format(self.pod),
+                              data=data,
+                              headers={'accept': 'application/json'})
         if r.status_code != 200:
-            raise Exception(str(r.status_code) +
-                            ': Conversation could not be started.')
+            raise Exception('{0}: Conversation could not be started.'.format(r.status_code))
 
         return r.json()

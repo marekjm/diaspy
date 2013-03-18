@@ -11,16 +11,13 @@ import diaspy
 
 ####    test suite configuration variables: can be adjusted to your liking
 #   pod used by tests (has to be valid)
-__pod__ = "http://pod.orkz.net/"
+__pod__ = "http://pod.orkz.net"
 
 
 class ClientTests(unittest.TestCase):
     def testInit(self):
         """
-        This test checks correct initialization of Client() instance.
-        
-        .. note::
-            This does not includes setting login data.
+        This test checks initialization of Client() instance.
         """
         client = diaspy.Client(pod=__pod__, username='testuser', password='testpassword')
         self.assertEqual(__pod__, client.pod)
