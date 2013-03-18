@@ -6,6 +6,7 @@ class Post:
 
     .. note::
         Remember that you need to have access to the post.
+        Remember that you also need to be logged in.
 
     """
 
@@ -35,7 +36,8 @@ class Post:
             raise Exception('wrong status code: ' + str(r.status_code))
 
     def like(self):
-        """This function likes a post
+        """This function likes a post. 
+        It abstracts the 'Like' functionality.
 
         :returns: dict -- json formatted like object.
 

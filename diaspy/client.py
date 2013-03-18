@@ -269,7 +269,6 @@ class Client:
         if r.status_code != 404:
             raise Exception('wrong status code: ' + str(r.status_code))
 
-
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
 

@@ -10,8 +10,8 @@ class Conversation:
 
     def __init__(self, conv_id, client):
         """
-        :param conversation_id: id of the post and not the guid!
-        :type conversation_id: str
+        :param conv_id: id of the post and not the guid!
+        :type conv_id: str
         :param client: client object used to authenticate
         :type client: client.Client
 
@@ -24,7 +24,7 @@ class Conversation:
         self.conv_id = conv_id
 
     def get_data(self):
-        """ returns the plain json data
+        """ returns the plain json data representing conversation.
         """
         r = self._client.session.get(self._client.pod +
                                      '/conversations/' +
