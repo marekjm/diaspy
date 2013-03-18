@@ -22,7 +22,8 @@ class Client:
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
-        self._login(username, password)
+        self._setlogindata(self, username, password)
+        self._login()
 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
@@ -35,25 +36,31 @@ class Client:
         token = self._token_regex.search(r.text).group(1)
         return token
 
-    def _login(self, username, password):
-        """This function is used to connect to the pod and log in.
+    def _setlogindata(self, username, password):
+        """This function is used to set data for login. 
         .. note::
-           This function shouldn't be called manually.
+            It should be called before _login() function.
         """
         self._username = username
         self._password = password
         #r = self.session.get(self.pod + '/users/sign_in')
         #token = self._token_regex.search(r.text).group(1)
 
-        data = {'user[username]': self._username,
-                'user[password]': self._password,
-                'authenticity_token': self.get_token()}
+        self._login_data =  {
+                            'user[username]': self._username,
+                            'user[password]': self._password,
+                            'authenticity_token': self.get_token(),
+                            }
 
+    def _login(self):
+        """This function is used to connect to the pod and log in.
+        .. note::
+           This function shouldn't be called manually.
+        """
         r = self.session.post(self.pod +
                               '/users/sign_in',
                               data=data,
                               headers={'accept': 'application/json'})
-
         if r.status_code != 201:
             raise Exception(str(r.status_code) + ': Login failed.')
 
