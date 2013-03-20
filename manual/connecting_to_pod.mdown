@@ -1,5 +1,4 @@
-#### Connecting to D* pod via `diaspy`
-###### [Index](index.mdown)
+#### Connecting to D\* pod via `diaspy`
 ----
 
 First thing you have to do is to create new instace of `Client()`. 
@@ -9,4 +8,4 @@ Then, if no errors are raised, you can `_login()` to the pod with given username
     client._login()
 
 
-If everything worked you are now connected to D* pod at given URL.
+If everything worked you are now connected to D\* pod at given URL.
