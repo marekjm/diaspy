@@ -19,7 +19,7 @@ class ClientTests(unittest.TestCase):
         """
         This test checks initialization of Client() instance.
         """
-        client = diaspy.Client(pod=__pod__, username='testuser', password='testpassword')
+        client = diaspy.client.Client(pod=__pod__, username='testuser', password='testpassword')
         self.assertEqual(__pod__, client.pod)
         self.assertEqual('testuser', client._username)
         self.assertEqual('testpassword', client._password)
