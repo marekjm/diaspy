@@ -21,6 +21,7 @@ class Client:
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
+        self._post_data = {}
         self._setlogindata(username, password)
 
     def get_token(self):
@@ -56,7 +57,29 @@ class Client:
                               headers={'accept': 'application/json'})
         
         if r.status_code != 201: raise Exception('{0}: Login failed.'.format(r.status_code))
-    
+
+    def _set_post_data(self, text, aspect_id, photos):
+        """This method prepares data for post.
+
+        :param text: Text to post.
+        :type text: str
+        :param aspect_id: Aspect id to send post to.
+        :type aspect_id: str
+        """
+        data = {'aspect_ids': aspect_id,
+                'status_message': {'text': text}}
+        if photos: data['photos'] = photos
+        self._post_data = data
+
+    def _send_post(self):
+        """This method sends a post to an aspect. 
+        It uses `self._post_data`.
+
+        .. note::
+            _set_post_data() must be called before.
+        """
+
+
     def post(self, text, aspect_id='public', photos=None):
         """This function sends a post to an aspect
 
@@ -68,13 +91,9 @@ class Client:
         :returns: diaspy.models.Post -- the Post which has been created
 
         """
-        data = {'aspect_ids': aspect_id,
-                'status_message': {'text': text}}
-
-        if photos:
-            data['photos'] = photos
+        self._set_post_data(text, aspect_id, photos)
         r = self.session.post('{0}/status_messages'.format(self.pod),
-                              data=json.dumps(data),
+                              data=json.dumps(self._post_data),
                               headers={'content-type': 'application/json',
                                        'accept': 'application/json',
                                        'x-csrf-token': self.get_token()})
