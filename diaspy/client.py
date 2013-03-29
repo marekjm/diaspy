@@ -34,6 +34,7 @@ class Client:
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
         """
+        data = 
         return self.session.get('{0}/{1}'.format(self.pod, string))
 
     def get_token(self):
@@ -180,16 +181,13 @@ class Client:
         :returns: list -- list of Post objects
         """
         data = {'authenticity_token': self.get_token()}
-        #r = self.session.get('/mentions.json'.format(self.pod))
         r = self._sessionget('mentions.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mentions = r.json()
-        posts = [ diaspy.models.Post(str(post['id']), self) for post in mentions ]
-
-        return posts
+        return [ diaspy.models.Post(str(post['id']), self) for post in mentions ]
 
     def get_tag(self, tag):
         """This functions returns a list of posts containing the tag.
@@ -197,19 +195,15 @@ class Client:
         :type tag: str
 
         :returns: list -- list of Post objects
-
         """
-
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get('{0}/tags/{1}.json'.format(self.pod, tag))
+        r = self._sessionget('tags/{0}.json'.format(tag))
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         tagged_posts = r.json()
-        posts = [ diaspy.models.Post(str(post['id']), self) for post in tagged_posts ]
-
-        return posts
+        return [ diaspy.models.Post(str(post['id']), self) for post in tagged_posts ]
 
     def add_user_to_aspect(self, user_id, aspect_id):
         """ this function adds a user to an aspect.
