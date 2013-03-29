@@ -114,9 +114,7 @@ class Client:
         """This function returns the current user's attributes.
 
         :returns: dict -- json formatted user info.
-
         """
-        #r = self.session.get('{0}/bookmarklet'.format(self.pod))
         r = self._sessionget('bookmarklet')
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
@@ -152,7 +150,6 @@ class Client:
 
         :returns: list -- list of Post objects.
         """
-
         data = {'authenticity_token': self.get_token()}
         r = self._sessionget('stream.json')
 
@@ -181,11 +178,10 @@ class Client:
         posts the current user is being mentioned in.
 
         :returns: list -- list of Post objects
-
         """
-
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get('/mentions.json'.format(self.pod))
+        #r = self.session.get('/mentions.json'.format(self.pod))
+        r = self._sessionget('mentions.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
