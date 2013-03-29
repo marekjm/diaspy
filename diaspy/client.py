@@ -24,13 +24,24 @@ class Client:
         self._setlogindata(username, password)
         self._login()
 
+    def _sessionget(self, string):
+        """This method gets data from session. 
+        Performs additional checks if needed. 
+
+        Example:
+            To obtain 'foo' from pod one should call `_sessionget('foo')`. 
+
+        :param string: URL to get without the pod's URL and slash eg. 'stream'.
+        :type string: str
+        """
+        return self.session.get('{0}/{1}'.format(self.pod, string))
+
     def get_token(self):
         """This function gets a token needed for authentication in most cases
 
         :returns: string -- token used to authenticate
-
         """
-        r = self.session.get('{0}/stream'.format(self.pod))
+        r = self._sessionget('stream')
         token = self._token_regex.search(r.text).group(1)
         return token
 
@@ -40,8 +51,6 @@ class Client:
         .. note::
             It should be called before _login() function.
         """
-        #r = self.session.get(self.pod + '/users/sign_in')
-        #token = self._token_regex.search(r.text).group(1)
         self._username, self._password = username, password
         self._login_data =  {
                             'user[username]': self._username,

@@ -31,12 +31,6 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(client._login_data['user[password]'], 'testpassword')
         self.assertEqual(client._login_data['authenticity_token'], client.get_token())
 
-    def testPreparationOfPostData(self):
-        """This test checks correctness of data set for posting.
-        """
-
-
-    
 if __name__ == '__main__': 
     __passwd__ = getpass.getpass(prompt='Password used for testing: ')
     if __passwd__ == '': __passwd__ = 'testpassword'
