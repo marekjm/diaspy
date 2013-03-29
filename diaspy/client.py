@@ -116,7 +116,8 @@ class Client:
         :returns: dict -- json formatted user info.
 
         """
-        r = self.session.get('{0}/bookmarklet'.format(self.pod))
+        #r = self.session.get('{0}/bookmarklet'.format(self.pod))
+        r = self._sessionget('bookmarklet')
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
