@@ -16,12 +16,13 @@ class Client:
         :type username: str
         :param password: The password used to log in.
         :type password: str
-
         """
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self.pod = pod
         self.session = requests.Session()
+        self._post_data = {}
         self._setlogindata(username, password)
+        self._login()
 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
@@ -56,7 +57,35 @@ class Client:
                               headers={'accept': 'application/json'})
         
         if r.status_code != 201: raise Exception('{0}: Login failed.'.format(r.status_code))
-    
+
+    def _setpostdata(self, text, aspect_id, photos):
+        """This function prepares data for posting.
+ 
+        :param text: Text to post.
+        :type text: str
+        :param aspect_id: Aspect id to send post to.
+        :type aspect_id: str
+        """
+        data = {}
+        data['aspect_id'] = aspect_id
+        data['status_message'] = {'text': text}
+        if photos: data['photos'] = photos
+        self._post_data = data
+
+    def _post(self):
+        """Sends post to an aspect.
+
+        :returns: diaspy.models.Post -- the Post which has been created
+        """
+        r = self.session.post('{0}/status_messages'.format(self.pod),
+                              data=json.dumps(self._post_data),
+                              headers={'content-type': 'application/json',
+                                       'accept': 'application/json',
+                                       'x-csrf-token': self.get_token()})
+        if r.status_code != 201: raise Exception('{0}: Post could not be posted.'.format(r.status_code))
+
+        return diaspy.models.Post(str(r.json()['id']), self)
+
     def post(self, text, aspect_id='public', photos=None):
         """This function sends a post to an aspect
 
@@ -66,21 +95,11 @@ class Client:
         :type aspect_id: str
 
         :returns: diaspy.models.Post -- the Post which has been created
-
         """
-        data = {'aspect_ids': aspect_id,
-                'status_message': {'text': text}}
-
-        if photos:
-            data['photos'] = photos
-        r = self.session.post('{0}/status_messages'.format(self.pod),
-                              data=json.dumps(data),
-                              headers={'content-type': 'application/json',
-                                       'accept': 'application/json',
-                                       'x-csrf-token': self.get_token()})
-        if r.status_code != 201: raise Exception('{0}: Post could not be posted.'.format(r.status_code))
-
-        return diaspy.models.Post(str(r.json()['id']), self)
+        self._setpostdata(text, aspect_id, photos)
+        post = self._post()
+        self._post_data = {}
+        return post
 
     def get_user_info(self):
         """This function returns the current user's attributes.
@@ -94,6 +113,11 @@ class Client:
         return userdata
 
     def post_picture(self, filename):
+        """This method posts a picture to D*.
+
+        :param filename: Path to picture file.
+        :type filename: str
+        """
         aspects = self.get_user_info()['aspects']
         params = {}
         params['photo[pending]'] = 'true'
@@ -127,11 +151,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         stream = r.json()
-
-        posts = []
-
-        for post in stream: 
-            posts.append(diaspy.models.Post(str(post['id']), self))
+        posts = [ diaspy.models.Post(str(post['id']), self) for post in stream ]
 
         return posts
 
@@ -166,11 +186,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mentions = r.json()
-
-        posts = []
-
-        for post in mentions:
-            posts.append(diaspy.models.Post(str(post['id']), self))
+        posts = [ diaspy.models.Post(str(post['id']), self) for post in mentions ]
 
         return posts
 
@@ -190,11 +206,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         tagged_posts = r.json()
-
-        posts = []
-
-        for post in tagged_posts:
-            posts.append(diaspy.models.Post(str(post['id']), self))
+        posts = [ diaspy.models.Post(str(post['id']), self) for post in tagged_posts ]
 
         return posts
 
@@ -281,11 +293,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-
-        conversations = []
-
-        for conversation in mailbox:
-            conversations.append(diaspy.conversations.Conversation(str(conversation['conversation']['id']), self))
+        conversations = [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
 
         return conversations
 
