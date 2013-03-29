@@ -12,6 +12,6 @@
 #   Their values have to be valid.
 
 #   __pod__ = 'https://pod.example.com'
-__pod__ = 'https://pod.orkz.net'
-__username__ = 'marekjm'
-__passwd__ = 'mAreKJmonDiASporA'
+__pod__ = ''
+__username__ = ''
+__passwd__ = ''
