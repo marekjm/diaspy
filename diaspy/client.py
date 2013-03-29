@@ -279,16 +279,13 @@ class Client:
         :returns: list -- list of Conversation objects.
         """
         data = {'authenticity_token': self.get_token()}
-        #r = self.session.get('{0}/conversations.json'.format(self.pod))
-        r = self.session.get('{0}/conversations.json'.format(self.pod))
+        r = self._sessionget('conversations.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-        conversations = [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
-
-        return conversations
+        return [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
 
     def new_conversation(self, contacts, subject, text):
         """ start a new conversation
