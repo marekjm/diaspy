@@ -35,6 +35,28 @@ class Client:
         """
         return self.session.get('{0}/{1}'.format(self.pod, string))
 
+    def _sessionpost(self, string, data, headers={}, params={}):
+        """This method posts data to session.
+        Performs additional checks if needed. 
+
+        Example:
+            To post to 'foo' one should call `_sessionpost('foo', data={})`. 
+
+        :param string: URL to post without the pod's URL and slash eg. 'status_messages'.
+        :type string: str
+        :param data: Data to post.
+        :param headers: Headers.
+        :type headers: dict
+        :param params: Optional parameters.
+        :type params: dict
+        """
+        string = '{0}/{1}'.format(self.pod, string)
+        if headers and params: r = self.session.post(string, data=data, headers=headers, params=params)
+        elif headers and not params: r = self.session.post(string, data=data, headers=headers)
+        elif not headers and params: r = self.session.post(string, data=data, params=params)
+        else: r = self.session.post(string, data=data)
+        return r
+ 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
 
@@ -233,6 +255,20 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
         return r.json()
 
+    def add_aspect(self, aspect_name, visible=0):
+        """ This function adds a new aspect.
+        """
+
+        data = {'authenticity_token': self.get_token(),
+                'aspect[name]': aspect_name,
+                'aspect[contacts_visible]': visible}
+
+        r = self.session.post('{0}/aspects'.format(self.pod),
+                              data=data)
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
     def remove_user_from_aspect(self, user_id, aspect_id):
         """ this function removes a user from an aspect.
 
@@ -254,20 +290,6 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         return r.json()
-
-    def add_aspect(self, aspect_name, visible=0):
-        """ This function adds a new aspect.
-        """
-
-        data = {'authenticity_token': self.get_token(),
-                'aspect[name]': aspect_name,
-                'aspect[contacts_visible]': visible}
-
-        r = self.session.post('{0}/aspects'.format(self.pod),
-                              data=data)
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
 
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
