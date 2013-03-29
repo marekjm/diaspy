@@ -15,11 +15,6 @@ class Post:
         :type post_id: str
         :param client: client object used to authenticate
         :type client: client.Client
-
-        .. note::
-            The login function of the client should be called,
-            before calling any of the post functions.
-
         """
         self._client = client
         self.post_id = post_id
