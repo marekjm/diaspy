@@ -6,7 +6,6 @@ import diaspy.models
 
 class Client:
     """This is the client class to connect to Diaspora.
-
     """
     def __init__(self, pod, username, password):
         """
@@ -150,7 +149,6 @@ class Client:
 
         :returns: list -- list of Post objects.
         """
-        data = {'authenticity_token': self.get_token()}
         r = self._sessionget('stream.json')
 
         if r.status_code != 200: 
@@ -164,7 +162,6 @@ class Client:
 
         :returns: list -- list of json formatted notifications
         """
-        data = {'authenticity_token': self.get_token()}
         r = self._sessionget('notifications.json')
 
         if r.status_code != 200: 
@@ -179,7 +176,6 @@ class Client:
 
         :returns: list -- list of Post objects
         """
-        data = {'authenticity_token': self.get_token()}
         r = self._sessionget('mentions.json')
 
         if r.status_code != 200:
@@ -195,7 +191,6 @@ class Client:
 
         :returns: list -- list of Post objects
         """
-        data = {'authenticity_token': self.get_token()}
         r = self._sessionget('tags/{0}.json'.format(tag))
 
         if r.status_code != 200:
@@ -203,6 +198,19 @@ class Client:
 
         tagged_posts = r.json()
         return [ diaspy.models.Post(str(post['id']), self) for post in tagged_posts ]
+
+    def get_mailbox(self):
+        """This functions returns a list of messages found in the conversation.
+
+        :returns: list -- list of Conversation objects.
+        """
+        r = self._sessionget('conversations.json')
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
+        mailbox = r.json()
+        return [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
 
     def add_user_to_aspect(self, user_id, aspect_id):
         """ this function adds a user to an aspect.
@@ -264,7 +272,6 @@ class Client:
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
         """
-
         data = {'authenticity_token': self.get_token()}
 
         r = self.session.delete('{0}/aspects/{1}'.format(self.pod, aspect_id),
@@ -273,22 +280,8 @@ class Client:
         if r.status_code != 404:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
-    def get_mailbox(self):
-        """This functions returns a list of messages found in the conversation.
-
-        :returns: list -- list of Conversation objects.
-        """
-        data = {'authenticity_token': self.get_token()}
-        r = self._sessionget('conversations.json')
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        mailbox = r.json()
-        return [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
-
     def new_conversation(self, contacts, subject, text):
-        """ start a new conversation
+        """Start a new conversation.
 
         :param contacts: recipients ids, no guids, comma sperated.
         :type contacts: str
@@ -296,9 +289,7 @@ class Client:
         :type subject: str
         :param text: text of the message.
         :type text: str
-
         """
-
         data = {'contact_ids': contacts,
                 'conversation[subject]': subject,
                 'conversation[text]': text,

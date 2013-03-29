@@ -29,6 +29,23 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(client._login_data['user[password]'], __passwd__)
         self.assertEqual(client._login_data['authenticity_token'], client.get_token())
 
+    def testGettingUserInfo(self):
+        client = diaspy.client.Client(__pod__, __username__, __passwd__)
+        info = client.get_user_info()
+        self.assertEqual(dict, type(info))
+
+    def testGettingStream(self):
+        client = diaspy.client.Client(__pod__, __username__, __passwd__)
+        stream = client.get_stream()
+        self.assertEqual(list, type(stream))
+        if stream: self.assertEqual(diaspy.models.Post, type(stream[0]))
+
+    def testGettingNotifications(self):
+        client = diaspy.client.Client(__pod__, __username__, __passwd__)
+        notifications = client.get_notifications()
+        self.assertEqual(list, type(notifications))
+        if notifications: self.assertEqual(dict, type(notifications[0]))
+
     def testGettingTag(self):
         client = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
         tag = client.get_tag('foo')
