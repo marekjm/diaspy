@@ -150,31 +150,26 @@ class Client:
         """This functions returns a list of posts found in the stream.
 
         :returns: list -- list of Post objects.
-
         """
 
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get('{0}/stream.json'.format(self.pod))
+        r = self._sessionget('stream.json')
 
-        if r.status_code != 200:
+        if r.status_code != 200: 
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         stream = r.json()
-        posts = [ diaspy.models.Post(str(post['id']), self) for post in stream ]
-
-        return posts
+        return [ diaspy.models.Post(str(post['id']), self) for post in stream ]
 
     def get_notifications(self):
         """This functions returns a list of notifications.
 
         :returns: list -- list of json formatted notifications
-
         """
-
         data = {'authenticity_token': self.get_token()}
-        r = self.session.get('{0}/notifications.json'.format(self.pod))
+        r = self._sessionget('notifications.json')
 
-        if r.status_code != 200:
+        if r.status_code != 200: 
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         notifications = r.json()
