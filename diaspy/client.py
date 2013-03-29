@@ -34,7 +34,6 @@ class Client:
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
         """
-        data = 
         return self.session.get('{0}/{1}'.format(self.pod, string))
 
     def get_token(self):
@@ -278,10 +277,9 @@ class Client:
         """This functions returns a list of messages found in the conversation.
 
         :returns: list -- list of Conversation objects.
-
         """
-
         data = {'authenticity_token': self.get_token()}
+        #r = self.session.get('{0}/conversations.json'.format(self.pod))
         r = self.session.get('{0}/conversations.json'.format(self.pod))
 
         if r.status_code != 200:
