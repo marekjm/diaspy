@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 class Conversation:
     """This class represents a conversation.
 
@@ -23,8 +26,7 @@ class Conversation:
     def get_data(self):
         """ returns the plain json data representing conversation.
         """
-        r = self._client.session.get('{0}/conversations/{1}.json'
-                                     .format(self._client.pod, self.conv_id))
+        r = self._client._sessionget('conversations/{1}.json'.format(self.conv_id))
         if r.status_code == 200:
             return r.json()['conversation']
         else:
@@ -42,14 +44,12 @@ class Conversation:
                 'utf8': '&#x2713;',
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/conversations/{1}/messages'
-                                      .format(self._client.pod, self.conv_id),
+        r = self._client._sessionpost('conversations/{}/messages'.format(self.conv_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
         if r.status_code != 200:
             raise Exception('{0}: Answer could not be posted.'
                             .format(r.status_code))
-
         return r.json()
 
     def delete(self):

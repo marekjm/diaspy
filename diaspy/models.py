@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
+
+
 class Post:
     """This class represents a post.
 
     .. note::
         Remember that you need to have access to the post.
         Remember that you also need to be logged in.
-
     """
     def __init__(self, post_id, client):
         """
@@ -19,8 +21,7 @@ class Post:
     def get_data(self):
         """This function retrieves data of the post.
         """
-        r = self._client.session.get('{0}/posts/{1}.json'
-                                     .format(self._client.pod, self.post_id))
+        r = self._client._sessionget('posts/{1}.json'.format(self.post_id))
         if r.status_code == 200:
             return r.json()
         else:
@@ -31,12 +32,10 @@ class Post:
         It abstracts the 'Like' functionality.
 
         :returns: dict -- json formatted like object.
-
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/posts/{1}/likes'
-                                      .format(self._client.pod, self.post_id),
+        r = self._client._sessionpost('posts/{0}/likes'.format(self.post_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -48,7 +47,6 @@ class Post:
 
     def delete_like(self):
         """This function removes a like from a post
-
         """
         data = {'authenticity_token': self._client.get_token()}
 
@@ -74,7 +72,7 @@ class Post:
         data = {'root_guid': post_data['guid'],
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/reshares'.format(self._client.pod),
+        r = self._client._sessionpost('reshares',
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -94,8 +92,7 @@ class Post:
         data = {'text': text,
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/posts/{1}/comments'
-                                      .format(self._client.pod, self.post_id),
+        r = self._client._sessionpost('posts/{0}/comments'.format(self.post_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -127,15 +124,10 @@ class Post:
 
     def delete(self):
         """ This function deletes this post
-
         """
         data = {'authenticity_token': self._client.get_token()}
-
-        r = self._client.session.delete('{0}/posts/{1}'
-                                        .format(self._client.pod,
-                                                self.post_id),
+        r = self._client.session.delete('{0}/posts/{1}'.format(self._client.pod, self.post_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
         if r.status_code != 204:
-            raise Exception('{0}: Post could not be deleted.'
-                            .format(r.status_code))
+            raise Exception('{0}: Post could not be deleted'.format(r.status_code))
