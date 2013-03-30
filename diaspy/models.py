@@ -35,8 +35,7 @@ class Post:
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/posts/{1}/likes'
-                                      .format(self._client.pod, self.post_id),
+        r = self._client._sessionpost('posts/{0}/likes'.format(self.post_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -73,7 +72,7 @@ class Post:
         data = {'root_guid': post_data['guid'],
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/reshares'.format(self._client.pod),
+        r = self._client._sessionpost('reshares',
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -93,8 +92,7 @@ class Post:
         data = {'text': text,
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/posts/{1}/comments'
-                                      .format(self._client.pod, self.post_id),
+        r = self._client._sessionpost('posts/{0}/comments'.format(self.post_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
 
@@ -126,7 +124,6 @@ class Post:
 
     def delete(self):
         """ This function deletes this post
-
         """
         data = {'authenticity_token': self._client.get_token()}
         r = self._client.session.delete('{0}/posts/{1}'.format(self._client.pod, self.post_id),
@@ -134,12 +131,3 @@ class Post:
                                         headers={'accept': 'application/json'})
         if r.status_code != 204:
             raise Exception('{0}: Post could not be deleted'.format(r.status_code))
-
-        r = self._client.session.delete('{0}/posts/{1}'
-                                        .format(self._client.pod,
-                                                self.post_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
-        if r.status_code != 204:
-            raise Exception('{0}: Post could not be deleted.'
-                            .format(r.status_code))

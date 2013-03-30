@@ -44,14 +44,12 @@ class Conversation:
                 'utf8': '&#x2713;',
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/conversations/{1}/messages'
-                                      .format(self._client.pod, self.conv_id),
+        r = self._client._sessionpost('conversations/{}/messages'.format(self.conv_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
         if r.status_code != 200:
             raise Exception('{0}: Answer could not be posted.'
                             .format(r.status_code))
-
         return r.json()
 
     def delete(self):

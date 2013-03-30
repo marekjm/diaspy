@@ -79,7 +79,7 @@ class Client:
     def _login(self):
         """This function is used to connect to the pod and log in.
         """
-        r = self.session.post('{0}/users/sign_in'.format(self.pod),
+        r = self._sessionpost('users/sign_in',
                               data=self._login_data,
                               headers={'accept': 'application/json'})
         if r.status_code != 201:
@@ -105,7 +105,7 @@ class Client:
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        r = self.session.post('{0}/status_messages'.format(self.pod),
+        r = self._sessionpost('status_messages',
                               data=json.dumps(self._post_data),
                               headers={'content-type': 'application/json',
                                        'accept': 'application/json',
@@ -161,9 +161,7 @@ class Client:
                    'x-csrf-token': self.get_token(),
                    'x-file-name': filename}
 
-        r = self.session.post('{0}/photos'.format(self.pod),
-                              params=params, data=data, headers=headers)
-
+        r = self._sessionpost('photos', params=params, data=data, headers=headers)
         return r
 
     def get_stream(self):
@@ -232,7 +230,8 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox]
+        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self)
+                for conversation in mailbox]
 
     def add_user_to_aspect(self, user_id, aspect_id):
         """ this function adds a user to an aspect.
@@ -243,13 +242,11 @@ class Client:
         :type aspect_id: str
 
         """
-
         data = {'authenticity_token': self.get_token(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self.session.post('{0}/aspect_memberships.json'.format(self.pod),
-                              data=data)
+        r = self._sessionpost('aspect_memberships.json', data=data)
 
         if r.status_code != 201:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -263,8 +260,7 @@ class Client:
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
-        r = self.session.post('{0}/aspects'.format(self.pod),
-                              data=data)
+        r = self._sessionpost('aspects', data=data)
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -303,25 +299,6 @@ class Client:
         if r.status_code != 404:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
-    def get_mailbox(self):
-        """This functions returns a list of messages found in the conversation.
-
-        :returns: list -- list of Conversation objects.
-
-        """
-
-        r = self.session.get('{0}/conversations.json'.format(self.pod))
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        mailbox = r.json()
-        conversations = [diaspy.conversations.Conversation(
-                         str(conversation['conversation']['id']), self) for
-                         conversation in mailbox]
-
-        return conversations
-
     def new_conversation(self, contacts, subject, text):
         """Start a new conversation.
 
@@ -338,7 +315,7 @@ class Client:
                 'utf8': '&#x2713;',
                 'authenticity_token': self.get_token()}
 
-        r = self.session.post('{0}/conversations/'.format(self.pod),
+        r = self._sessionpost('conversations/',
                               data=data,
                               headers={'accept': 'application/json'})
         if r.status_code != 200:
