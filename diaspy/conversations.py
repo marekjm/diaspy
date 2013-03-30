@@ -44,11 +44,13 @@ class Conversation:
                 'utf8': '&#x2713;',
                 'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.post('{0}/conversations/{1}/messages'.format(self._client.pod, self.conv_id),
+        r = self._client.session.post('{0}/conversations/{1}/messages'
+                                      .format(self._client.pod, self.conv_id),
                                       data=data,
                                       headers={'accept': 'application/json'})
         if r.status_code != 200:
-            raise Exception('{0}: Answer could not be posted.'.format(r.status_code))
+            raise Exception('{0}: Answer could not be posted.'
+                            .format(r.status_code))
 
         return r.json()
 
@@ -58,12 +60,15 @@ class Conversation:
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete('{0}/conversations/{1}/visibility/'.format(self._client.pod, self.conv_id),
+        r = self._client.session.delete('{0}/conversations/{1}/visibility/'
+                                        .format(self._client.pod,
+                                                self.conv_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
 
         if r.status_code != 404:
-            raise Exception('{0}: Conversation could not be deleted.'.format(r.status_code))
+            raise Exception('{0}: Conversation could not be deleted.'
+                            .format(r.status_code))
 
     def get_subject(self):
         """ return the subject of this conversation

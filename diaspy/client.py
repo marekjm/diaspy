@@ -74,8 +74,7 @@ class Client:
         self._username, self._password = username, password
         self._login_data = {'user[username]': self._username,
                             'user[password]': self._password,
-                            'authenticity_token': self.get_token(),
-                            }
+                            'authenticity_token': self.get_token()}
 
     def _login(self):
         """This function is used to connect to the pod and log in.
@@ -83,19 +82,22 @@ class Client:
         r = self.session.post('{0}/users/sign_in'.format(self.pod),
                               data=self._login_data,
                               headers={'accept': 'application/json'})
-        if r.status_code != 201: raise Exception('{0}: Login failed.'.format(r.status_code))
+        if r.status_code != 201:
+            raise Exception('{0}: Login failed.'.format(r.status_code))
 
-    def _setpostdata(self, text, aspect_id, photos):
+    def _setpostdata(self, text, aspect_ids, photos):
         """This function prepares data for posting.
+
         :param text: Text to post.
         :type text: str
-        :param aspect_id: Aspect id to send post to.
-        :type aspect_id: str
+        :param aspect_ids: Aspect ids to send post to.
+        :type aspect_ids: str
         """
         data = {}
-        data['aspect_id'] = aspect_id
+        data['aspect_ids'] = aspect_ids
         data['status_message'] = {'text': text}
-        if photos: data['photos'] = photos
+        if photos:
+            data['photos'] = photos
         self._post_data = data
 
     def _post(self):
@@ -108,21 +110,23 @@ class Client:
                               headers={'content-type': 'application/json',
                                        'accept': 'application/json',
                                        'x-csrf-token': self.get_token()})
-        if r.status_code != 201: raise Exception('{0}: Post could not be posted.'.format(r.status_code))
+        if r.status_code != 201:
+            raise Exception('{0}: Post could not be posted.'.format(
+                            r.status_code))
 
         return diaspy.models.Post(str(r.json()['id']), self)
 
-    def post(self, text, aspect_id='public', photos=None):
+    def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
 
         :param text: Text to post.
         :type text: str
-        :param aspect_id: Aspect id to send post to.
-        :type aspect_id: str
+        :param aspect_ids: Aspect ids to send post to.
+        :type aspect_ids: str
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        self._setpostdata(text, aspect_id, photos)
+        self._setpostdata(text, aspect_ids, photos)
         post = self._post()
         self._post_data = {}
         return post
@@ -279,7 +283,8 @@ class Client:
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self.session.delete('{0}/aspect_memberships/42.json'.format(self.pod),
+        r = self.session.delete('{0}/aspect_memberships/42.json'.format(
+                                self.pod),
                                 data=data)
 
         if r.status_code != 200:
@@ -297,6 +302,25 @@ class Client:
 
         if r.status_code != 404:
             raise Exception('wrong status code: {0}'.format(r.status_code))
+
+    def get_mailbox(self):
+        """This functions returns a list of messages found in the conversation.
+
+        :returns: list -- list of Conversation objects.
+
+        """
+
+        r = self.session.get('{0}/conversations.json'.format(self.pod))
+
+        if r.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
+        mailbox = r.json()
+        conversations = [diaspy.conversations.Conversation(
+                         str(conversation['conversation']['id']), self) for
+                         conversation in mailbox]
+
+        return conversations
 
     def new_conversation(self, contacts, subject, text):
         """Start a new conversation.
@@ -318,6 +342,6 @@ class Client:
                               data=data,
                               headers={'accept': 'application/json'})
         if r.status_code != 200:
-            raise Exception('{0}: Conversation could not be started.'.format(r.status_code))
-
+            raise Exception('{0}: Conversation could not be started.'
+                            .format(r.status_code))
         return r.json()
