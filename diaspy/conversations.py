@@ -1,4 +1,5 @@
-import requests
+#!/usr/bin/env python3
+
 
 class Conversation:
     """This class represents a conversation.
@@ -25,7 +26,7 @@ class Conversation:
     def get_data(self):
         """ returns the plain json data representing conversation.
         """
-        r = self._client.session.get('{0}/conversations/{1}.json'.format(self._client.pod, self.conv_id))
+        r = self._client._sessionget('conversations/{1}.json'.format(self.conv_id))
         if r.status_code == 200:
             return r.json()['conversation']
         else:

@@ -24,11 +24,11 @@ class Client:
         self._login()
 
     def _sessionget(self, string):
-        """This method gets data from session. 
-        Performs additional checks if needed. 
+        """This method gets data from session.
+        Performs additional checks if needed.
 
         Example:
-            To obtain 'foo' from pod one should call `_sessionget('foo')`. 
+            To obtain 'foo' from pod one should call `_sessionget('foo')`.
 
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
@@ -37,10 +37,10 @@ class Client:
 
     def _sessionpost(self, string, data, headers={}, params={}):
         """This method posts data to session.
-        Performs additional checks if needed. 
+        Performs additional checks if needed.
 
         Example:
-            To post to 'foo' one should call `_sessionpost('foo', data={})`. 
+            To post to 'foo' one should call `_sessionpost('foo', data={})`.
 
         :param string: URL to post without the pod's URL and slash eg. 'status_messages'.
         :type string: str
@@ -56,7 +56,7 @@ class Client:
         elif not headers and params: r = self.session.post(string, data=data, params=params)
         else: r = self.session.post(string, data=data)
         return r
- 
+
     def get_token(self):
         """This function gets a token needed for authentication in most cases
 
@@ -67,14 +67,12 @@ class Client:
         return token
 
     def _setlogindata(self, username, password):
-        """This function is used to set data for login. 
-        
+        """This function is used to set data for login.
         .. note::
             It should be called before _login() function.
         """
         self._username, self._password = username, password
-        self._login_data =  {
-                            'user[username]': self._username,
+        self._login_data = {'user[username]': self._username,
                             'user[password]': self._password,
                             'authenticity_token': self.get_token(),
                             }
@@ -85,12 +83,10 @@ class Client:
         r = self.session.post('{0}/users/sign_in'.format(self.pod),
                               data=self._login_data,
                               headers={'accept': 'application/json'})
-        
         if r.status_code != 201: raise Exception('{0}: Login failed.'.format(r.status_code))
 
     def _setpostdata(self, text, aspect_id, photos):
         """This function prepares data for posting.
- 
         :param text: Text to post.
         :type text: str
         :param aspect_id: Aspect id to send post to.
@@ -173,11 +169,11 @@ class Client:
         """
         r = self._sessionget('stream.json')
 
-        if r.status_code != 200: 
+        if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         stream = r.json()
-        return [ diaspy.models.Post(str(post['id']), self) for post in stream ]
+        return [diaspy.models.Post(str(post['id']), self) for post in stream]
 
     def get_notifications(self):
         """This functions returns a list of notifications.
@@ -186,7 +182,7 @@ class Client:
         """
         r = self._sessionget('notifications.json')
 
-        if r.status_code != 200: 
+        if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         notifications = r.json()
@@ -204,7 +200,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mentions = r.json()
-        return [ diaspy.models.Post(str(post['id']), self) for post in mentions ]
+        return [diaspy.models.Post(str(post['id']), self) for post in mentions]
 
     def get_tag(self, tag):
         """This functions returns a list of posts containing the tag.
@@ -219,7 +215,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         tagged_posts = r.json()
-        return [ diaspy.models.Post(str(post['id']), self) for post in tagged_posts ]
+        return [diaspy.models.Post(str(post['id']), self) for post in tagged_posts]
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
@@ -232,7 +228,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-        return [ diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox ]
+        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self) for conversation in mailbox]
 
     def add_user_to_aspect(self, user_id, aspect_id):
         """ this function adds a user to an aspect.

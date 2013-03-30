@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import unittest
-import getpass
 
 #   failure to import any of the modules below indicates failed tests
 #   modules used by diaspy
-import requests, re
+import requests
+import re
 #   actual diaspy code
 import diaspy
 
