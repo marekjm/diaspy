@@ -45,17 +45,21 @@ class Client:
         :param string: URL to post without the pod's URL and slash eg. 'status_messages'.
         :type string: str
         :param data: Data to post.
-        :param headers: Headers.
+        :param headers: Headers (optional).
         :type headers: dict
-        :param params: Optional parameters.
+        :param params: Parameters (optional).
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if headers and params: r = self.session.post(string, data=data, headers=headers, params=params)
-        elif headers and not params: r = self.session.post(string, data=data, headers=headers)
-        elif not headers and params: r = self.session.post(string, data=data, params=params)
-        else: r = self.session.post(string, data=data)
-        return r
+        if headers and params:
+            request = self.session.post(string, data=data, headers=headers, params=params)
+        elif headers and not params:
+            request = self.session.post(string, data=data, headers=headers)
+        elif not headers and params:
+            request = self.session.post(string, data=data, params=params)
+        else:
+            request = self.session.post(string, data=data)
+        return request
 
     def _sessiondelete(self, string, data, headers={}):
         """This method lets you send delete request to session.
@@ -64,11 +68,15 @@ class Client:
         :param string: URL to use.
         :type string: str
         :param data: Data to use.
+        :param headers: Headers to use (optional).
+        :type headers: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if headers: r = self.session.delete(string, data=data, headers=headers)
-        else: r = self.session.delete(string, data=data)
-        return r
+        if headers:
+            request = self.session.delete(string, data=data, headers=headers)
+        else:
+            request = self.session.delete(string, data=data)
+        return request
 
     def get_token(self):
         """This function gets a token needed for authentication in most cases
