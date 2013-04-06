@@ -52,9 +52,8 @@ class Post:
 
         post_data = self.get_data()
 
-        r = self._client.session.delete('{0}/posts/{1}/likes/{2}'
-                                        .format(self._client.pod,
-                                                self.post_id,
+        r = self._client._sessiondelete('posts/{0}/likes/{1}'
+                                        .format(self.post_id,
                                                 post_data['interactions']
                                                          ['likes'][0]['id']),
                                         data=data)
@@ -111,9 +110,8 @@ class Post:
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete('{0}/posts/{1}/comments/{2}'
-                                        .format(self._client.pod,
-                                                self.post_id,
+        r = self._client._sessiondelete('posts/{0}/comments/{1}'
+                                        .format(self.post_id,
                                                 comment_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
@@ -126,7 +124,7 @@ class Post:
         """ This function deletes this post
         """
         data = {'authenticity_token': self._client.get_token()}
-        r = self._client.session.delete('{0}/posts/{1}'.format(self._client.pod, self.post_id),
+        r = self._client._sessiondelete('posts/{0}'.format(self.post_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
         if r.status_code != 204:

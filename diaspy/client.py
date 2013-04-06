@@ -57,6 +57,19 @@ class Client:
         else: r = self.session.post(string, data=data)
         return r
 
+    def _sessiondelete(self, string, data, headers={}):
+        """This method lets you send delete request to session.
+        Performs additional checks if needed.
+
+        :param string: URL to use.
+        :type string: str
+        :param data: Data to use.
+        """
+        string = '{0}/{1}'.format(self.pod, string)
+        if headers: r = self.session.delete(string, data=data, headers=headers)
+        else: r = self.session.delete(string, data=data)
+        return r
+
     def get_token(self):
         """This function gets a token needed for authentication in most cases
 
@@ -274,13 +287,11 @@ class Client:
         :type aspect_id: str
 
         """
-
         data = {'authenticity_token': self.get_token(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self.session.delete('{0}/aspect_memberships/42.json'.format(
-                                self.pod),
+        r = self._sessiondelete('aspect_memberships/42.json',
                                 data=data)
 
         if r.status_code != 200:
@@ -293,7 +304,7 @@ class Client:
         """
         data = {'authenticity_token': self.get_token()}
 
-        r = self.session.delete('{0}/aspects/{1}'.format(self.pod, aspect_id),
+        r = self._sessiondelete('aspects/{}'.format(aspect_id),
                                 data=data)
 
         if r.status_code != 404:

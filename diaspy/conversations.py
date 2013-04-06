@@ -58,9 +58,8 @@ class Conversation:
         """
         data = {'authenticity_token': self._client.get_token()}
 
-        r = self._client.session.delete('{0}/conversations/{1}/visibility/'
-                                        .format(self._client.pod,
-                                                self.conv_id),
+        r = self._client._sessiondelete('conversations/{0}/visibility/'
+                                        .format(self.conv_id),
                                         data=data,
                                         headers={'accept': 'application/json'})
 
