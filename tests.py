@@ -28,8 +28,8 @@ class ClientTests(unittest.TestCase):
         self.assertEqual({}, client._post_data)
         self.assertEqual(client._token_regex,
                          re.compile(r'content="(.*?)"\s+name="csrf-token'))
-        self.assertEqual(client._login_data['user[username]'], 'testuser')
-        self.assertEqual(client._login_data['user[password]'], 'testpassword')
+        self.assertEqual(client._login_data['user[username]'], __username__)
+        self.assertEqual(client._login_data['user[password]'], __passwd__)
         self.assertEqual(client._login_data['authenticity_token'],
                          client.get_token())
 
