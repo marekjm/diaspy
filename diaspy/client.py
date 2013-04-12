@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import diaspy.models
+import diaspy.connection
 
 
 class Client:
@@ -16,12 +17,10 @@ class Client:
         :param password: The password used to log in.
         :type password: str
         """
-        self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+        self.connection = diaspy.connection.Connection(pod, username, password)
+        self.connection.login()
         self.pod = pod
-        self.session = requests.Session()
         self._post_data = {}
-        self._setlogindata(username, password)
-        self._login()
 
     def _sessionget(self, string):
         """This method gets data from session.
@@ -33,7 +32,8 @@ class Client:
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
         """
-        return self.session.get('{0}/{1}'.format(self.pod, string))
+        request = self.connection.get(string)
+        return request
 
     def _sessionpost(self, string, data, headers={}, params={}):
         """This method posts data to session.
@@ -50,15 +50,7 @@ class Client:
         :param params: Parameters (optional).
         :type params: dict
         """
-        string = '{0}/{1}'.format(self.pod, string)
-        if headers and params:
-            request = self.session.post(string, data=data, headers=headers, params=params)
-        elif headers and not params:
-            request = self.session.post(string, data=data, headers=headers)
-        elif not headers and params:
-            request = self.session.post(string, data=data, params=params)
-        else:
-            request = self.session.post(string, data=data)
+        request = self.connection.post(string, data, headers, params)
         return request
 
     def _sessiondelete(self, string, data, headers={}):
@@ -71,11 +63,7 @@ class Client:
         :param headers: Headers to use (optional).
         :type headers: dict
         """
-        string = '{0}/{1}'.format(self.pod, string)
-        if headers:
-            request = self.session.delete(string, data=data, headers=headers)
-        else:
-            request = self.session.delete(string, data=data)
+        request = self.connection.delete(string, data, headers)
         return request
 
     def get_token(self):
@@ -83,7 +71,7 @@ class Client:
 
         :returns: string -- token used to authenticate
         """
-        r = self._sessionget('stream')
+        r = self.connect.get('stream')
         token = self._token_regex.search(r.text).group(1)
         return token
 
@@ -157,7 +145,7 @@ class Client:
 
         :returns: dict -- json formatted user info.
         """
-        r = self._sessionget('bookmarklet')
+        r = self.connection.get('bookmarklet')
         regex = re.compile(r'window.current_user_attributes = ({.*})')
         userdata = json.loads(regex.search(r.text).group(1))
         return userdata
@@ -190,12 +178,12 @@ class Client:
 
         :returns: list -- list of Post objects.
         """
-        r = self._sessionget('stream.json')
+        request = self.connection.get('stream.json')
 
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        if request.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
 
-        stream = r.json()
+        stream = request.json()
         return [diaspy.models.Post(str(post['id']), self) for post in stream]
 
     def get_notifications(self):
