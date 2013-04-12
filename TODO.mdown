@@ -1,0 +1,13 @@
+0.  write `connection.py` module and port diaspy to use it,
+  * `_sessionpost()` -> `Connection.post()` etc.,
+  * `login()` for logging in,
+  * `_setlogin()` for setting login data,
+  * (?) `_setpod()` for setting pod,
+  * (?) `_setusername()` for setting username,
+  * (?) `_setpassword()`for setting password,
+  * `_switchpod()` for switching pods on the fly (killer feature)
+    unsuccessful switch will result in disconnecting from current pod (?) or 
+    will keep the connection but raise an exception/warning,
+1.  refactor all code to use naming convention: `camelCase()` for methods and 
+    `underscored_names` for variables; preceding underscore accepted for private stuff,
+2.  add more killer-features,
