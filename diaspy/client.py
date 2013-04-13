@@ -49,7 +49,7 @@ class Client:
             raise Exception('{0}: Post could not be posted.'.format(
                             r.status_code))
 
-        return diaspy.models.Post(str(r.json()['id']), self)
+        return diaspy.models.Post(str(r.json()['id']), self.connection)
 
     def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
@@ -246,7 +246,7 @@ class Client:
                 'conversation[subject]': subject,
                 'conversation[text]': text,
                 'utf8': '&#x2713;',
-                'authenticity_token': self.get_token()}
+                'authenticity_token': self.connection.getToken()}
 
         r = self.connection.post('conversations/',
                                  data=data,
