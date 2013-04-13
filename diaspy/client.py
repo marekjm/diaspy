@@ -66,34 +66,6 @@ class Client:
         request = self.connection.delete(string, data, headers)
         return request
 
-    def get_token(self):
-        """This function gets a token needed for authentication in most cases
-
-        :returns: string -- token used to authenticate
-        """
-        r = self.connect.get('stream')
-        token = self._token_regex.search(r.text).group(1)
-        return token
-
-    def _setlogindata(self, username, password):
-        """This function is used to set data for login.
-        .. note::
-            It should be called before _login() function.
-        """
-        self._username, self._password = username, password
-        self._login_data = {'user[username]': self._username,
-                            'user[password]': self._password,
-                            'authenticity_token': self.get_token()}
-
-    def _login(self):
-        """This function is used to connect to the pod and log in.
-        """
-        r = self._sessionpost('users/sign_in',
-                              data=self._login_data,
-                              headers={'accept': 'application/json'})
-        if r.status_code != 201:
-            raise Exception('{0}: Login failed.'.format(r.status_code))
-
     def _setpostdata(self, text, aspect_ids, photos):
         """This function prepares data for posting.
 
@@ -114,7 +86,7 @@ class Client:
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        r = self._sessionpost('status_messages',
+        r = self.connection.post('status_messages',
                               data=json.dumps(self._post_data),
                               headers={'content-type': 'application/json',
                                        'accept': 'application/json',
@@ -170,7 +142,7 @@ class Client:
                    'x-csrf-token': self.get_token(),
                    'x-file-name': filename}
 
-        r = self._sessionpost('photos', params=params, data=data, headers=headers)
+        r = self.connection.post('photos', params=params, data=data, headers=headers)
         return r
 
     def get_stream(self):
@@ -191,7 +163,7 @@ class Client:
 
         :returns: list -- list of json formatted notifications
         """
-        r = self._sessionget('notifications.json')
+        r = self.connection.get('notifications.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -205,7 +177,7 @@ class Client:
 
         :returns: list -- list of Post objects
         """
-        r = self._sessionget('mentions.json')
+        r = self.connection.get('mentions.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -220,7 +192,7 @@ class Client:
 
         :returns: list -- list of Post objects
         """
-        r = self._sessionget('tags/{0}.json'.format(tag))
+        r = self.connection.get('tags/{0}.json'.format(tag))
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -233,7 +205,7 @@ class Client:
 
         :returns: list -- list of Conversation objects.
         """
-        r = self._sessionget('conversations.json')
+        r = self.connection.get('conversations.json')
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -255,7 +227,7 @@ class Client:
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self._sessionpost('aspect_memberships.json', data=data)
+        r = self.connection.post('aspect_memberships.json', data=data)
 
         if r.status_code != 201:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -269,7 +241,7 @@ class Client:
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
-        r = self._sessionpost('aspects', data=data)
+        r = self.connection.post('aspects', data=data)
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -287,7 +259,7 @@ class Client:
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
-        r = self._sessiondelete('aspect_memberships/42.json',
+        r = self.connection.delete('aspect_memberships/42.json',
                                 data=data)
 
         if r.status_code != 200:
@@ -300,7 +272,7 @@ class Client:
         """
         data = {'authenticity_token': self.get_token()}
 
-        r = self._sessiondelete('aspects/{}'.format(aspect_id),
+        r = self.connection.delete('aspects/{}'.format(aspect_id),
                                 data=data)
 
         if r.status_code != 404:
@@ -322,7 +294,7 @@ class Client:
                 'utf8': '&#x2713;',
                 'authenticity_token': self.get_token()}
 
-        r = self._sessionpost('conversations/',
+        r = self.connection.post('conversations/',
                               data=data,
                               headers={'accept': 'application/json'})
         if r.status_code != 200:
