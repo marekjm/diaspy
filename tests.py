@@ -17,6 +17,15 @@ __username__ = testconf.__username__
 __passwd__ = testconf.__passwd__
 
 
+class ConnectionTest(unittest.TestCase):
+    def testLoginWithoutUsername(self):
+        connection = diaspy.connection.Connection(pod=__pod__)
+        self.assertRaises(diaspy.connection.LoginError, connection.login, password='foo')
+
+    def testLoginWithoutPassword(self):
+        connection = diaspy.connection.Connection(pod=__pod__)
+        self.assertRaises(diaspy.connection.LoginError, connection.login, username='user')
+
 class ClientTests(unittest.TestCase):
     def testGettingUserInfo(self):
         client = diaspy.client.Client(__pod__, __username__, __passwd__)

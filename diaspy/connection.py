@@ -4,6 +4,10 @@ import re
 import requests
 
 
+class LoginError(Exception):
+    pass
+
+
 class Connection():
     """Object representing connection with the server.
     It is pushed around internally and is considered private.
@@ -87,17 +91,32 @@ class Connection():
                            'user[password]': self.password,
                            'authenticity_token': self.getToken()}
 
-    def login(self):
-        """This function is used to connect to the pod and log in.
+    def _login(self):
+        """Handles actual login request.
+        Raises LoginError if login failed.
         """
-        r = self.post('users/sign_in',
-                      data=self.login_data,
-                      headers={'accept': 'application/json'})
-        if r.status_code != 201:
-            raise Exception('{0}: Login failed.'.format(r.status_code))
+        request = self.post('users/sign_in',
+                            data=self.login_data,
+                            headers={'accept': 'application/json'})
+        if request.status_code != 201:
+            raise Exception('{0}: Login failed.'.format(request.status_code))
+
+    def login(self, username='', password=''):
+        """This function is used to log in to a pod.
+        Will raise LoginError if password or username was not specified.
+        """
+        if username and password: self._setlogin(username, password)
+        if not self.username or not self.password: raise LoginError('password or username not specified')
+        self._login()
+
+    def podswitch(self, pod):
+        """Switches pod.
+        """
+        self.pod = pod
+        self._login()
 
     def getToken(self):
-        """This function gets a token needed for authentication in most cases
+        """This function returns a token needed for authentication in most cases.
 
         :returns: string -- token used to authenticate
         """

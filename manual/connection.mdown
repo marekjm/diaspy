@@ -1,0 +1,82 @@
+#### `Connection()` object
+
+This is the object that is used by `diaspy`'s internals. 
+It is pushed around and used by various methods and other objects:
+
+*   `Post()` and `Conversation()` objects require it to authenticate and 
+    do their work,
+*   `Client()` uses it for loggin in to pod and other stuff,
+
+
+`Connection()` is the most low-level part of `diaspy` and provides everything 
+what is needed to talk to a pod.
+
+However, using only `Connection()` would be hard and cumberstone so there are 
+other modules to aid you and you are strongly encouraged to use them.
+
+
+----
+
+##### Login procedure
+
+`Client()` object available in `diapsy` will login you automatically - provided 
+you gave it valid pod, username and password. 
+
+On the other hand, `Connection()` is more stupid and it will not log you in unless 
+you explicitly order it to do so. 
+Logging in with `Connection()` is done via `login()` method. 
+
+**Example:**
+
+    connection = diaspy.connection.Connection(pod='https://pod.example.com')
+    connection.login('user', 'password')
+
+    OR
+
+    connection = diaspy.connection.Connection(pod='https://pod.example.com',
+                                              username='user',
+                                              password='password')
+    connection.login()
+
+
+In the example above two ways of logging in were shown. 
+In the first one only *pod* is passed to the object and 
+*username* and *password* were passed to `login()` method. 
+
+In the second one everything is passed directly to the object being 
+created and `login()` is called without any arguments. 
+
+Both ways are valid and will result in exactly the same connection. 
+But consider the following example:
+
+
+    connection = diaspy.connection.Connection(pod='https://pod.example.com',
+                                              username='user',
+                                              password='password')
+    connection.login(username='loser', password='passphrase')
+
+This code will result in connection with username `loser` and 
+password `passphrase` because data passed to `login()` overrides data 
+passed directly to object. 
+
+**Remember:** if you pass something to `login()` it will not only *override* but 
+also *overwrite* the username and password!
+
+
+----
+
+##### Switching pods
+
+`Connection()` provides functionality for switching pods on the fly. 
+This can be achieved with `podswitch()` method. 
+
+If login to a new pod is successful your connection is just changed 
+overwritten but if it fails everything else also fails and the current 
+connection is broken.
+
+
+----
+
+If you want to write your own interface or client for D\* 
+`Connection()` will be the only object you need.
+

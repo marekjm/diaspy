@@ -1,4 +1,3 @@
-import requests
 import re
 import json
 import diaspy.models
@@ -20,51 +19,6 @@ class Client:
         self.connection = diaspy.connection.Connection(pod, username, password)
         self.connection.login()
         self.pod = pod
-        self._post_data = {}
-
-    def _sessionget(self, string):
-        """This method gets data from session.
-        Performs additional checks if needed.
-
-        Example:
-            To obtain 'foo' from pod one should call `_sessionget('foo')`.
-
-        :param string: URL to get without the pod's URL and slash eg. 'stream'.
-        :type string: str
-        """
-        request = self.connection.get(string)
-        return request
-
-    def _sessionpost(self, string, data, headers={}, params={}):
-        """This method posts data to session.
-        Performs additional checks if needed.
-
-        Example:
-            To post to 'foo' one should call `_sessionpost('foo', data={})`.
-
-        :param string: URL to post without the pod's URL and slash eg. 'status_messages'.
-        :type string: str
-        :param data: Data to post.
-        :param headers: Headers (optional).
-        :type headers: dict
-        :param params: Parameters (optional).
-        :type params: dict
-        """
-        request = self.connection.post(string, data, headers, params)
-        return request
-
-    def _sessiondelete(self, string, data, headers={}):
-        """This method lets you send delete request to session.
-        Performs additional checks if needed.
-
-        :param string: URL to use.
-        :type string: str
-        :param data: Data to use.
-        :param headers: Headers to use (optional).
-        :type headers: dict
-        """
-        request = self.connection.delete(string, data, headers)
-        return request
 
     def _setpostdata(self, text, aspect_ids, photos):
         """This function prepares data for posting.
@@ -87,10 +41,10 @@ class Client:
         :returns: diaspy.models.Post -- the Post which has been created
         """
         r = self.connection.post('status_messages',
-                              data=json.dumps(self._post_data),
-                              headers={'content-type': 'application/json',
-                                       'accept': 'application/json',
-                                       'x-csrf-token': self.get_token()})
+                                 data=json.dumps(self._post_data),
+                                 headers={'content-type': 'application/json',
+                                          'accept': 'application/json',
+                                          'x-csrf-token': self.get_token()})
         if r.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(
                             r.status_code))
@@ -156,7 +110,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(request.status_code))
 
         stream = request.json()
-        return [diaspy.models.Post(str(post['id']), self) for post in stream]
+        return [diaspy.models.Post(str(post['id']), self.connection) for post in stream]
 
     def get_notifications(self):
         """This functions returns a list of notifications.
@@ -183,7 +137,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mentions = r.json()
-        return [diaspy.models.Post(str(post['id']), self) for post in mentions]
+        return [diaspy.models.Post(str(post['id']), self.connection) for post in mentions]
 
     def get_tag(self, tag):
         """This functions returns a list of posts containing the tag.
@@ -198,7 +152,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         tagged_posts = r.json()
-        return [diaspy.models.Post(str(post['id']), self) for post in tagged_posts]
+        return [diaspy.models.Post(str(post['id']), self.connection) for post in tagged_posts]
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
@@ -211,7 +165,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self)
+        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self.connection)
                 for conversation in mailbox]
 
     def add_user_to_aspect(self, user_id, aspect_id):
@@ -260,7 +214,7 @@ class Client:
                 'person_id': user_id}
 
         r = self.connection.delete('aspect_memberships/42.json',
-                                data=data)
+                                   data=data)
 
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -273,7 +227,7 @@ class Client:
         data = {'authenticity_token': self.get_token()}
 
         r = self.connection.delete('aspects/{}'.format(aspect_id),
-                                data=data)
+                                   data=data)
 
         if r.status_code != 404:
             raise Exception('wrong status code: {0}'.format(r.status_code))
@@ -295,8 +249,8 @@ class Client:
                 'authenticity_token': self.get_token()}
 
         r = self.connection.post('conversations/',
-                              data=data,
-                              headers={'accept': 'application/json'})
+                                 data=data,
+                                 headers={'accept': 'application/json'})
         if r.status_code != 200:
             raise Exception('{0}: Conversation could not be started.'
                             .format(r.status_code))

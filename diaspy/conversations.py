@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 
-class Conversation:
+class Conversation():
     """This class represents a conversation.
 
     .. note::
         Remember that you need to have access to the conversation.
-
     """
     def __init__(self, conv_id, connection):
         """
@@ -45,8 +44,8 @@ class Conversation:
                 'authenticity_token': self._connection.get_token()}
 
         r = self._connection.post('conversations/{}/messages'.format(self.conv_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+                                  data=data,
+                                  headers={'accept': 'application/json'})
         if r.status_code != 200:
             raise Exception('{0}: Answer could not be posted.'
                             .format(r.status_code))
@@ -59,9 +58,9 @@ class Conversation:
         data = {'authenticity_token': self._connection.get_token()}
 
         r = self._connection.delete('conversations/{0}/visibility/'
-                                        .format(self.conv_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+                                    .format(self.conv_id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
 
         if r.status_code != 404:
             raise Exception('{0}: Conversation could not be deleted.'

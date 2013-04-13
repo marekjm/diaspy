@@ -36,8 +36,8 @@ class Post:
         data = {'authenticity_token': self._connection.getToken()}
 
         r = self._connection.post('posts/{0}/likes'.format(self.post_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Post could not be liked.'
@@ -53,10 +53,10 @@ class Post:
         post_data = self.get_data()
 
         r = self._connection.delete('posts/{0}/likes/{1}'
-                                        .format(self.post_id,
-                                                post_data['interactions']
-                                                         ['likes'][0]['id']),
-                                        data=data)
+                                    .format(self.post_id,
+                                            post_data['interactions']
+                                                     ['likes'][0]['id']),
+                                    data=data)
 
         if r.status_code != 204:
             raise Exception('{0}: Like could not be removed.'
@@ -72,8 +72,8 @@ class Post:
                 'authenticity_token': self._connection.getToken()}
 
         r = self._connection.post('reshares',
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Post could not be reshared.'
@@ -92,8 +92,8 @@ class Post:
                 'authenticity_token': self._connection.getToken()}
 
         r = self._connection.post('posts/{0}/comments'.format(self.post_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Comment could not be posted.'
@@ -111,10 +111,10 @@ class Post:
         data = {'authenticity_token': self._connection.getToken()}
 
         r = self._connection.delete('posts/{0}/comments/{1}'
-                                        .format(self.post_id,
-                                                comment_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+                                    .format(self.post_id,
+                                            comment_id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
 
         if r.status_code != 204:
             raise Exception('{0}: Comment could not be deleted.'
@@ -125,7 +125,7 @@ class Post:
         """
         data = {'authenticity_token': self._connection.getToken()}
         r = self._connection.delete('posts/{0}'.format(self.post_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+                                    data=data,
+                                    headers={'accept': 'application/json'})
         if r.status_code != 204:
             raise Exception('{0}: Post could not be deleted'.format(r.status_code))
