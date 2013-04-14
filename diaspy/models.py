@@ -8,20 +8,20 @@ class Post:
         Remember that you need to have access to the post.
         Remember that you also need to be logged in.
     """
-    def __init__(self, post_id, client):
+    def __init__(self, post_id, connection):
         """
         :param post_id: id or guid of the post
         :type post_id: str
-        :param client: client object used to authenticate
-        :type client: client.Client
+        :param connection: connection object used to authenticate
+        :type connection: connection.Connection
         """
-        self._client = client
+        self._connection = connection
         self.post_id = post_id
 
     def get_data(self):
         """This function retrieves data of the post.
         """
-        r = self._client._sessionget('posts/{1}.json'.format(self.post_id))
+        r = self._connection.get('posts/{1}.json'.format(self.post_id))
         if r.status_code == 200:
             return r.json()
         else:
@@ -33,11 +33,11 @@ class Post:
 
         :returns: dict -- json formatted like object.
         """
-        data = {'authenticity_token': self._client.get_token()}
+        data = {'authenticity_token': self._connection.getToken()}
 
-        r = self._client._sessionpost('posts/{0}/likes'.format(self.post_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+        r = self._connection.post('posts/{0}/likes'.format(self.post_id),
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Post could not be liked.'
@@ -48,15 +48,15 @@ class Post:
     def delete_like(self):
         """This function removes a like from a post
         """
-        data = {'authenticity_token': self._client.get_token()}
+        data = {'authenticity_token': self._connection.getToken()}
 
         post_data = self.get_data()
 
-        r = self._client._sessiondelete('posts/{0}/likes/{1}'
-                                        .format(self.post_id,
-                                                post_data['interactions']
-                                                         ['likes'][0]['id']),
-                                        data=data)
+        r = self._connection.delete('posts/{0}/likes/{1}'
+                                    .format(self.post_id,
+                                            post_data['interactions']
+                                                     ['likes'][0]['id']),
+                                    data=data)
 
         if r.status_code != 204:
             raise Exception('{0}: Like could not be removed.'
@@ -69,11 +69,11 @@ class Post:
         post_data = self.get_data()
 
         data = {'root_guid': post_data['guid'],
-                'authenticity_token': self._client.get_token()}
+                'authenticity_token': self._connection.getToken()}
 
-        r = self._client._sessionpost('reshares',
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+        r = self._connection.post('reshares',
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Post could not be reshared.'
@@ -89,11 +89,11 @@ class Post:
 
         """
         data = {'text': text,
-                'authenticity_token': self._client.get_token()}
+                'authenticity_token': self._connection.getToken()}
 
-        r = self._client._sessionpost('posts/{0}/comments'.format(self.post_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+        r = self._connection.post('posts/{0}/comments'.format(self.post_id),
+                                  data=data,
+                                  headers={'accept': 'application/json'})
 
         if r.status_code != 201:
             raise Exception('{0}: Comment could not be posted.'
@@ -108,13 +108,13 @@ class Post:
         :type comment_id: str
 
         """
-        data = {'authenticity_token': self._client.get_token()}
+        data = {'authenticity_token': self._connection.getToken()}
 
-        r = self._client._sessiondelete('posts/{0}/comments/{1}'
-                                        .format(self.post_id,
-                                                comment_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+        r = self._connection.delete('posts/{0}/comments/{1}'
+                                    .format(self.post_id,
+                                            comment_id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
 
         if r.status_code != 204:
             raise Exception('{0}: Comment could not be deleted.'
@@ -123,9 +123,9 @@ class Post:
     def delete(self):
         """ This function deletes this post
         """
-        data = {'authenticity_token': self._client.get_token()}
-        r = self._client._sessiondelete('posts/{0}'.format(self.post_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+        data = {'authenticity_token': self._connection.getToken()}
+        r = self._connection.delete('posts/{0}'.format(self.post_id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
         if r.status_code != 204:
             raise Exception('{0}: Post could not be deleted'.format(r.status_code))

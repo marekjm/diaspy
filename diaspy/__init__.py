@@ -1,3 +1,3 @@
-import diaspy.client
-import diaspy.models
-import diaspy.conversations
+from diaspy import client
+from diaspy import models
+from diaspy import conversations

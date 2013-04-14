@@ -1,32 +1,31 @@
 #!/usr/bin/env python3
 
 
-class Conversation:
+class Conversation():
     """This class represents a conversation.
 
     .. note::
         Remember that you need to have access to the conversation.
-
     """
-    def __init__(self, conv_id, client):
+    def __init__(self, conv_id, connection):
         """
         :param conv_id: id of the post and not the guid!
         :type conv_id: str
-        :param client: client object used to authenticate
-        :type client: client.Client
+        :param connection: connection object used to authenticate
+        :type connection: connection.Connection
 
         .. note::
-            The login function of the client should be called,
+            The login function of the connection should be called,
             before calling any of the post functions.
 
         """
-        self._client = client
+        self._connection = connection
         self.conv_id = conv_id
 
     def get_data(self):
         """ returns the plain json data representing conversation.
         """
-        r = self._client._sessionget('conversations/{1}.json'.format(self.conv_id))
+        r = self._connection.get('conversations/{1}.json'.format(self.conv_id))
         if r.status_code == 200:
             return r.json()['conversation']
         else:
@@ -42,11 +41,11 @@ class Conversation:
 
         data = {'message[text]': text,
                 'utf8': '&#x2713;',
-                'authenticity_token': self._client.get_token()}
+                'authenticity_token': self._connection.get_token()}
 
-        r = self._client._sessionpost('conversations/{}/messages'.format(self.conv_id),
-                                      data=data,
-                                      headers={'accept': 'application/json'})
+        r = self._connection.post('conversations/{}/messages'.format(self.conv_id),
+                                  data=data,
+                                  headers={'accept': 'application/json'})
         if r.status_code != 200:
             raise Exception('{0}: Answer could not be posted.'
                             .format(r.status_code))
@@ -56,12 +55,12 @@ class Conversation:
         """ delete this conversation
             has to be implemented
         """
-        data = {'authenticity_token': self._client.get_token()}
+        data = {'authenticity_token': self._connection.get_token()}
 
-        r = self._client._sessiondelete('conversations/{0}/visibility/'
-                                        .format(self.conv_id),
-                                        data=data,
-                                        headers={'accept': 'application/json'})
+        r = self._connection.delete('conversations/{0}/visibility/'
+                                    .format(self.conv_id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
 
         if r.status_code != 404:
             raise Exception('{0}: Conversation could not be deleted.'

@@ -17,22 +17,16 @@ __username__ = testconf.__username__
 __passwd__ = testconf.__passwd__
 
 
-class ClientTests(unittest.TestCase):
-    def testInitialization(self):
-        client = diaspy.client.Client(pod=__pod__,
-                                      username=__username__,
-                                      password=__passwd__)
-        self.assertEqual(__pod__, client.pod)
-        self.assertEqual(__username__, client._username)
-        self.assertEqual(__passwd__, client._password)
-        self.assertEqual({}, client._post_data)
-        self.assertEqual(client._token_regex,
-                         re.compile(r'content="(.*?)"\s+name="csrf-token'))
-        self.assertEqual(client._login_data['user[username]'], __username__)
-        self.assertEqual(client._login_data['user[password]'], __passwd__)
-        self.assertEqual(client._login_data['authenticity_token'],
-                         client.get_token())
+class ConnectionTest(unittest.TestCase):
+    def testLoginWithoutUsername(self):
+        connection = diaspy.connection.Connection(pod=__pod__)
+        self.assertRaises(diaspy.connection.LoginError, connection.login, password='foo')
 
+    def testLoginWithoutPassword(self):
+        connection = diaspy.connection.Connection(pod=__pod__)
+        self.assertRaises(diaspy.connection.LoginError, connection.login, username='user')
+
+class ClientTests(unittest.TestCase):
     def testGettingUserInfo(self):
         client = diaspy.client.Client(__pod__, __username__, __passwd__)
         info = client.get_user_info()
