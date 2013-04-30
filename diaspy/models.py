@@ -211,10 +211,10 @@ class Stream:
         data['status_message'] = {'text': text}
         if photos: data['photos'] = photos
         request = self._connection.post('status_messages',
-                                 data=json.dumps(data),
-                                 headers={'content-type': 'application/json',
-                                          'accept': 'application/json',
-                                          'x-csrf-token': self._connection.getToken()})
+                                        data=json.dumps(data),
+                                        headers={'content-type': 'application/json',
+                                                 'accept': 'application/json',
+                                                 'x-csrf-token': self._connection.getToken()})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(
                             request.status_code))
