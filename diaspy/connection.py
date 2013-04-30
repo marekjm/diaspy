@@ -2,6 +2,7 @@
 
 import re
 import requests
+import json
 
 
 class LoginError(Exception):
@@ -24,6 +25,7 @@ class Connection():
         self.pod = pod
         self.session = requests.Session()
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+        self._userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
         self._setlogin(username, password)
 
     def get(self, string):
@@ -31,7 +33,7 @@ class Connection():
         Performs additional checks if needed.
 
         Example:
-            To obtain 'foo' from pod one should call `_sessionget('foo')`.
+            To obtain 'foo' from pod one should call `get('foo')`.
 
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
@@ -43,7 +45,7 @@ class Connection():
         Performs additional checks if needed.
 
         Example:
-            To post to 'foo' one should call `_sessionpost('foo', data={})`.
+            To post to 'foo' one should call `post('foo', data={})`.
 
         :param string: URL to post without the pod's URL and slash eg. 'status_messages'.
         :type string: str
@@ -99,7 +101,7 @@ class Connection():
                             data=self.login_data,
                             headers={'accept': 'application/json'})
         if request.status_code != 201:
-            raise Exception('{0}: Login failed.'.format(request.status_code))
+            raise LoginError('{0}: Login failed.'.format(request.status_code))
 
     def login(self, username='', password=''):
         """This function is used to log in to a pod.
@@ -110,10 +112,19 @@ class Connection():
         self._login()
 
     def podswitch(self, pod):
-        """Switches pod.
+        """Switches pod from current to another one.
         """
         self.pod = pod
         self._login()
+
+    def getUserInfo(self):
+        """This function returns the current user's attributes.
+
+        :returns: dict -- json formatted user info.
+        """
+        request = self.get('bookmarklet')
+        userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
+        return userdata
 
     def getToken(self):
         """This function returns a token needed for authentication in most cases.

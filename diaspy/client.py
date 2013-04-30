@@ -71,10 +71,7 @@ class Client:
 
         :returns: dict -- json formatted user info.
         """
-        r = self.connection.get('bookmarklet')
-        regex = re.compile(r'window.current_user_attributes = ({.*})')
-        userdata = json.loads(regex.search(r.text).group(1))
-        return userdata
+        return self.connection.getUserInfo()
 
     def post_picture(self, filename):
         """This method posts a picture to D*.
@@ -104,13 +101,9 @@ class Client:
 
         :returns: list -- list of Post objects.
         """
-        request = self.connection.get('stream.json')
-
-        if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
-
-        stream = request.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in stream]
+        stream = diaspy.models.Stream(self.connection)
+        stream.update()
+        return stream
 
     def get_notifications(self):
         """This functions returns a list of notifications.

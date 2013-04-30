@@ -1,0 +1,32 @@
+#### `Stream()` object
+
+This object is used to represent user's stream on D\*. 
+It is returned by `Client()`'s method `get_stream()` and 
+is basically the list of posts. 
+
+It can get more functionality in future (probably it would be 
+moved from `Client()`).
+
+----
+
+##### Getting stream
+
+To get basic stream you have to have working `Connection()` as 
+this is required by `Stream()`'s constructor.
+
+    c = diaspy.connection.Connection(pod='https://pod.example.com',
+                                     username='foo',
+                                     password='bar')
+    c.login()
+    stream = diaspy.models.Stream(c)
+
+Now you have a stream filled with posts (if any can be found on user's stream).
+
+----
+
+##### Length of a stream
+
+Stream's length can be checked by calling `len()` on it.
+
+    len(stream)
+    10

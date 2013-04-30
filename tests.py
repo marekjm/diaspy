@@ -17,6 +17,42 @@ __username__ = testconf.__username__
 __passwd__ = testconf.__passwd__
 
 
+class StreamTest(unittest.TestCase):
+    def testGetting(self):
+        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+        c.login()
+        stream = diaspy.models.Stream(c)
+        stream.update()
+
+    def testGettingLength(self):
+        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+        c.login()
+        stream = diaspy.models.Stream(c)
+        stream.update()
+        len(stream)
+
+    def testClearing(self):
+        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+        c.login()
+        stream = diaspy.models.Stream(c)
+        stream.update()
+        stream.clear()
+        self.assertEqual(0, len(stream))
+
+    def testPostingText(self):
+        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+        c.login()
+        stream = diaspy.models.Stream(c)
+        post = stream.post('`diaspy` test \n#diaspy')
+        self.assertEqual(diaspy.models.Post, type(post))
+
+    def testPostingImage(self):
+        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+        c.login()
+        stream = diaspy.models.Stream(c)
+        stream.post_picture('./test-image.png')
+
+
 class ConnectionTest(unittest.TestCase):
     def testLoginWithoutUsername(self):
         connection = diaspy.connection.Connection(pod=__pod__)
@@ -26,17 +62,18 @@ class ConnectionTest(unittest.TestCase):
         connection = diaspy.connection.Connection(pod=__pod__)
         self.assertRaises(diaspy.connection.LoginError, connection.login, username='user')
 
-class ClientTests(unittest.TestCase):
     def testGettingUserInfo(self):
-        client = diaspy.client.Client(__pod__, __username__, __passwd__)
-        info = client.get_user_info()
+        connection = diaspy.connection.Connection(__pod__, __username__, __passwd__)
+        connection.login()
+        info = connection.getUserInfo()
         self.assertEqual(dict, type(info))
 
+
+class ClientTests(unittest.TestCase):
     def testGettingStream(self):
         client = diaspy.client.Client(__pod__, __username__, __passwd__)
         stream = client.get_stream()
-        self.assertEqual(list, type(stream))
-        if stream: self.assertEqual(diaspy.models.Post, type(stream[0]))
+        if len(stream): self.assertEqual(diaspy.models.Post, type(stream[0]))
 
     def testGettingNotifications(self):
         client = diaspy.client.Client(__pod__, __username__, __passwd__)
