@@ -1,4 +1,3 @@
-import json
 import diaspy.models
 import diaspy.connection
 
