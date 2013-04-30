@@ -24,9 +24,37 @@ Now you have a stream filled with posts (if any can be found on user's stream).
 
 ----
 
-##### Length of a stream
+##### `fill()` and `update()`
+
+When you want to refresh stream call it's `fill()` method. It will overwrite old stream 
+contents.
+
+On the contrary, `update()` will get a new stream but will not overwrite old stream saved 
+in the object memory. It will append every new post to the old stream.
+
+----
+
+##### Length of and iterating over a stream
 
 Stream's length can be checked by calling `len()` on it.
 
     len(stream)
     10
+
+When you want to iterate over a stream (e.g. when you want to print first *n* posts on 
+the stream) you can do it in two ways.
+
+First, using `len()` and `range()` functions.
+
+    for i in range(len(stream)):
+        # do stuff...
+
+Second, iterating directly over the stream contents:
+
+    for post in stream:
+        # do stuff...
+
+
+----
+
+###### Manual for `diaspy`, written by Marek Marecki
