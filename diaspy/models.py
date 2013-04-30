@@ -220,7 +220,6 @@ class Stream:
                             request.status_code))
 
         post = Post(str(request.json()['id']), self._connection)
-        self.update()
         return post
 
     def post_picture(self, filename):
@@ -244,5 +243,4 @@ class Stream:
                    'x-file-name': filename}
         request = self._connection.post('photos', params=params, data=data, headers=headers)
         data.close()
-        self.update()
         return request

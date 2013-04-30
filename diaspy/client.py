@@ -18,37 +18,7 @@ class Client:
         self.connection = diaspy.connection.Connection(pod, username, password)
         self.connection.login()
         self.pod = pod
-
-    def _setpostdata(self, text, aspect_ids, photos):
-        """This function prepares data for posting.
-
-        :param text: Text to post.
-        :type text: str
-        :param aspect_ids: Aspect ids to send post to.
-        :type aspect_ids: str
-        """
-        data = {}
-        data['aspect_ids'] = aspect_ids
-        data['status_message'] = {'text': text}
-        if photos:
-            data['photos'] = photos
-        self._post_data = data
-
-    def _post(self):
-        """Sends post to an aspect.
-
-        :returns: diaspy.models.Post -- the Post which has been created
-        """
-        r = self.connection.post('status_messages',
-                                 data=json.dumps(self._post_data),
-                                 headers={'content-type': 'application/json',
-                                          'accept': 'application/json',
-                                          'x-csrf-token': self.get_token()})
-        if r.status_code != 201:
-            raise Exception('{0}: Post could not be posted.'.format(
-                            r.status_code))
-
-        return diaspy.models.Post(str(r.json()['id']), self.connection)
+        self.stream = diaspy.models.Stream(self.connection)
 
     def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
@@ -60,17 +30,8 @@ class Client:
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        self._setpostdata(text, aspect_ids, photos)
-        post = self._post()
-        self._post_data = {}
+        post = self.stream.post(text, aspect_ids, photos)
         return post
-
-    def get_user_info(self):
-        """This function returns the current user's attributes.
-
-        :returns: dict -- json formatted user info.
-        """
-        return self.connection.getUserInfo()
 
     def post_picture(self, filename):
         """This method posts a picture to D*.
@@ -78,31 +39,15 @@ class Client:
         :param filename: Path to picture file.
         :type filename: str
         """
-        aspects = self.get_user_info()['aspects']
-        params = {}
-        params['photo[pending]'] = 'true'
-        params['set_profile_image'] = ''
-        params['qqfile'] = filename
-        for i, aspect in enumerate(aspects):
-            params['photo[aspect_ids][%d]' % (i)] = aspect['id']
-
-        data = open(filename, 'rb')
-
-        headers = {'content-type': 'application/octet-stream',
-                   'x-csrf-token': self.get_token(),
-                   'x-file-name': filename}
-
-        r = self.connection.post('photos', params=params, data=data, headers=headers)
-        return r
+        return self.stream.post_picture(filename)
 
     def get_stream(self):
-        """This functions returns a list of posts found in the stream.
+        """This functions returns user's stream.
 
-        :returns: list -- list of Post objects.
+        :returns: diaspy.models.Stream
         """
-        stream = diaspy.models.Stream(self.connection)
-        stream.update()
-        return stream
+        self.stream.update()
+        return self.stream
 
     def get_notifications(self):
         """This functions returns a list of notifications.

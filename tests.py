@@ -43,7 +43,7 @@ class StreamTest(unittest.TestCase):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
         stream = diaspy.models.Stream(c)
-        post = stream.post('`diaspy` test \n#diaspy')
+        post = stream.post('#diaspy test')
         self.assertEqual(diaspy.models.Post, type(post))
 
     def testPostingImage(self):
@@ -92,5 +92,15 @@ class ClientTests(unittest.TestCase):
         mailbox = client.get_mailbox()
         self.assertEqual(list, type(mailbox))
         self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
+
+    def testPostingImage(self):
+        c = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
+        c.post_picture('./test-image.png')
+
+    def testPostingText(self):
+        c = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
+        post = c.post('#diaspy test')
+        self.assertEqual(diaspy.models.Post, type(post))
+
 
 if __name__ == '__main__': unittest.main()
