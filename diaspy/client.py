@@ -1,4 +1,5 @@
 import diaspy.models
+import diaspy.streams
 import diaspy.connection
 
 
@@ -17,7 +18,7 @@ class Client:
         self.connection = diaspy.connection.Connection(pod, username, password)
         self.connection.login()
         self.pod = pod
-        self.stream = diaspy.models.Stream(self.connection)
+        self.stream = diaspy.streams.Stream(self.connection, 'stream.json')
 
     def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
@@ -40,10 +41,17 @@ class Client:
         """
         return self.stream.post_picture(filename)
 
-    def get_stream(self):
-        """This functions returns user's stream.
+    def get_activity(self):
+        """This function returns activity stream.
+        :returns: diaspy.streams.Activity
+        """
+        activity = diaspy.streams.Activity(self.connection, 'activity.json')
+        return activity
 
-        :returns: diaspy.models.Stream
+    def get_stream(self):
+        """This functions returns stream.
+
+        :returns: diaspy.streams.Stream
         """
         self.stream.update()
         return self.stream

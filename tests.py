@@ -93,14 +93,11 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(list, type(mailbox))
         self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
 
-    def testPostingImage(self):
-        c = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
-        c.post_picture('./test-image.png')
 
-    def testPostingText(self):
-        c = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
-        post = c.post('#diaspy test')
-        self.assertEqual(diaspy.models.Post, type(post))
-
-
-if __name__ == '__main__': unittest.main()
+if __name__ == '__main__':
+    unittest.main()
+    c = diaspy.connection.Connection(__pod__, __username__, __passwd__)
+    c.login()
+    stream = diaspy.modules.Stream(c)
+    for post in stream:
+        if post['text'] == '#diaspy test': post.delete()
