@@ -43,6 +43,7 @@ class Client:
 
     def get_activity(self):
         """This function returns activity stream.
+
         :returns: diaspy.streams.Activity
         """
         activity = diaspy.streams.Activity(self.connection, 'activity.json')
@@ -56,6 +57,46 @@ class Client:
         self.stream.update()
         return self.stream
 
+    def get_aspects(self):
+        """Returns /aspects stream.
+
+        :returns: diaspy.streams.Aspects
+        """
+        return diaspy.streams.Aspects(self.connection)
+
+    def get_mentions(self):
+        """Returns /mentions stream.
+
+        :returns: diaspy.streams.Mentions
+        """
+        return diaspy.streams.Mentions(self.connection)
+
+    def get_followed_tags(self):
+        """Returns followed tags stream.
+
+        :returns: diaspy.streams.FollowedTags
+        """
+        return diaspy.streams.FollowedTags(self.connection)
+
+    def get_tag(self, tag, stream=False):
+        """This functions returns a list of posts containing the tag.
+        :param tag: Name of the tag
+        :type tag: str
+        :param stream: specify wheter you want a stream object (True) or
+        normal list (False)
+        :type stream: bool
+
+        :returns: list -- list of Post objects
+        """
+        if stream:
+            r = self.connection.get('tags/{0}.json'.format(tag))
+            if r.status_code != 200:
+                raise Exception('wrong status code: {0}'.format(r.status_code))
+            tagged_posts = [diaspy.models.Post(str(post['id']), self.connection) for post in r.json()]
+        else:
+            tagged_posts = diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
+        return tagged_posts
+
     def get_notifications(self):
         """This functions returns a list of notifications.
 
@@ -68,35 +109,6 @@ class Client:
 
         notifications = r.json()
         return notifications
-
-    def get_mentions(self):
-        """This functions returns a list of
-        posts the current user is being mentioned in.
-
-        :returns: list -- list of Post objects
-        """
-        r = self.connection.get('mentions.json')
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        mentions = r.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in mentions]
-
-    def get_tag(self, tag):
-        """This functions returns a list of posts containing the tag.
-        :param tag: Name of the tag
-        :type tag: str
-
-        :returns: list -- list of Post objects
-        """
-        r = self.connection.get('tags/{0}.json'.format(tag))
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        tagged_posts = r.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in tagged_posts]
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
