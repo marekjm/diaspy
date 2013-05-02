@@ -26,6 +26,7 @@ class Connection():
         self.session = requests.Session()
         self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
         self._userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
+        self.login_data = {}
         self._setlogin(username, password)
 
     def get(self, string):

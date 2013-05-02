@@ -10,49 +10,64 @@ import re
 import diaspy
 
 
+####    SETUP STUFF
 ####    test suite configuration variables: can be adjusted to your liking
 import testconf
 __pod__ = testconf.__pod__
 __username__ = testconf.__username__
 __passwd__ = testconf.__passwd__
 
-__connection__ = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
-__connection__.login()
+
+# Test counter
+try:
+    test_count_file = open('TEST_COUNT', 'r')
+    test_count = int(test_count_file.read())
+    test_count_file.close()
+except (IOError, ValueError):
+    test_count = 0
+finally:
+    test_count += 1
+test_count_file = open('TEST_COUNT', 'w')
+test_count_file.write(str(test_count))
+test_count_file.close()
+print('Running test no. {0}'.format(test_count))
+
+print('Running tests on connection to pod: "{0}"\n'.format(__pod__))
+test_connection = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+test_connection.login()
 
 
+#### Test suite code
 class StreamTest(unittest.TestCase):
     def testGetting(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.streams.Stream(c)
-        stream.update()
+        stream = diaspy.streams.Generic(c)
 
     def testGettingLength(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.streams.Stream(c)
-        stream.update()
+        stream = diaspy.streams.Generic(c)
         len(stream)
 
     def testClearing(self):
-        stream = diaspy.streams.Stream(__connection__)
-        stream.update()
+        stream = diaspy.streams.Stream(test_connection)
         stream.clear()
         self.assertEqual(0, len(stream))
 
     def testPurging(self):
-        stream = diaspy.streams.Stream(__connection__)
+        stream = diaspy.streams.Stream(test_connection)
         post = stream.post('#diaspy test')
         stream.update()
         post.delete()
         stream.purge()
-        self.assertNotIn(post.post_id, [post.post_id for post in stream])
+        self.assertNotIn(post.post_id, [p.post_id for p in stream])
 
     def testPostingText(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
         stream = diaspy.streams.Stream(c)
-        post = stream.post('#diaspy test')
+        post = stream.post('#diaspy test no. {0}'.format(test_count))
         self.assertEqual(diaspy.models.Post, type(post))
 
     def testPostingImage(self):
@@ -90,10 +105,16 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(list, type(notifications))
         if notifications: self.assertEqual(dict, type(notifications[0]))
 
-    def testGettingTag(self):
+    def testGettingTagAsList(self):
         client = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
         tag = client.get_tag('foo')
         self.assertEqual(list, type(tag))
+        if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
+
+    def testGettingTagAsStream(self):
+        client = diaspy.client.Client(pod=__pod__, username=__username__, password=__passwd__)
+        tag = client.get_tag('foo', stream=True)
+        self.assertEqual(diaspy.streams.Generic, type(tag))
         if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
 
     def testGettingMailbox(self):

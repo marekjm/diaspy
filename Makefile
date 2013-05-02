@@ -5,3 +5,6 @@ style-check:
 
 test:
 	python3 -m unittest --verbose --catch --failfast tests.py
+
+test-python2:
+	python3 -m unittest --verbose --catch --failfast tests.py

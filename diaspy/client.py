@@ -89,12 +89,12 @@ class Client:
         :returns: list -- list of Post objects
         """
         if stream:
+            tagged_posts = diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
+        else:
             r = self.connection.get('tags/{0}.json'.format(tag))
             if r.status_code != 200:
                 raise Exception('wrong status code: {0}'.format(r.status_code))
             tagged_posts = [diaspy.models.Post(str(post['id']), self.connection) for post in r.json()]
-        else:
-            tagged_posts = diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
         return tagged_posts
 
     def get_notifications(self):
