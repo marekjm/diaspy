@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 
-import json
-
-
 class Post:
     """This class represents a post.
 
@@ -24,11 +21,10 @@ class Post:
     def get_data(self):
         """This function retrieves data of the post.
         """
-        r = self._connection.get('posts/{1}.json'.format(self.post_id))
-        if r.status_code == 200:
-            return r.json()
-        else:
+        r = self._connection.get('posts/{0}.json'.format(self.post_id))
+        if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
+        return r.json()
 
     def like(self):
         """This function likes a post.

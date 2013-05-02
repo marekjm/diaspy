@@ -1,18 +1,27 @@
 import json
 from diaspy.models import Post
 
+"""Docstrings for this module are taken from:
+https://gist.github.com/MrZYX/01c93096c30dc44caf71
+
+Documentation for D* JSON API taken from:
+http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
+"""
 
 class Generic:
-    """Object representing generic stream. Used in Tag(), 
+    """Object representing generic stream. Used in Tag(),
     Stream(), Activity() etc.
     """
-    def __init__(self, connection, location):
+    def __init__(self, connection, location=''):
         """
         :param connection: Connection() object
-        :param type: diaspy.connection.Connection
+        :type connection: diaspy.connection.Connection
+        :param location: location of json
+        :type location: str
         """
         self._connection = connection
-        self._location = location
+        self._setlocation()
+        if location: self._location = location
         self._stream = []
         self.fill()
 
@@ -38,6 +47,27 @@ class Generic:
         """
         return len(self._stream)
 
+    def _setlocation(self):
+        """Sets location of the stream.
+        Location defaults to 'stream.json'
+
+        NOTICE: inheriting objects should override this method
+        and set their own value to the `location`.
+        However, it is possible to override default location by
+        passing the desired one to the constructor.
+        For example:
+
+            def _setlocation(self):
+                self._location = 'foo.json'
+
+
+        :param location: url of the stream
+        :type location: str
+
+        :returns: str
+        """
+        self._location = 'stream.json'
+
     def _obtain(self):
         """Obtains stream from pod.
         """
@@ -51,15 +81,34 @@ class Generic:
         """
         self._stream = []
 
+    def purge(self):
+        """Removes all unexistent posts from stream.
+        """
+        stream = []
+        for post in self._stream:
+            deleted = False
+            try:
+                post.get_data()
+                stream.append(post)
+            except Exception:
+                deleted = True
+            finally:
+                if not deleted: stream.append(post)
+        self._stream = stream
+
     def update(self):
         """Updates stream.
         """
-        stream = self._obtain()
-        _stream = self._stream
-        for i in range(len(stream)):
-            if stream[-i] not in _stream:
-                _stream = [stream[-i]] + _stream
-        self._stream = _stream
+        new_stream = self._obtain()
+        ids = [post.post_id for post in self._stream]
+
+        stream = self._stream
+        for i in range(len(new_stream)):
+            if new_stream[-i].post_id not in ids:
+                stream = [new_stream[-i]] + stream
+                ids.append(new_stream[-i].post_id)
+
+        self._stream = stream
 
     def fill(self):
         """Fills the stream with posts.
@@ -68,8 +117,13 @@ class Generic:
 
 
 class Stream(Generic):
-    """Object representing user's stream.
+    """The main stream containing the combined posts of the 
+    followed users and tags and the community spotlights posts 
+    if the user enabled those.
     """
+    def _setlocation(self):
+        self._location = 'stream.json'
+
     def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
 
@@ -123,4 +177,107 @@ class Stream(Generic):
 class Activity(Generic):
     """Stream representing user's activity.
     """
-    pass
+    def _setlocation(self):
+        self._location = 'activity.json'
+
+    def _delid(self, id):
+        """Deletes post with given id.
+        """
+        post = None
+        for p in self._stream:
+            if p['id'] == id:
+                post = p
+                break
+        if post is not None: post.delete()
+
+    def delete(self, post):
+        """Deletes post from users activity.
+        `post` can be either post id or Post()
+        object which will be identified and deleted.
+        After deleting post the stream will be filled.
+
+        :param post: post identifier
+        :type post: str, diaspy.models.Post
+        """
+        if type(post) == str: self._delid(post)
+        elif type(post) == Post: post.delete()
+        else:
+            raise TypeError('this method accepts only int, str or Post: {0} given')
+        self.fill()
+
+
+class Aspects(Generic):
+    """This stream contains the posts filtered by 
+    the specified aspect IDs. You can choose the aspect IDs with 
+    the parameter `aspect_ids` which value should be 
+    a comma seperated list of aspect IDs. 
+    If the parameter is ommitted all aspects are assumed. 
+    An example call would be `aspects.json?aspect_ids=23,5,42`
+    """
+    def _setlocation(self):
+        self._location = 'aspects.json'
+
+    def add(self, aspect_name, visible=0):
+        """This function adds a new aspect.
+        """
+        data = {'authenticity_token': self._connection.getToken(),
+                'aspect[name]': aspect_name,
+                'aspect[contacts_visible]': visible}
+
+        r = self._connection.post('aspects', data=data)
+        if r.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
+
+class Commented(Generic):
+    """This stream contains all posts 
+    the user has made a comment on.
+    """
+    def _setlocation(self):
+        self._location = 'commented.json'
+
+
+class Liked(Generic):
+    """This stream contains all posts the user liked.
+    """
+    def _setlocation(self):
+        self._location = 'liked.json'
+
+
+class Mentions(Generic):
+    """This stream contains all posts 
+    the user is mentioned in.
+    """
+    def _setlocation(self):
+        self._location = 'mentions.json'
+
+
+class FollowedTags(Generic):
+    """This stream contains all posts 
+    containing a tag the user is following.
+    """
+    def _setlocation(self):
+        self._location = 'followed_tags.json'
+
+    def add(self, tag_name):
+        """Follow new tag.
+        """
+        data = {'authenticity_token': self._connection.getToken(),
+                'tag_name': tag_name}
+        r = self._connection.post('tags', data=data)
+        if r.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
+    def create(self, tag_name):
+        """Follow new tag.
+
+        :param tag_name: tag name
+        :type tag_name: str
+        """
+        data = {'tag_name':tag_name,
+                'authenticity_token':self._connection.getToken(),
+               }
+        request = self._connection.post('followed_tags', data=data, headers=headers)
+
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format(request.status_code))

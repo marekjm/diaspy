@@ -16,40 +16,49 @@ __pod__ = testconf.__pod__
 __username__ = testconf.__username__
 __passwd__ = testconf.__passwd__
 
+__connection__ = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+__connection__.login()
+
 
 class StreamTest(unittest.TestCase):
     def testGetting(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.models.Stream(c)
+        stream = diaspy.streams.Stream(c)
         stream.update()
 
     def testGettingLength(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.models.Stream(c)
+        stream = diaspy.streams.Stream(c)
         stream.update()
         len(stream)
 
     def testClearing(self):
-        c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
-        c.login()
-        stream = diaspy.models.Stream(c)
+        stream = diaspy.streams.Stream(__connection__)
         stream.update()
         stream.clear()
         self.assertEqual(0, len(stream))
 
+    def testPurging(self):
+        stream = diaspy.streams.Stream(__connection__)
+        post = stream.post('#diaspy test')
+        stream.update()
+        post.delete()
+        stream.purge()
+        self.assertNotIn(post.post_id, [post.post_id for post in stream])
+
     def testPostingText(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.models.Stream(c)
+        stream = diaspy.streams.Stream(c)
         post = stream.post('#diaspy test')
         self.assertEqual(diaspy.models.Post, type(post))
 
     def testPostingImage(self):
         c = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
         c.login()
-        stream = diaspy.models.Stream(c)
+        stream = diaspy.streams.Stream(c)
         stream.post_picture('./test-image.png')
 
 

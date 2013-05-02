@@ -121,7 +121,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.get_token(),
+        data = {'authenticity_token': self.connection.getToken(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -134,15 +134,8 @@ class Client:
     def add_aspect(self, aspect_name, visible=0):
         """ This function adds a new aspect.
         """
-
-        data = {'authenticity_token': self.get_token(),
-                'aspect[name]': aspect_name,
-                'aspect[contacts_visible]': visible}
-
-        r = self.connection.post('aspects', data=data)
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        aspects = diaspy.streams.Aspects(self.connection)
+        aspects.add(aspect_name, visible)
 
     def remove_user_from_aspect(self, user_id, aspect_id):
         """ this function removes a user from an aspect.
@@ -153,7 +146,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.get_token(),
+        data = {'authenticity_token': self.connection.getToken(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -168,7 +161,7 @@ class Client:
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
         """
-        data = {'authenticity_token': self.get_token()}
+        data = {'authenticity_token': self.connection.getToken()}
 
         r = self.connection.delete('aspects/{}'.format(aspect_id),
                                    data=data)
