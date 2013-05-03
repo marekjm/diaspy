@@ -142,7 +142,7 @@ class Stream(Generic):
                                         data=json.dumps(data),
                                         headers={'content-type': 'application/json',
                                                  'accept': 'application/json',
-                                                 'x-csrf-token': self._connection.getToken()})
+                                                 'x-csrf-token': self._connection.get_token()})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(
                             request.status_code))
@@ -167,7 +167,7 @@ class Stream(Generic):
         data = open(filename, 'rb')
 
         headers = {'content-type': 'application/octet-stream',
-                   'x-csrf-token': self._connection.getToken(),
+                   'x-csrf-token': self._connection.get_token(),
                    'x-file-name': filename}
         request = self._connection.post('photos', params=params, data=data, headers=headers)
         data.close()
@@ -220,7 +220,7 @@ class Aspects(Generic):
     def add(self, aspect_name, visible=0):
         """This function adds a new aspect.
         """
-        data = {'authenticity_token': self._connection.getToken(),
+        data = {'authenticity_token': self._connection.get_token(),
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
@@ -265,9 +265,14 @@ class FollowedTags(Generic):
         :param tag_name: tag name
         :type tag_name: str
         """
-        data = {'authenticity_token':self._connection.getToken(),
-                'tag_name':tag_name,
+        data = {'name':tag_name,
+                'authenticity_token':self._connection.get_token(),
                }
-        request = self._connection.post('followed_tags', data=data)
-        if request.status_code != 200:
+        headers={'content-type': 'application/json',
+                 'x-csrf-token': self._connection.get_token(),
+                 'accept': 'application/json'}
+
+        request = self._connection.post('tag_followings', data=json.dumps(data), headers=headers)
+
+        if request.status_code != 201:
             raise Exception('wrong error code: {0}'.format(request.status_code))

@@ -133,7 +133,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.connection.getToken(),
+        data = {'authenticity_token': self.connection.get_token(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -158,7 +158,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.connection.getToken(),
+        data = {'authenticity_token': self.connection.get_token(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -173,7 +173,7 @@ class Client:
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
         """
-        data = {'authenticity_token': self.connection.getToken()}
+        data = {'authenticity_token': self.connection.get_token()}
 
         r = self.connection.delete('aspects/{}'.format(aspect_id),
                                    data=data)
@@ -195,7 +195,7 @@ class Client:
                 'conversation[subject]': subject,
                 'conversation[text]': text,
                 'utf8': '&#x2713;',
-                'authenticity_token': self.connection.getToken()}
+                'authenticity_token': self.connection.get_token()}
 
         r = self.connection.post('conversations/',
                                  data=data,
