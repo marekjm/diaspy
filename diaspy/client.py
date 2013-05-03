@@ -6,18 +6,25 @@ import diaspy.connection
 class Client:
     """This is the client class to connect to Diaspora.
     """
-    def __init__(self, pod, username, password):
+    def __init__(self, pod, username='', password=''):
         """
-        :param pod: The complete url of the diaspora pod to use.
+        `pod` can also be a diaspy.connection.Connection type and
+        Client() will detect it. When giving a connection there is no need 
+        to pass username and password.
+
+        :param pod: The complete url of the diaspora pod to use
+        (or Connection() object).
         :type pod: str
         :param username: The username used to log in.
         :type username: str
         :param password: The password used to log in.
         :type password: str
         """
-        self.connection = diaspy.connection.Connection(pod, username, password)
-        self.connection.login()
-        self.pod = pod
+        if type(pod) == diaspy.connection.Connection:
+            self.connection = pod
+        else:
+            self.connection = diaspy.connection.Connection(pod, username, password)
+            self.connection.login()
         self.stream = diaspy.streams.Stream(self.connection, 'stream.json')
 
     def post(self, text, aspect_ids='public', photos=None):
