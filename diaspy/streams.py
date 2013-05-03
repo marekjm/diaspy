@@ -276,7 +276,7 @@ class Mentions(Generic):
 
 class FollowedTags(Generic):
     """This stream contains all posts 
-    containing a tag the user is following.
+    containing tags the user is following.
     """
     def _setlocation(self):
         self._location = 'followed_tags.json'
@@ -294,9 +294,12 @@ class FollowedTags(Generic):
 
     def add(self, tag_name):
         """Follow new tag.
+        Error code 403 is accepted because pods respod with it when request 
+        is sent to follow a tag that a user already follows.
 
         :param tag_name: tag name
         :type tag_name: str
+        :returns: int (response code)
         """
         data = {'name':tag_name,
                 'authenticity_token':self._connection.get_token(),
@@ -307,5 +310,6 @@ class FollowedTags(Generic):
 
         request = self._connection.post('tag_followings', data=json.dumps(data), headers=headers)
 
-        if request.status_code != 201:
+        if request.status_code not in [201, 403]:
             raise Exception('wrong error code: {0}'.format(request.status_code))
+        return request.status_code
