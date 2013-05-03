@@ -1,7 +1,9 @@
 #### Python API for Diaspora (unofficial)
 
 `diaspy` is a set of modules which form API for D\* social network. 
-The API is written in Python 3.x and is not Python 2.x compatible. 
+The API is written in Python and should be both 3.x and 2.x compatible. 
+Test suite will cause problems when run with 2.x so testing should be done 
+using python3 interpreter.
 
 Object oriented design of `diaspy` makes it easily reusable by other 
 developers who want to use only part of the API.
