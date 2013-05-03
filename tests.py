@@ -69,9 +69,9 @@ class StreamTest(unittest.TestCase):
         stream = diaspy.streams.Stream(test_connection)
         stream.post_picture('./test-image.png')
 
-    def testCreatingTag(self):
+    def testingAddingTag(self)
         ft = diaspy.streams.FollowedTags(test_connection)
-        ft.create('test')
+        ft.add('test')
 
 
 class ConnectionTest(unittest.TestCase):
