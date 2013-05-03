@@ -39,41 +39,6 @@ print('[ CONNECTED ]\n')
 
 
 #### Test suite code
-class StreamTest(unittest.TestCase):
-    def testGetting(self):
-        stream = diaspy.streams.Generic(test_connection)
-
-    def testGettingLength(self):
-        stream = diaspy.streams.Generic(test_connection)
-        len(stream)
-
-    def testClearing(self):
-        stream = diaspy.streams.Stream(test_connection)
-        stream.clear()
-        self.assertEqual(0, len(stream))
-
-    def testPurging(self):
-        stream = diaspy.streams.Stream(test_connection)
-        post = stream.post('#diaspy test')
-        stream.update()
-        post.delete()
-        stream.purge()
-        self.assertNotIn(post.post_id, [p.post_id for p in stream])
-
-    def testPostingText(self):
-        stream = diaspy.streams.Stream(test_connection)
-        post = stream.post('#diaspy test no. {0}'.format(test_count))
-        self.assertEqual(diaspy.models.Post, type(post))
-
-    def testPostingImage(self):
-        stream = diaspy.streams.Stream(test_connection)
-        stream.post_picture('./test-image.png')
-
-    def testingAddingTag(self):
-        ft = diaspy.streams.FollowedTags(test_connection)
-        ft.add('test')
-
-
 class ConnectionTest(unittest.TestCase):
     def testLoginWithoutUsername(self):
         connection = diaspy.connection.Connection(pod=__pod__)
@@ -117,6 +82,54 @@ class ClientTests(unittest.TestCase):
         mailbox = client.get_mailbox()
         self.assertEqual(list, type(mailbox))
         self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
+
+
+class StreamTest(unittest.TestCase):
+    def testGetting(self):
+        stream = diaspy.streams.Generic(test_connection)
+
+    def testGettingLength(self):
+        stream = diaspy.streams.Generic(test_connection)
+        len(stream)
+
+    def testClearing(self):
+        stream = diaspy.streams.Stream(test_connection)
+        stream.clear()
+        self.assertEqual(0, len(stream))
+
+    def testPurging(self):
+        stream = diaspy.streams.Stream(test_connection)
+        post = stream.post('#diaspy test')
+        stream.update()
+        post.delete()
+        stream.purge()
+        self.assertNotIn(post.post_id, [p.post_id for p in stream])
+
+    def testPostingText(self):
+        stream = diaspy.streams.Stream(test_connection)
+        post = stream.post('#diaspy test no. {0}'.format(test_count))
+        self.assertEqual(diaspy.models.Post, type(post))
+
+    def testPostingImage(self):
+        stream = diaspy.streams.Stream(test_connection)
+        stream.post_picture('./test-image.png')
+
+    def testingAddingTag(self):
+        ft = diaspy.streams.FollowedTags(test_connection)
+        ft.add('test')
+
+
+class UserTests(unittest.TestCase):
+    def testHandleSeparatorRaisingExceptions(self):
+        user = diaspy.people.User(test_connection)
+        handles = ['user.pod.example.com',
+                   'user@podexamplecom',
+                   '@pod.example.com',
+                   'use r@pod.example.com',
+                   'user0@pod300 example.com',
+                   ]
+        for h in handles:
+            self.assertRaises(Exception, user._sephandle, handle)
 
 
 if __name__ == '__main__':
