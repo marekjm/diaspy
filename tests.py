@@ -30,15 +30,28 @@ finally:
 test_count_file = open('TEST_COUNT', 'w')
 test_count_file.write(str(test_count))
 test_count_file.close()
+
+# Test connection setup
 print('Running test no. {0}'.format(test_count))
+print('Running tests on connection to pod: "{0}"'.format(__pod__))
 
-print('Running tests on connection to pod: "{0}"\t'.format(__pod__), end='')
-test_connection = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
-test_connection.login()
-print('[ CONNECTED ]\n')
+print('Connecting to pod...\t', end='')
+try:
+    test_connection = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
+    test_connection.login()
+    print('[ CONNECTED ]\n')
+    err = False
+except:
+    print('[    FAIL   ]')
+    input('Hit [Return] to continue...')
+    err = True
+finally:
+    if err: raise
 
 
-#### Test suite code
+#######################################
+####        TEST SUITE CODE        ####
+#######################################
 class ConnectionTest(unittest.TestCase):
     def testLoginWithoutUsername(self):
         connection = diaspy.connection.Connection(pod=__pod__)
@@ -135,18 +148,18 @@ class UserTests(unittest.TestCase):
         user = diaspy.people.User(test_connection)
         user.fetchhandle(testconf.diaspora_id)
         self.assertEqual(testconf.guid, user['guid'])
-        self.assertEqual(testconf.name, user['name'])
+        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
         self.assertIn('id', user.data)
-        self.assertIn('avatar', user.data)
+        self.assertIn('image_urls', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
     def testGettingUserByGUID(self):
         user = diaspy.people.User(test_connection)
         user.fetchguid(testconf.guid)
         self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
-        self.assertEqual(testconf.name, user['name'])
+        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
         self.assertIn('id', user.data)
-        self.assertIn('avatar', user.data)
+        self.assertIn('image_urls', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
 

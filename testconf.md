@@ -15,3 +15,5 @@ Template file:
     __passwd__ = 'strong_password'
     diaspora_id = 'user@pod.example.com'
     guid = '12345678abcdefgh'
+    # your name as others see it
+    diaspora_name = 'Marek Marecki'

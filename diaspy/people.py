@@ -29,30 +29,41 @@ class User:
         pod, user = handle[1], handle[0]
         return (pod, user)
 
+    def _postproc(self, request):
+        """Makes necessary modifications to user data and
+        sets up a stream.
+
+        :param request: request object
+        :type request: request
+        """
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format(request.status_code))
+        else:
+            request = request.json()
+        data, final = request[0]['author'], {}
+        names = [('id', 'id'),
+                 ('diaspora_id', 'diaspora_id'),
+                 ('guid', 'guid'),
+                 ('name', 'diaspora_name'),
+                 ('avatar', 'image_urls'),
+                ]
+        for d, f in names:
+            final[f] = data[d]
+        self.data = final
+        self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
+
     def _gethandle(self, diaspora_id, protocol='https'):
         """Get user data using handle.
         """
         pod, user = self._sephandle(diaspora_id)
         request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
-        if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format())
-        else:
-            request = request.json()
-        data = request[0]['author']
-        self.data = data
-        self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
+        self._postproc(request)
 
     def _getguid(self, guid):
         """Get user data using guid.
         """
         request = self._connection.get('people/{0}.json'.format(guid))
-        if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format()) 
-        else:
-            request = request.json()
-        data = request[0]['author']
-        self.data = data
-        self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
+        self._postproc(request)
 
     def fetchguid(self, guid):
         """Fetch user data using guid.

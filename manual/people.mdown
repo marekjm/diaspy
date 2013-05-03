@@ -30,13 +30,16 @@ The object is subscriptable so you can do like this:
     '12345678abcdefgh'
 
 
-User object contains following items:
+User object contains following items in its `data` dict:
 
 * `id`, `str`, id of the user;
 * `guid`, `str`, guid of the user;
 * `diaspora_id`, `str`, D\* id of the user;
-* `name`, `str`, name of the user;
-* `avatar`, `dict`, links to avatar of the user;
+* `diaspora_name`, `str`, name of the user;
+* `image_urls`, `dict`, links to avatar of the user;
+
+Also `User()` object contains a stream for this user.
+
 * `stream`, `diaspy.streams.Outer`, stream of the user (provides all methods of generic stream);
 
 
