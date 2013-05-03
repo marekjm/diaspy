@@ -178,15 +178,10 @@ class Client:
         return r.json()
 
     def remove_aspect(self, aspect_id):
-        """ This function adds a new aspect.
+        """ This function removes an aspect.
         """
-        data = {'authenticity_token': self.connection.get_token()}
-
-        r = self.connection.delete('aspects/{}'.format(aspect_id),
-                                   data=data)
-
-        if r.status_code != 404:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        aspects = diaspy.streams.Aspects(self.connection)
+        aspects.remove(aspect_id)
 
     def new_conversation(self, contacts, subject, text):
         """Start a new conversation.

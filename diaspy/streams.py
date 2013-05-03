@@ -228,6 +228,15 @@ class Aspects(Generic):
         if r.status_code != 200:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
+    def remove(self, aspect_id):
+        """This method removes an aspect.
+        """
+        data = {'authenticity_token': self.connection.get_token()}
+        r = self.connection.delete('aspects/{}'.format(aspect_id),
+                                   data=data)
+        if r.status_code != 404:
+            raise Exception('wrong status code: {0}'.format(r.status_code))
+
 
 class Commented(Generic):
     """This stream contains all posts 
@@ -259,7 +268,17 @@ class FollowedTags(Generic):
     def _setlocation(self):
         self._location = 'followed_tags.json'
 
-    def create(self, tag_name):
+    def remove(self, tag_name):
+        """Stop following a tag.
+
+        :param tag_name: tag name
+        :type tag_name: str
+        """
+        data = {}
+        headers = {}
+        request = None
+
+    def add(self, tag_name):
         """Follow new tag.
 
         :param tag_name: tag name
