@@ -7,4 +7,8 @@ test:
 	python3 -m unittest --verbose --catch --failfast tests.py
 
 test-python2:
-	python3 -m unittest --verbose --catch --failfast tests.py
+	python2 -m unittest --verbose --catch --failfast tests.py
+
+clean:
+	rm -rv {*/,}__pycache__/
+	rm -rv {*/,}*.pyc

@@ -116,6 +116,19 @@ class Generic:
         self._stream = self._obtain()
 
 
+class Outer(Generic):
+    """Object used by diaspy.models.User to represent
+    stream of other user.
+    """
+    def _obtain(self):
+        """Obtains stream of other user.
+        """
+        request = self._connection.get(self._location)
+        if request.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
+        return [Post(str(post['id']), self._connection) for post in request.json()]
+
+
 class Stream(Generic):
     """The main stream containing the combined posts of the 
     followed users and tags and the community spotlights posts 

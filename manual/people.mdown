@@ -1,0 +1,45 @@
+#### `User()` object
+
+This object is used to represent a D\* user.
+
+----
+
+##### Getting user data
+
+You have to know either GUID or *diaspora_id* of a user. 
+Assume that *12345678abcdefgh* and *otheruser@pod.example.com* point to 
+the same user.
+
+
+    >>> c = diaspy.connection.Connection('https://pod.example.com', 'foo', 'bar')
+    >>> 
+    >>> user_guid = diaspy.people.User(c)
+    >>> user_guid.fetchguid('12345678abcdefgh')
+    >>> 
+    >>> user_handle = diaspy.people.User(c)
+    >>> user_handle.fetchhandle('otheruser@pod.example.com')
+
+Now, you have two `User()` objects containing the data of one user.
+
+The object is subscriptable so you can do like this:
+
+    >>> user_guid['diaspora_id']
+    'otheruser@pod.example.com'
+    >>> 
+    >>> user_handle['guid']
+    '12345678abcdefgh'
+
+
+User object contains following items:
+
+* `id`, `str`, id of the user;
+* `guid`, `str`, guid of the user;
+* `diaspora_id`, `str`, D\* id of the user;
+* `name`, `str`, name of the user;
+* `avatar`, `dict`, links to avatar of the user;
+* `stream`, `diaspy.streams.Outer`, stream of the user (provides all methods of generic stream);
+
+
+----
+
+###### Manual for `diaspy`, written by Marek Marecki
