@@ -129,7 +129,25 @@ class UserTests(unittest.TestCase):
                    'user0@pod300 example.com',
                    ]
         for h in handles:
-            self.assertRaises(Exception, user._sephandle, handle)
+            self.assertRaises(Exception, user._sephandle, h)
+
+    def testGettingUserByHandle(self):
+        user = diaspy.people.User(test_connection)
+        user.fetchhandle(testconf.diaspora_id)
+        self.assertEqual(testconf.guid, user['guid'])
+        self.assertEqual(testconf.name, user['name'])
+        self.assertIn('id', user.data)
+        self.assertIn('avatar', user.data)
+        self.assertEqual(type(user.stream), diaspy.streams.Outer)
+
+    def testGettingUserByGUID(self):
+        user = diaspy.people.User(test_connection)
+        user.fetchguid(testconf.guid)
+        self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
+        self.assertEqual(testconf.name, user['name'])
+        self.assertIn('id', user.data)
+        self.assertIn('avatar', user.data)
+        self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
 
 if __name__ == '__main__':

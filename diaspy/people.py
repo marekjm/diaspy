@@ -11,6 +11,7 @@ class User:
     def __init__(self, connection):
         self._connection = connection
         self.data = {}
+        self.stream = []
 
     def __getitem__(self, key):
         return self.data[key]
@@ -32,7 +33,11 @@ class User:
         """Get user data using handle.
         """
         pod, user = self._sephandle(diaspora_id)
-        request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user)).json()
+        request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format())
+        else:
+            request = request.json()
         data = request[0]['author']
         self.data = data
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
@@ -40,7 +45,11 @@ class User:
     def _getguid(self, guid):
         """Get user data using guid.
         """
-        request = self._connection.get('people/{0}.json'.format(guid)).json()
+        request = self._connection.get('people/{0}.json'.format(guid))
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format()) 
+        else:
+            request = request.json()
         data = request[0]['author']
         self.data = data
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
