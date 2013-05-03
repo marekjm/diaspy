@@ -261,23 +261,19 @@ class FollowedTags(Generic):
 
     def add(self, tag_name):
         """Follow new tag.
-        """
-        data = {'authenticity_token': self._connection.getToken(),
-                'tag_name': tag_name}
-        r = self._connection.post('tags', data=data)
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-    def create(self, tag_name):
-        """Follow new tag.
 
         :param tag_name: tag name
         :type tag_name: str
         """
-        data = {'tag_name':tag_name,
+        data = {'name':tag_name,
                 'authenticity_token':self._connection.getToken(),
                }
-        request = self._connection.post('followed_tags', data=data, headers=headers)
 
-        if request.status_code != 200:
+        headers={'content-type': 'application/json',
+                 'x-csrf-token': self._connection.getToken(),
+                 'accept': 'application/json'}
+
+        request = self._connection.post('tag_followings', data=json.dumps(data), headers=headers)
+
+        if request.status_code != 201:
             raise Exception('wrong error code: {0}'.format(request.status_code))
