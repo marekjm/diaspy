@@ -259,7 +259,7 @@ class FollowedTags(Generic):
     def _setlocation(self):
         self._location = 'followed_tags.json'
 
-    def add(self, tag_name):
+    def create(self, tag_name):
         """Follow new tag.
 
         :param tag_name: tag name
@@ -268,7 +268,6 @@ class FollowedTags(Generic):
         data = {'name':tag_name,
                 'authenticity_token':self._connection.get_token(),
                }
-
         headers={'content-type': 'application/json',
                  'x-csrf-token': self._connection.get_token(),
                  'accept': 'application/json'}
