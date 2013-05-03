@@ -1,6 +1,5 @@
-import re
-import json
 import diaspy.models
+import diaspy.streams
 import diaspy.connection
 
 
@@ -19,37 +18,7 @@ class Client:
         self.connection = diaspy.connection.Connection(pod, username, password)
         self.connection.login()
         self.pod = pod
-
-    def _setpostdata(self, text, aspect_ids, photos):
-        """This function prepares data for posting.
-
-        :param text: Text to post.
-        :type text: str
-        :param aspect_ids: Aspect ids to send post to.
-        :type aspect_ids: str
-        """
-        data = {}
-        data['aspect_ids'] = aspect_ids
-        data['status_message'] = {'text': text}
-        if photos:
-            data['photos'] = photos
-        self._post_data = data
-
-    def _post(self):
-        """Sends post to an aspect.
-
-        :returns: diaspy.models.Post -- the Post which has been created
-        """
-        r = self.connection.post('status_messages',
-                                 data=json.dumps(self._post_data),
-                                 headers={'content-type': 'application/json',
-                                          'accept': 'application/json',
-                                          'x-csrf-token': self.get_token()})
-        if r.status_code != 201:
-            raise Exception('{0}: Post could not be posted.'.format(
-                            r.status_code))
-
-        return diaspy.models.Post(str(r.json()['id']), self.connection)
+        self.stream = diaspy.streams.Stream(self.connection, 'stream.json')
 
     def post(self, text, aspect_ids='public', photos=None):
         """This function sends a post to an aspect
@@ -61,20 +30,8 @@ class Client:
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        self._setpostdata(text, aspect_ids, photos)
-        post = self._post()
-        self._post_data = {}
+        post = self.stream.post(text, aspect_ids, photos)
         return post
-
-    def get_user_info(self):
-        """This function returns the current user's attributes.
-
-        :returns: dict -- json formatted user info.
-        """
-        r = self.connection.get('bookmarklet')
-        regex = re.compile(r'window.current_user_attributes = ({.*})')
-        userdata = json.loads(regex.search(r.text).group(1))
-        return userdata
 
     def post_picture(self, filename):
         """This method posts a picture to D*.
@@ -82,35 +39,63 @@ class Client:
         :param filename: Path to picture file.
         :type filename: str
         """
-        aspects = self.get_user_info()['aspects']
-        params = {}
-        params['photo[pending]'] = 'true'
-        params['set_profile_image'] = ''
-        params['qqfile'] = filename
-        for i, aspect in enumerate(aspects):
-            params['photo[aspect_ids][%d]' % (i)] = aspect['id']
+        return self.stream.post_picture(filename)
 
-        data = open(filename, 'rb')
+    def get_activity(self):
+        """This function returns activity stream.
 
-        headers = {'content-type': 'application/octet-stream',
-                   'x-csrf-token': self.get_token(),
-                   'x-file-name': filename}
-
-        r = self.connection.post('photos', params=params, data=data, headers=headers)
-        return r
+        :returns: diaspy.streams.Activity
+        """
+        activity = diaspy.streams.Activity(self.connection, 'activity.json')
+        return activity
 
     def get_stream(self):
-        """This functions returns a list of posts found in the stream.
+        """This functions returns stream.
 
-        :returns: list -- list of Post objects.
+        :returns: diaspy.streams.Stream
         """
-        request = self.connection.get('stream.json')
+        self.stream.update()
+        return self.stream
 
-        if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+    def get_aspects(self):
+        """Returns /aspects stream.
 
-        stream = request.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in stream]
+        :returns: diaspy.streams.Aspects
+        """
+        return diaspy.streams.Aspects(self.connection)
+
+    def get_mentions(self):
+        """Returns /mentions stream.
+
+        :returns: diaspy.streams.Mentions
+        """
+        return diaspy.streams.Mentions(self.connection)
+
+    def get_followed_tags(self):
+        """Returns followed tags stream.
+
+        :returns: diaspy.streams.FollowedTags
+        """
+        return diaspy.streams.FollowedTags(self.connection)
+
+    def get_tag(self, tag, stream=False):
+        """This functions returns a list of posts containing the tag.
+        :param tag: Name of the tag
+        :type tag: str
+        :param stream: specify wheter you want a stream object (True) or
+        normal list (False)
+        :type stream: bool
+
+        :returns: list -- list of Post objects
+        """
+        if stream:
+            tagged_posts = diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
+        else:
+            r = self.connection.get('tags/{0}.json'.format(tag))
+            if r.status_code != 200:
+                raise Exception('wrong status code: {0}'.format(r.status_code))
+            tagged_posts = [diaspy.models.Post(str(post['id']), self.connection) for post in r.json()]
+        return tagged_posts
 
     def get_notifications(self):
         """This functions returns a list of notifications.
@@ -124,35 +109,6 @@ class Client:
 
         notifications = r.json()
         return notifications
-
-    def get_mentions(self):
-        """This functions returns a list of
-        posts the current user is being mentioned in.
-
-        :returns: list -- list of Post objects
-        """
-        r = self.connection.get('mentions.json')
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        mentions = r.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in mentions]
-
-    def get_tag(self, tag):
-        """This functions returns a list of posts containing the tag.
-        :param tag: Name of the tag
-        :type tag: str
-
-        :returns: list -- list of Post objects
-        """
-        r = self.connection.get('tags/{0}.json'.format(tag))
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        tagged_posts = r.json()
-        return [diaspy.models.Post(str(post['id']), self.connection) for post in tagged_posts]
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.
@@ -177,7 +133,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.get_token(),
+        data = {'authenticity_token': self.connection.getToken(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -190,15 +146,8 @@ class Client:
     def add_aspect(self, aspect_name, visible=0):
         """ This function adds a new aspect.
         """
-
-        data = {'authenticity_token': self.get_token(),
-                'aspect[name]': aspect_name,
-                'aspect[contacts_visible]': visible}
-
-        r = self.connection.post('aspects', data=data)
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        aspects = diaspy.streams.Aspects(self.connection)
+        aspects.add(aspect_name, visible)
 
     def remove_user_from_aspect(self, user_id, aspect_id):
         """ this function removes a user from an aspect.
@@ -209,7 +158,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.get_token(),
+        data = {'authenticity_token': self.connection.getToken(),
                 'aspect_id': aspect_id,
                 'person_id': user_id}
 
@@ -224,7 +173,7 @@ class Client:
     def remove_aspect(self, aspect_id):
         """ This function adds a new aspect.
         """
-        data = {'authenticity_token': self.get_token()}
+        data = {'authenticity_token': self.connection.getToken()}
 
         r = self.connection.delete('aspects/{}'.format(aspect_id),
                                    data=data)

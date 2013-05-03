@@ -10,3 +10,7 @@ Then, if no errors are raised, you can `_login()` to the pod with given username
 
 
 If everything worked you are now connected to D\* pod at given URL.
+
+----
+
+###### Manual for `diaspy`, written by Marek Marecki
