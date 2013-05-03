@@ -32,7 +32,7 @@ class Post:
 
         :returns: dict -- json formatted like object.
         """
-        data = {'authenticity_token': self._connection.getToken()}
+        data = {'authenticity_token': self._connection.get_token()}
 
         r = self._connection.post('posts/{0}/likes'.format(self.post_id),
                                   data=data,
@@ -47,7 +47,7 @@ class Post:
     def delete_like(self):
         """This function removes a like from a post
         """
-        data = {'authenticity_token': self._connection.getToken()}
+        data = {'authenticity_token': self._connection.get_token()}
 
         post_data = self.get_data()
 
@@ -68,7 +68,7 @@ class Post:
         post_data = self.get_data()
 
         data = {'root_guid': post_data['guid'],
-                'authenticity_token': self._connection.getToken()}
+                'authenticity_token': self._connection.get_token()}
 
         r = self._connection.post('reshares',
                                   data=data,
@@ -88,7 +88,7 @@ class Post:
 
         """
         data = {'text': text,
-                'authenticity_token': self._connection.getToken()}
+                'authenticity_token': self._connection.get_token()}
 
         r = self._connection.post('posts/{0}/comments'.format(self.post_id),
                                   data=data,
@@ -107,7 +107,7 @@ class Post:
         :type comment_id: str
 
         """
-        data = {'authenticity_token': self._connection.getToken()}
+        data = {'authenticity_token': self._connection.get_token()}
 
         r = self._connection.delete('posts/{0}/comments/{1}'
                                     .format(self.post_id,
@@ -122,7 +122,7 @@ class Post:
     def delete(self):
         """ This function deletes this post
         """
-        data = {'authenticity_token': self._connection.getToken()}
+        data = {'authenticity_token': self._connection.get_token()}
         r = self._connection.delete('posts/{0}'.format(self.post_id),
                                     data=data,
                                     headers={'accept': 'application/json'})

@@ -92,7 +92,7 @@ class Connection():
         self.username, self.password = username, password
         self.login_data = {'user[username]': self.username,
                            'user[password]': self.password,
-                           'authenticity_token': self.getToken()}
+                           'authenticity_token': self.get_token()}
 
     def _login(self):
         """Handles actual login request.
@@ -127,7 +127,7 @@ class Connection():
         userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
         return userdata
 
-    def getToken(self):
+    def get_token(self):
         """This function returns a token needed for authentication in most cases.
 
         :returns: string -- token used to authenticate
