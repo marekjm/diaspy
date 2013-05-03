@@ -268,15 +268,16 @@ class FollowedTags(Generic):
     def _setlocation(self):
         self._location = 'followed_tags.json'
 
-    def remove(self, tag_name):
+    def remove(self, tag_id):
         """Stop following a tag.
 
-        :param tag_name: tag name
-        :type tag_name: str
+        :param tag_id: tag id
+        :type tag_id: int
         """
-        data = {}
-        headers = {}
-        request = None
+        data = {'authenticity_token':self._connection.get_token()}
+        request = self._connection.delete('tag_followings/{0}'.format(tag_id), data=data)
+        if request.status_code != 404:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
 
     def add(self, tag_name):
         """Follow new tag.
