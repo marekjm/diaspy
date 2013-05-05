@@ -132,6 +132,16 @@ class Client:
         return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self.connection)
                 for conversation in mailbox]
 
+    def add_aspect(self, aspect_name, visible=0):
+        """This function adds a new aspect.
+        """
+        diaspy.streams.Aspects(self.connection).add(aspect_name, visible)
+
+    def remove_aspect(self, aspect_id):
+        """This function removes an aspect.
+        """
+        diaspy.streams.Aspects(self.connection).remove(aspect_id)
+
     def add_user_to_aspect(self, user_id, aspect_id):
         """ this function adds a user to an aspect.
 
@@ -141,21 +151,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.connection.get_token(),
-                'aspect_id': aspect_id,
-                'person_id': user_id}
-
-        r = self.connection.post('aspect_memberships.json', data=data)
-
-        if r.status_code != 201:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-        return r.json()
-
-    def add_aspect(self, aspect_name, visible=0):
-        """ This function adds a new aspect.
-        """
-        aspects = diaspy.streams.Aspects(self.connection)
-        aspects.add(aspect_name, visible)
+        return diaspy.models.Aspect(self.connection, aspect_id).addUser(user_id)
 
     def remove_user_from_aspect(self, user_id, aspect_id):
         """ this function removes a user from an aspect.
@@ -166,23 +162,7 @@ class Client:
         :type aspect_id: str
 
         """
-        data = {'authenticity_token': self.connection.get_token(),
-                'aspect_id': aspect_id,
-                'person_id': user_id}
-
-        r = self.connection.delete('aspect_memberships/42.json',
-                                   data=data)
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        return r.json()
-
-    def remove_aspect(self, aspect_id):
-        """ This function removes an aspect.
-        """
-        aspects = diaspy.streams.Aspects(self.connection)
-        aspects.remove(aspect_id)
+        return diaspy.models.Aspect(self.connection, aspect_id).removeUser(user_id)
 
     def new_conversation(self, contacts, subject, text):
         """Start a new conversation.
