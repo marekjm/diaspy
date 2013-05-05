@@ -4,7 +4,8 @@ import diaspy.connection
 
 
 class Client:
-    """This is the client class to connect to Diaspora.
+    """This is the client class used to interact with Diaspora.
+    It can be used as a reference implementation of client using diaspy.
     """
     def __init__(self, pod, username='', password=''):
         """
