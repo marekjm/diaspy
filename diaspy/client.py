@@ -66,7 +66,7 @@ class Client:
         return self.stream
 
     def get_aspects(self):
-        """Returns /aspects stream.
+        """Returns aspects stream.
 
         :returns: diaspy.streams.Aspects
         """
@@ -86,24 +86,14 @@ class Client:
         """
         return diaspy.streams.FollowedTags(self.connection)
 
-    def get_tag(self, tag, stream=False):
+    def get_tag(self, tag):
         """This functions returns a list of posts containing the tag.
         :param tag: Name of the tag
         :type tag: str
-        :param stream: specify wheter you want a stream object (True) or
-        normal list (False)
-        :type stream: bool
 
-        :returns: list -- list of Post objects
+        :returns: diaspy.streams.Generic -- stream containg posts with given tag
         """
-        if stream:
-            tagged_posts = diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
-        else:
-            r = self.connection.get('tags/{0}.json'.format(tag))
-            if r.status_code != 200:
-                raise Exception('wrong status code: {0}'.format(r.status_code))
-            tagged_posts = [diaspy.models.Post(str(post['id']), self.connection) for post in r.json()]
-        return tagged_posts
+        return diaspy.streams.Generic(self.connection, location='tags/{0}.json'.format(tag))
 
     def get_notifications(self):
         """This functions returns a list of notifications.
