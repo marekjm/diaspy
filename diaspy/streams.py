@@ -169,21 +169,25 @@ class Stream(Generic):
         :param filename: Path to picture file.
         :type filename: str
         """
-        aspects = self._connection.getUserInfo()['aspects']
+        data = open(filename, 'rb')
+        image = data.read()
+        data.close()
+
         params = {}
         params['photo[pending]'] = 'true'
         params['set_profile_image'] = ''
         params['qqfile'] = filename
+        aspects = self._connection.getUserInfo()['aspects']
         for i, aspect in enumerate(aspects):
-            params['photo[aspect_ids][%d]' % (i)] = aspect['id']
-
-        data = open(filename, 'rb')
+            params['photo[aspect_ids][{0}]'.format(i)] = aspect['id']
 
         headers = {'content-type': 'application/octet-stream',
                    'x-csrf-token': self._connection.get_token(),
                    'x-file-name': filename}
-        request = self._connection.post('photos', params=params, data=data, headers=headers)
-        data.close()
+
+        request = self._connection.post('photos', data=image, params=params, headers=headers)
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format())
         return request
 
 
