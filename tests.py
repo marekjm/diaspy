@@ -37,6 +37,8 @@ test_connection = diaspy.connection.Connection(pod=__pod__, username=__username_
 test_connection.login()
 print('[ CONNECTED ]\n')
 
+post_text = '#diaspy test no. {0}'.format(test_count)
+
 
 #### Test suite code
 class StreamTest(unittest.TestCase):
@@ -62,12 +64,12 @@ class StreamTest(unittest.TestCase):
 
     def testPostingText(self):
         stream = diaspy.streams.Stream(test_connection)
-        post = stream.post('#diaspy test no. {0}'.format(test_count))
+        post = stream.post(post_text)
         self.assertEqual(diaspy.models.Post, type(post))
 
     def testPostingImage(self):
         stream = diaspy.streams.Stream(test_connection)
-        stream.post_picture('./test-image.png')
+        stream.post_picture('./test-image.png', post_text)
 
     def testingAddingTag(self):
         ft = diaspy.streams.FollowedTags(test_connection)
@@ -100,15 +102,9 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(list, type(notifications))
         if notifications: self.assertEqual(dict, type(notifications[0]))
 
-    def testGettingTagAsList(self):
+    def testGettingTag(self):
         client = diaspy.client.Client(test_connection)
         tag = client.get_tag('foo')
-        self.assertEqual(list, type(tag))
-        if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
-
-    def testGettingTagAsStream(self):
-        client = diaspy.client.Client(test_connection)
-        tag = client.get_tag('foo', stream=True)
         self.assertEqual(diaspy.streams.Generic, type(tag))
         if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
 

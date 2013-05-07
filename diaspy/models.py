@@ -18,6 +18,11 @@ class Post:
         self._connection = connection
         self.post_id = post_id
 
+    def __str__(self):
+        """Returns text of a post.
+        """
+        return self.get_data['text']
+
     def get_data(self):
         """This function retrieves data of the post.
         """

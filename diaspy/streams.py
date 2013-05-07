@@ -163,11 +163,13 @@ class Stream(Generic):
         post = Post(str(request.json()['id']), self._connection)
         return post
 
-    def post_picture(self, filename):
-        """This method posts a picture to D*.
+    def _photoupload(self, filename):
+        """Uploads picture to the pod.
 
-        :param filename: Path to picture file.
+        :param filename: path to picture file
         :type filename: str
+
+        :returns: id of the photo being uploaded
         """
         data = open(filename, 'rb')
         image = data.read()
@@ -187,8 +189,25 @@ class Stream(Generic):
 
         request = self._connection.post('photos', data=image, params=params, headers=headers)
         if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format())
-        return request
+            raise Exception('wrong error code: {0}'.format(request.status_code))
+        return request.json()['data']['photo']['id']
+
+    def _photopost(self, id, text, aspect_ids):
+        """Posts a photo after it has been uploaded.
+        """
+        post = self.post(text=text, aspect_ids=aspect_ids, photos=id)
+        return post
+
+    def post_picture(self, filename, text='', aspect_ids='public'):
+        """This method posts a picture to D*.
+
+        :param filename: path to picture file
+        :type filename: str
+
+        :returns: Post object
+        """
+        id = self._photoupload(filename)
+        return self._photopost(id, text, aspect_ids)
 
 
 class Activity(Generic):
