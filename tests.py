@@ -40,42 +40,9 @@ print('[ CONNECTED ]\n')
 post_text = '#diaspy test no. {0}'.format(test_count)
 
 
-#### Test suite code
-class StreamTest(unittest.TestCase):
-    def testGetting(self):
-        stream = diaspy.streams.Generic(test_connection)
-
-    def testGettingLength(self):
-        stream = diaspy.streams.Generic(test_connection)
-        len(stream)
-
-    def testClearing(self):
-        stream = diaspy.streams.Stream(test_connection)
-        stream.clear()
-        self.assertEqual(0, len(stream))
-
-    def testPurging(self):
-        stream = diaspy.streams.Stream(test_connection)
-        post = stream.post('#diaspy test')
-        stream.update()
-        post.delete()
-        stream.purge()
-        self.assertNotIn(post.post_id, [p.post_id for p in stream])
-
-    def testPostingText(self):
-        stream = diaspy.streams.Stream(test_connection)
-        post = stream.post(post_text)
-        self.assertEqual(diaspy.models.Post, type(post))
-
-    def testPostingImage(self):
-        stream = diaspy.streams.Stream(test_connection)
-        stream.post_picture('./test-image.png', post_text)
-
-    def testingAddingTag(self):
-        ft = diaspy.streams.FollowedTags(test_connection)
-        ft.add('test')
-
-
+#######################################
+####        TEST SUITE CODE        ####
+#######################################
 class ConnectionTest(unittest.TestCase):
     def testLoginWithoutUsername(self):
         connection = diaspy.connection.Connection(pod=__pod__)
@@ -115,10 +82,70 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
 
 
-if __name__ == '__main__':
-    unittest.main()
-    c = diaspy.connection.Connection(__pod__, __username__, __passwd__)
-    c.login()
-    stream = diaspy.modules.Stream(c)
-    for post in stream:
-        if post['text'] == '#diaspy test': post.delete()
+class StreamTest(unittest.TestCase):
+    def testGetting(self):
+        stream = diaspy.streams.Generic(test_connection)
+
+    def testGettingLength(self):
+        stream = diaspy.streams.Generic(test_connection)
+        len(stream)
+
+    def testClearing(self):
+        stream = diaspy.streams.Stream(test_connection)
+        stream.clear()
+        self.assertEqual(0, len(stream))
+
+    def testPurging(self):
+        stream = diaspy.streams.Stream(test_connection)
+        post = stream.post('#diaspy test')
+        stream.update()
+        post.delete()
+        stream.purge()
+        self.assertNotIn(post.post_id, [p.post_id for p in stream])
+
+    def testPostingText(self):
+        stream = diaspy.streams.Stream(test_connection)
+        post = stream.post('#diaspy test no. {0}'.format(test_count))
+        self.assertEqual(diaspy.models.Post, type(post))
+
+    def testPostingImage(self):
+        stream = diaspy.streams.Stream(test_connection)
+        stream.post_picture('test-image.png')
+
+    def testingAddingTag(self):
+        ft = diaspy.streams.FollowedTags(test_connection)
+        ft.add('test')
+
+
+class UserTests(unittest.TestCase):
+    def testHandleSeparatorRaisingExceptions(self):
+        user = diaspy.people.User(test_connection)
+        handles = ['user.pod.example.com',
+                   'user@podexamplecom',
+                   '@pod.example.com',
+                   'use r@pod.example.com',
+                   'user0@pod300 example.com',
+                   ]
+        for h in handles:
+            self.assertRaises(Exception, user._sephandle, h)
+
+    def testGettingUserByHandle(self):
+        user = diaspy.people.User(test_connection)
+        user.fetchhandle(testconf.diaspora_id)
+        self.assertEqual(testconf.guid, user['guid'])
+        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
+        self.assertIn('id', user.data)
+        self.assertIn('image_urls', user.data)
+        self.assertEqual(type(user.stream), diaspy.streams.Outer)
+
+    def testGettingUserByGUID(self):
+        user = diaspy.people.User(test_connection)
+        user.fetchguid(testconf.guid)
+        self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
+        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
+        self.assertIn('id', user.data)
+        self.assertIn('image_urls', user.data)
+        self.assertEqual(type(user.stream), diaspy.streams.Outer)
+
+
+if __name__ == '__main__': unittest.main()
