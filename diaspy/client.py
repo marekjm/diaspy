@@ -28,26 +28,20 @@ class Client:
             self.connection.login()
         self.stream = diaspy.streams.Stream(self.connection, 'stream.json')
 
-    def post(self, text, aspect_ids='public', photos=None):
+    def post(self, text, aspect_ids='public', photos=None, photo=''):
         """This function sends a post to an aspect
 
-        :param text: Text to post.
+        :param text: text to post
         :type text: str
         :param aspect_ids: Aspect ids to send post to.
         :type aspect_ids: str
-
+        :param photo: path to picture file
+        :type photo: str
+ 
         :returns: diaspy.models.Post -- the Post which has been created
         """
-        post = self.stream.post(text, aspect_ids, photos)
+        post = self.stream.post(text, aspect_ids, photos, photo)
         return post
-
-    def post_picture(self, filename):
-        """This method posts a picture to D*.
-
-        :param filename: Path to picture file.
-        :type filename: str
-        """
-        return self.stream.post_picture(filename)
 
     def get_activity(self):
         """This function returns activity stream.
