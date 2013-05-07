@@ -137,28 +137,34 @@ class Stream(Generic):
     def _setlocation(self):
         self._location = 'stream.json'
 
-    def post(self, text, aspect_ids='public', photos=None):
-        """This function sends a post to an aspect
+    def post(self, text='', aspect_ids='public', photos=None, photo=''):
+        """This function sends a post to an aspect.
+        If both `photo` and `photos` are specified `photos` takes precedence.
 
         :param text: Text to post.
         :type text: str
         :param aspect_ids: Aspect ids to send post to.
         :type aspect_ids: str
+        :param photo: filename of photo to post
+        :type photo: str
+        :param photos: id of photo to post (obtained from _photoupload())
+        :type photos: int
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
         data = {}
         data['aspect_ids'] = aspect_ids
         data['status_message'] = {'text': text}
+        if photo: data['photos'] = self._photoupload(photo)
         if photos: data['photos'] = photos
+
         request = self._connection.post('status_messages',
                                         data=json.dumps(data),
                                         headers={'content-type': 'application/json',
                                                  'accept': 'application/json',
                                                  'x-csrf-token': self._connection.get_token()})
         if request.status_code != 201:
-            raise Exception('{0}: Post could not be posted.'.format(
-                            request.status_code))
+            raise Exception('{0}: Post could not be posted.'.format(request.status_code))
 
         post = Post(str(request.json()['id']), self._connection)
         return post
@@ -191,23 +197,6 @@ class Stream(Generic):
         if request.status_code != 200:
             raise Exception('wrong error code: {0}'.format(request.status_code))
         return request.json()['data']['photo']['id']
-
-    def _photopost(self, id, text, aspect_ids):
-        """Posts a photo after it has been uploaded.
-        """
-        post = self.post(text=text, aspect_ids=aspect_ids, photos=id)
-        return post
-
-    def post_picture(self, filename, text='', aspect_ids='public'):
-        """This method posts a picture to D*.
-
-        :param filename: path to picture file
-        :type filename: str
-
-        :returns: Post object
-        """
-        id = self._photoupload(filename)
-        return self._photopost(id, text, aspect_ids)
 
 
 class Activity(Generic):
