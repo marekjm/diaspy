@@ -2,10 +2,7 @@
 
 This object is used to represent user's stream on D\*. 
 It is returned by `Client()`'s method `get_stream()` and 
-is basically the list of posts. 
-
-It can get more functionality in future (probably it would be 
-moved from `Client()`).
+is basically a list of posts. 
 
 ----
 
@@ -54,6 +51,12 @@ Second, iterating directly over the stream contents:
     for post in stream:
         # do stuff...
 
+
+----
+
+##### Posting data to stream
+
+This is described in [`posting`](./posting.mdown) document in this manual.
 
 ----
 
