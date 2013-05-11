@@ -57,16 +57,15 @@ class Generic:
         passing the desired one to the constructor.
         For example:
 
-            def _setlocation(self):
-                self._location = 'foo.json'
-
+        def _setlocation(self):
+            self._location = 'foo.json'
 
         :param location: url of the stream
         :type location: str
-
         :returns: str
         """
         self._location = 'stream.json'
+        return self._location
 
     def _obtain(self):
         """Obtains stream from pod.

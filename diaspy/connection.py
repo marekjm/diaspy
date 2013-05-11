@@ -57,14 +57,7 @@ class Connection():
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if headers and params:
-            request = self.session.post(string, data=data, headers=headers, params=params)
-        elif headers and not params:
-            request = self.session.post(string, data=data, headers=headers)
-        elif not headers and params:
-            request = self.session.post(string, data=data, params=params)
-        else:
-            request = self.session.post(string, data=data)
+        request = self.session.post(string, data, headers=headers, params=params)
         return request
 
     def delete(self, string, data, headers={}):
@@ -78,10 +71,7 @@ class Connection():
         :type headers: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if headers:
-            request = self.session.delete(string, data=data, headers=headers)
-        else:
-            request = self.session.delete(string, data=data)
+        request = self.session.delete(string, data=data, headers=headers)
         return request
 
     def _setlogin(self, username, password):
