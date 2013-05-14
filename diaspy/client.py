@@ -10,7 +10,7 @@ class Client:
     def __init__(self, pod, username='', password=''):
         """
         `pod` can also be a diaspy.connection.Connection type and
-        Client() will detect it. When giving a connection there is no need 
+        Client() will detect it. When giving a connection there is no need
         to pass username and password.
 
         :param pod: The complete url of the diaspora pod to use
@@ -37,7 +37,6 @@ class Client:
         :type aspect_ids: str
         :param photo: path to picture file
         :type photo: str
- 
         :returns: diaspy.models.Post -- the Post which has been created
         """
         post = self.stream.post(text, aspect_ids, photos, photo)

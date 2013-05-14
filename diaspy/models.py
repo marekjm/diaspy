@@ -6,7 +6,6 @@ class Post:
 
     .. note::
         Remember that you need to have access to the post.
-        Remember that you also need to be logged in.
     """
     def __init__(self, post_id, connection):
         """
@@ -90,7 +89,6 @@ class Post:
 
         :param text: text to comment.
         :type text: str
-
         """
         data = {'text': text,
                 'authenticity_token': self._connection.get_token()}
@@ -110,7 +108,6 @@ class Post:
 
         :param comment_id: id of the comment to remove.
         :type comment_id: str
-
         """
         data = {'authenticity_token': self._connection.get_token()}
 

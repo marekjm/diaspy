@@ -46,7 +46,7 @@ class User:
                  ('guid', 'guid'),
                  ('name', 'diaspora_name'),
                  ('avatar', 'image_urls'),
-                ]
+                 ]
         for d, f in names:
             final[f] = data[d]
         self.data = final

@@ -8,6 +8,7 @@ Documentation for D* JSON API taken from:
 http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
 """
 
+
 class Generic:
     """Object representing generic stream. Used in Tag(),
     Stream(), Activity() etc.
@@ -129,8 +130,8 @@ class Outer(Generic):
 
 
 class Stream(Generic):
-    """The main stream containing the combined posts of the 
-    followed users and tags and the community spotlights posts 
+    """The main stream containing the combined posts of the
+    followed users and tags and the community spotlights posts
     if the user enabled those.
     """
     def _setlocation(self):
@@ -231,11 +232,11 @@ class Activity(Generic):
 
 
 class Aspects(Generic):
-    """This stream contains the posts filtered by 
-    the specified aspect IDs. You can choose the aspect IDs with 
-    the parameter `aspect_ids` which value should be 
-    a comma seperated list of aspect IDs. 
-    If the parameter is ommitted all aspects are assumed. 
+    """This stream contains the posts filtered by
+    the specified aspect IDs. You can choose the aspect IDs with
+    the parameter `aspect_ids` which value should be
+    a comma seperated list of aspect IDs.
+    If the parameter is ommitted all aspects are assumed.
     An example call would be `aspects.json?aspect_ids=23,5,42`
     """
     def _setlocation(self):
@@ -263,7 +264,7 @@ class Aspects(Generic):
 
 
 class Commented(Generic):
-    """This stream contains all posts 
+    """This stream contains all posts
     the user has made a comment on.
     """
     def _setlocation(self):
@@ -278,7 +279,7 @@ class Liked(Generic):
 
 
 class Mentions(Generic):
-    """This stream contains all posts 
+    """This stream contains all posts
     the user is mentioned in.
     """
     def _setlocation(self):
@@ -286,7 +287,7 @@ class Mentions(Generic):
 
 
 class FollowedTags(Generic):
-    """This stream contains all posts 
+    """This stream contains all posts
     containing tags the user is following.
     """
     def _setlocation(self):
@@ -298,26 +299,27 @@ class FollowedTags(Generic):
         :param tag_id: tag id
         :type tag_id: int
         """
-        data = {'authenticity_token':self._connection.get_token()}
+        data = {'authenticity_token': self._connection.get_token()}
         request = self._connection.delete('tag_followings/{0}'.format(tag_id), data=data)
         if request.status_code != 404:
             raise Exception('wrong status code: {0}'.format(request.status_code))
 
     def add(self, tag_name):
         """Follow new tag.
-        Error code 403 is accepted because pods respod with it when request 
+        Error code 403 is accepted because pods respod with it when request
         is sent to follow a tag that a user already follows.
 
         :param tag_name: tag name
         :type tag_name: str
         :returns: int (response code)
         """
-        data = {'name':tag_name,
-                'authenticity_token':self._connection.get_token(),
-               }
-        headers={'content-type': 'application/json',
-                 'x-csrf-token': self._connection.get_token(),
-                 'accept': 'application/json'}
+        data = {'name': tag_name,
+                'authenticity_token': self._connection.get_token(),
+                }
+        headers = {'content-type': 'application/json',
+                   'x-csrf-token': self._connection.get_token(),
+                   'accept': 'application/json'
+                   }
 
         request = self._connection.post('tag_followings', data=json.dumps(data), headers=headers)
 
