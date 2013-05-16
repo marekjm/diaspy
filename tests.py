@@ -38,6 +38,7 @@ test_connection.login()
 print('[ CONNECTED ]\n')
 
 post_text = '#diaspy test no. {0}'.format(test_count)
+test_aspect_id = -1
 
 
 #######################################
@@ -115,6 +116,20 @@ class StreamTest(unittest.TestCase):
     def testingAddingTag(self):
         ft = diaspy.streams.FollowedTags(test_connection)
         ft.add('test')
+
+    def testAspectsAdd(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        test_aspect_id = aspects.add('diaspy-test')
+
+    def testAspectsRemove(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        aspects.remove(test_aspect_id)
+
+    def testActivity(self):
+        activity = diaspy.streams.Activity(test_connection)
+
+    def testMentionsStream(self):
+        mentions = diaspy.streams.Mentions(test_connection)
 
 
 class UserTests(unittest.TestCase):

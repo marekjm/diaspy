@@ -1,4 +1,5 @@
 import json
+import re
 from diaspy.models import Post
 
 """Docstrings for this module are taken from:
@@ -13,17 +14,18 @@ class Generic:
     """Object representing generic stream. Used in Tag(),
     Stream(), Activity() etc.
     """
+    _location = 'stream.json'
+    _stream = []
+
     def __init__(self, connection, location=''):
         """
         :param connection: Connection() object
         :type connection: diaspy.connection.Connection
-        :param location: location of json
+        :param location: location of json (optional)
         :type location: str
         """
         self._connection = connection
-        self._setlocation()
         if location: self._location = location
-        self._stream = []
         self.fill()
 
     def __contains__(self, post):
@@ -47,26 +49,6 @@ class Generic:
         """Returns length of the Stream.
         """
         return len(self._stream)
-
-    def _setlocation(self):
-        """Sets location of the stream.
-        Location defaults to 'stream.json'
-
-        NOTICE: inheriting objects should override this method
-        and set their own value to the `location`.
-        However, it is possible to override default location by
-        passing the desired one to the constructor.
-        For example:
-
-        def _setlocation(self):
-            self._location = 'foo.json'
-
-        :param location: url of the stream
-        :type location: str
-        :returns: str
-        """
-        self._location = 'stream.json'
-        return self._location
 
     def _obtain(self):
         """Obtains stream from pod.
@@ -134,8 +116,7 @@ class Stream(Generic):
     followed users and tags and the community spotlights posts
     if the user enabled those.
     """
-    def _setlocation(self):
-        self._location = 'stream.json'
+    location = 'stream.json'
 
     def post(self, text='', aspect_ids='public', photos=None, photo=''):
         """This function sends a post to an aspect.
@@ -202,8 +183,7 @@ class Stream(Generic):
 class Activity(Generic):
     """Stream representing user's activity.
     """
-    def _setlocation(self):
-        self._location = 'activity.json'
+    _location = 'activity.json'
 
     def _delid(self, id):
         """Deletes post with given id.
@@ -227,7 +207,7 @@ class Activity(Generic):
         if type(post) == str: self._delid(post)
         elif type(post) == Post: post.delete()
         else:
-            raise TypeError('this method accepts only int, str or Post: {0} given')
+            raise TypeError('this method accepts str or Post types: {0} given')
         self.fill()
 
 
@@ -239,59 +219,78 @@ class Aspects(Generic):
     If the parameter is ommitted all aspects are assumed.
     An example call would be `aspects.json?aspect_ids=23,5,42`
     """
-    def _setlocation(self):
-        self._location = 'aspects.json'
+    _location = 'aspects.json'
+    _id_regexp = re.compile(r'<a href="/aspects/[0-9]+/edit" rel="facebox"')
+
+    def filterByIDs(self, ids):
+        self._location += '?{0}'.format(','.join(ids))
+        self.fill()
+
+    def _getaid(self, response):
+        """Extracts id of just created aspect.
+        """
+        id = self._id_regexp.search(response.text).group(0).split('/')[2]
+        return int(id)
 
     def add(self, aspect_name, visible=0):
         """This function adds a new aspect.
+        Status code 422 is accepteb because it is returned by D* when
+        you try to add aspect already present on your aspect list.
+
+        :returns: id of created aspect (or -1 if status_code was 422)
         """
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
-        r = self._connection.post('aspects', data=data)
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        request = self._connection.post('aspects', data=data)
+        if request.status_code not in [200, 422]:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
+
+        if request.status_code == 422: id = -1
+        else: id = self._getaid(request)
+        return id
 
     def remove(self, aspect_id):
         """This method removes an aspect.
+        500 is accepted because although the D* will
+        go nuts it will remove the aspect anyway.
+
+        :param aspect_id: id fo aspect to remove
+        :type aspect_id: int
         """
-        data = {'authenticity_token': self.connection.get_token()}
-        r = self.connection.delete('aspects/{}'.format(aspect_id),
+        data = {'authenticity_token': self._connection.get_token()}
+        request = self._connection.delete('aspects/{}'.format(aspect_id),
                                    data=data)
-        if r.status_code != 404:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+        if request.status_code not in [404, 500]:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
 
 
 class Commented(Generic):
     """This stream contains all posts
     the user has made a comment on.
     """
-    def _setlocation(self):
-        self._location = 'commented.json'
+    _location = 'commented.json'
 
 
 class Liked(Generic):
     """This stream contains all posts the user liked.
     """
-    def _setlocation(self):
-        self._location = 'liked.json'
+    _location = 'liked.json'
 
 
 class Mentions(Generic):
     """This stream contains all posts
     the user is mentioned in.
     """
-    def _setlocation(self):
-        self._location = 'mentions.json'
+    _location = 'mentions.json'
 
 
 class FollowedTags(Generic):
     """This stream contains all posts
     containing tags the user is following.
     """
-    def _setlocation(self):
-        self._location = 'followed_tags.json'
+    _location = 'followed_tags.json'
 
     def remove(self, tag_id):
         """Stop following a tag.

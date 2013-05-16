@@ -13,6 +13,10 @@ class Connection():
     """Object representing connection with the server.
     It is pushed around internally and is considered private.
     """
+    _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+    _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
+    login_data = {}
+
     def __init__(self, pod, username='', password=''):
         """
         :param pod: The complete url of the diaspora pod to use.
@@ -24,9 +28,6 @@ class Connection():
         """
         self.pod = pod
         self.session = requests.Session()
-        self._token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
-        self._userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
-        self.login_data = {}
         self._setlogin(username, password)
 
     def get(self, string):
