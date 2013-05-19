@@ -120,16 +120,21 @@ class StreamTest(unittest.TestCase):
     def testAspectsAdd(self):
         aspects = diaspy.streams.Aspects(test_connection)
         test_aspect_id = aspects.add('diaspy-test')
+        aspects.add('diaspy-test-false')
 
     def testAspectsGettingID(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        id = aspects.getID('Coding')
+        id = aspects.getID('diaspy-test')
         self.assertEqual(int, type(id))
-        self.assertNotEqual(-1, id)
+        self.assertEqual(test_aspect_id, id)
 
-    def testAspectsRemove(self):
+    def testAspectsRemoveById(self):
         aspects = diaspy.streams.Aspects(test_connection)
         aspects.remove(test_aspect_id)
+
+    def testAspectsRemoveByName(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        aspects.remove(name='diaspy-test-false')
 
     def testActivity(self):
         activity = diaspy.streams.Activity(test_connection)
@@ -167,6 +172,16 @@ class UserTests(unittest.TestCase):
         self.assertIn('id', user.data)
         self.assertIn('image_urls', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
+
+
+class PostTests(unittest.TestCase):
+    def testStringConversion(self):
+        s = diaspy.streams.Stream(test_connection)
+        print(str(s[0]))
+
+    def testRepr(self):
+        s = diaspy.streams.Stream(test_connection)
+        print(repr(s[0]))
 
 
 if __name__ == '__main__': unittest.main()

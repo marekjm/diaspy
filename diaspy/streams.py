@@ -266,14 +266,17 @@ class Aspects(Generic):
         else: id = self._getaid(request)
         return id
 
-    def remove(self, aspect_id):
+    def remove(self, aspect_id=0, name=''):
         """This method removes an aspect.
         500 is accepted because although the D* will
         go nuts it will remove the aspect anyway.
 
         :param aspect_id: id fo aspect to remove
         :type aspect_id: int
+        :param name: name of aspect to remove
+        :type name: str
         """
+        if not aspect_id and name: aspect_id = self.getID(name)
         data = {'authenticity_token': self._connection.get_token()}
         request = self._connection.delete('aspects/{}'.format(aspect_id),
                                           data=data)

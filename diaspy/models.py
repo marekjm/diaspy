@@ -17,6 +17,12 @@ class Post:
         self._connection = connection
         self.post_id = post_id
 
+    def __repr__(self):
+        """Returns string containing more information then str().
+        """
+        data = self.get_data()
+        return '{0} ({1}): {2}'.format(data['author']['name'], data['author']['diaspora_id'], data['text'])
+
     def __str__(self):
         """Returns text of a post.
         """
