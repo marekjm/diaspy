@@ -121,6 +121,12 @@ class StreamTest(unittest.TestCase):
         aspects = diaspy.streams.Aspects(test_connection)
         test_aspect_id = aspects.add('diaspy-test')
 
+    def testAspectsGettingID(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        id = aspects.getID('Coding')
+        self.assertEqual(int, type(id))
+        self.assertNotEqual(-1, id)
+
     def testAspectsRemove(self):
         aspects = diaspy.streams.Aspects(test_connection)
         aspects.remove(test_aspect_id)

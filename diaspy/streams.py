@@ -222,6 +222,21 @@ class Aspects(Generic):
     _location = 'aspects.json'
     _id_regexp = re.compile(r'<a href="/aspects/[0-9]+/edit" rel="facebox"')
 
+    def getID(self, aspect):
+        """Returns id of an aspect of given name.
+        Returns -1 if aspect is not found.
+
+        :param aspect: aspect name (must be spelled exactly as when created)
+        :type aspect: str
+        :returns: int
+        """
+        id = -1
+        regexp = re.compile("a_id=[0-9]+'>\s+{0}".format(aspect))
+        result = regexp.search(self._connection.get('aspects').text)
+        if result is not None:
+            id = int(re.compile('[0-9]+').search(result.group(0)).group(0))
+        return id
+
     def filterByIDs(self, ids):
         self._location += '?{0}'.format(','.join(ids))
         self.fill()
@@ -261,7 +276,7 @@ class Aspects(Generic):
         """
         data = {'authenticity_token': self._connection.get_token()}
         request = self._connection.delete('aspects/{}'.format(aspect_id),
-                                   data=data)
+                                          data=data)
         if request.status_code not in [404, 500]:
             raise Exception('wrong status code: {0}'.format(request.status_code))
 

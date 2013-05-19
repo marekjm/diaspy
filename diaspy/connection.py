@@ -103,6 +103,12 @@ class Connection():
         if not self.username or not self.password: raise LoginError('password or username not specified')
         self._login()
 
+    def logout(self):
+        """Logs out from a pod.
+        When logged out you can't do anything.
+        """
+        self.get('users/sign_out')
+
     def podswitch(self, pod):
         """Switches pod from current to another one.
         """

@@ -20,7 +20,7 @@ class Post:
     def __str__(self):
         """Returns text of a post.
         """
-        return self.get_data['text']
+        return self.get_data()['text']
 
     def get_data(self):
         """This function retrieves data of the post.
