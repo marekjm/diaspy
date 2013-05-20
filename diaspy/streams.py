@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from diaspy.models import Post
 
 """Docstrings for this module are taken from:
@@ -16,6 +17,8 @@ class Generic:
     """
     _location = 'stream.json'
     _stream = []
+    #   since epoch
+    max_time = int(time.mktime(time.gmtime()))
 
     def __init__(self, connection, location=''):
         """
@@ -96,6 +99,15 @@ class Generic:
         """Fills the stream with posts.
         """
         self._stream = self._obtain()
+
+    def more(self):
+        """Tries to download more (older ones) Posts from Stream.
+        """
+        self.max_time -= 3000000
+        params = {'max_time':self.max_time}
+        request = self._connection.get('{0}', params=params)
+        if request.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
 
 
 class Outer(Generic):
@@ -231,10 +243,9 @@ class Aspects(Generic):
         :returns: int
         """
         id = -1
-        regexp = re.compile("a_id=[0-9]+'>\s+{0}".format(aspect))
-        result = regexp.search(self._connection.get('aspects').text)
-        if result is not None:
-            id = int(re.compile('[0-9]+').search(result.group(0)).group(0))
+        aspects = self._connection.getUserInfo()['aspects']
+        for item in aspects:
+            if item['name'] == aspect: id = item['id']
         return id
 
     def filterByIDs(self, ids):

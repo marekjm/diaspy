@@ -30,7 +30,7 @@ class Connection():
         self.session = requests.Session()
         self._setlogin(username, password)
 
-    def get(self, string):
+    def get(self, string, headers={}, params={}):
         """This method gets data from session.
         Performs additional checks if needed.
 
@@ -40,7 +40,7 @@ class Connection():
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
         """
-        return self.session.get('{0}/{1}'.format(self.pod, string))
+        return self.session.get('{0}/{1}'.format(self.pod, string), params=params, headers=headers)
 
     def post(self, string, data, headers={}, params={}):
         """This method posts data to session.
