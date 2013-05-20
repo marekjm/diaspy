@@ -38,7 +38,6 @@ test_connection.login()
 print('[ CONNECTED ]\n')
 
 post_text = '#diaspy test no. {0}'.format(test_count)
-test_aspect_id = -1
 
 
 #######################################
@@ -119,22 +118,23 @@ class StreamTest(unittest.TestCase):
 
     def testAspectsAdd(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        test_aspect_id = aspects.add('diaspy-test')
-        aspects.add('diaspy-test-false')
+        aspects.add(testconf.test_aspect_name_fake)
+        testconf.test_aspect_id = aspects.add(testconf.test_aspect_name)
 
     def testAspectsGettingID(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        id = aspects.getID('diaspy-test')
-        self.assertEqual(int, type(id))
-        self.assertEqual(test_aspect_id, id)
+        id = aspects.getAspectID(testconf.test_aspect_name)
+        self.assertEqual(testconf.test_aspect_id, id)
 
     def testAspectsRemoveById(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        aspects.remove(test_aspect_id)
+        aspects.remove(testconf.test_aspect_id)
+        self.assertEqual(-1, aspects.getAspectID(testconf.test_aspect_name))
 
     def testAspectsRemoveByName(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        aspects.remove(name='diaspy-test-false')
+        aspects.remove(name=testconf.test_aspect_name_fake)
+        self.assertEqual(-1, aspects.getAspectID(testconf.test_aspect_name_fake))
 
     def testActivity(self):
         activity = diaspy.streams.Activity(test_connection)
@@ -177,11 +177,9 @@ class UserTests(unittest.TestCase):
 class PostTests(unittest.TestCase):
     def testStringConversion(self):
         s = diaspy.streams.Stream(test_connection)
-        print(str(s[0]))
 
     def testRepr(self):
         s = diaspy.streams.Stream(test_connection)
-        print(repr(s[0]))
 
 
 if __name__ == '__main__': unittest.main()

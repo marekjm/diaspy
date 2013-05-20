@@ -192,7 +192,7 @@ class Stream(Generic):
         return request.json()['data']['photo']['id']
 
 
-class Activity(Generic):
+class Activity(Stream):
     """Stream representing user's activity.
     """
     _location = 'activity.json'
@@ -232,38 +232,31 @@ class Aspects(Generic):
     An example call would be `aspects.json?aspect_ids=23,5,42`
     """
     _location = 'aspects.json'
-    _id_regexp = re.compile(r'<a href="/aspects/[0-9]+/edit" rel="facebox"')
 
-    def getID(self, aspect):
+    def getAspectID(self, aspect_name):
         """Returns id of an aspect of given name.
         Returns -1 if aspect is not found.
 
-        :param aspect: aspect name (must be spelled exactly as when created)
-        :type aspect: str
+        :param aspect_name: aspect name (must be spelled exactly as when created)
+        :type aspect_name: str
         :returns: int
         """
         id = -1
         aspects = self._connection.getUserInfo()['aspects']
-        for item in aspects:
-            if item['name'] == aspect: id = item['id']
+        for aspect in aspects:
+            if aspect['name'] == aspect_name: id = aspect['id']
         return id
 
     def filterByIDs(self, ids):
         self._location += '?{0}'.format(','.join(ids))
         self.fill()
 
-    def _getaid(self, response):
-        """Extracts id of just created aspect.
-        """
-        id = self._id_regexp.search(response.text).group(0).split('/')[2]
-        return int(id)
-
     def add(self, aspect_name, visible=0):
         """This function adds a new aspect.
-        Status code 422 is accepteb because it is returned by D* when
+        Status code 422 is accepted because it is returned by D* when
         you try to add aspect already present on your aspect list.
 
-        :returns: id of created aspect (or -1 if status_code was 422)
+        :returns: id of created aspect
         """
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect[name]': aspect_name,
@@ -273,13 +266,15 @@ class Aspects(Generic):
         if request.status_code not in [200, 422]:
             raise Exception('wrong status code: {0}'.format(request.status_code))
 
-        if request.status_code == 422: id = -1
-        else: id = self._getaid(request)
+        id = self.getAspectID(aspect_name)
         return id
 
-    def remove(self, aspect_id=0, name=''):
+    def remove(self, aspect_id=-1, name=''):
         """This method removes an aspect.
-        500 is accepted because although the D* will
+        You can give it either id or name of the aspect.
+        When both are specified, id takes precedence over name.
+
+        Status code 500 is accepted because although the D* will
         go nuts it will remove the aspect anyway.
 
         :param aspect_id: id fo aspect to remove
@@ -287,7 +282,7 @@ class Aspects(Generic):
         :param name: name of aspect to remove
         :type name: str
         """
-        if not aspect_id and name: aspect_id = self.getID(name)
+        if aspect_id == -1 and name: aspect_id = self.getAspectID(name)
         data = {'authenticity_token': self._connection.get_token()}
         request = self._connection.delete('aspects/{}'.format(aspect_id),
                                           data=data)

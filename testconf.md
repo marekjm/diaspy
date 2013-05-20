@@ -17,3 +17,11 @@ Template file:
     guid = '12345678abcdefgh'
     # your name as others see it
     diaspora_name = 'Marek Marecki'
+
+    #   both names are created
+    test_aspect_name = 'diaspy-test'
+    #   but this one will be deletd `by name`
+    test_aspect_name_fake = 'diaspy-test-fake'
+
+    #   needed here for tests to work
+    test_aspect_id = -1
