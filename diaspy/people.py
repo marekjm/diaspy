@@ -8,6 +8,11 @@ class User:
     extract user data using black magic.
     However, no chickens are harmed when you use it.
 
+    If user has not posted yet diaspy will not be able to extract the information 
+    from his/her posts. Since there is no official way to do it we rely
+    on user posts. If this will be the case user will be notified with appropriate
+    exception message.
+
     When creating new User() one can pass either guid or handle as 
     an optional parameter. GUID takes precedence over handle.
     """
@@ -48,7 +53,10 @@ class User:
             raise Exception('wrong error code: {0}'.format(request.status_code))
         else:
             request = request.json()
-        data, final = request[0]['author'], {}
+
+        if not len(request): raise ('Cannot extract user data: no posts to analyze')
+        data = request[0]['author']
+        final = {}
         names = [('id', 'id'),
                  ('diaspora_id', 'diaspora_id'),
                  ('guid', 'guid'),
