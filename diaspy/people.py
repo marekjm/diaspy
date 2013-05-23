@@ -7,11 +7,19 @@ class User:
     This object goes around the limitations of current D* API and will
     extract user data using black magic.
     However, no chickens are harmed when you use it.
+
+    When creating new User() one can pass either guid or handle as 
+    an optional parameter. GUID takes precedence over handle.
     """
-    def __init__(self, connection):
+    self.data = {}
+    self.stream = []
+
+    def __init__(self, connection, guid='', handle=''):
         self._connection = connection
-        self.data = {}
-        self.stream = []
+        self.guid, self.handle = guid, handle
+        if handle and guid: self.fetchguid(guid)
+        elif guid and not handle: self.fetchguid(guid)
+        elif handle and not guid: self.fetchhandle(handle)
 
     def __getitem__(self, key):
         return self.data[key]
@@ -52,25 +60,15 @@ class User:
         self.data = final
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
 
-    def _getbyhandle(self, diaspora_id, protocol='https'):
-        """Get user data using handle.
+    def fetchhandle(self, diaspora_id, protocol='https'):
+        """Fetch user data using Diaspora handle.
         """
         pod, user = self._sephandle(diaspora_id)
         request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
         self._postproc(request)
 
-    def _getbyguid(self, guid):
-        """Get user data using guid.
-        """
-        request = self._connection.get('people/{0}.json'.format(guid))
-        self._postproc(request)
-
     def fetchguid(self, guid):
         """Fetch user data using guid.
         """
-        self._getbyguid(guid)
-
-    def fetchhandle(self, diaspora_id, protocol='https'):
-        """Fetch user data using diaspora id.
-        """
-        self._getbyhandle(diaspora_id, protocol)
+        request = self._connection.get('people/{0}.json'.format(guid))
+        self._postproc(request)
