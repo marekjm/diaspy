@@ -7,3 +7,4 @@ __pycache__/*
 .env
 
 testconf.py
+TEST_COUNT

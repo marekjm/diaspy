@@ -6,3 +6,6 @@ diaspy
 
    client
    models
+   streams
+   connection
+   conversations
