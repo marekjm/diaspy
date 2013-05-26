@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-class Post:
+class Post():
     """This class represents a post.
 
     .. note::

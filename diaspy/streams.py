@@ -283,11 +283,11 @@ class Aspects(Generic):
         :type name: str
         """
         if aspect_id == -1 and name: aspect_id = self.getAspectID(name)
-        data = {'authenticity_token': self._connection.get_token()}
-        request = self._connection.delete('aspects/{}'.format(aspect_id),
-                                          data=data)
-        if request.status_code not in [404, 500]:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+        data = {'_method':'delete',
+                'authenticity_token': self._connection.get_token()}
+        request = self._connection.post('aspects/{0}'.format(aspect_id), data=data)
+        if request.status_code not in [200, 302, 500]:
+            raise Exception('wrong status code: {0}: cannot remove aspect'.format(request.status_code))
 
 
 class Commented(Generic):

@@ -16,8 +16,8 @@ class User:
     When creating new User() one can pass either guid or handle as 
     an optional parameter. GUID takes precedence over handle.
     """
-    self.data = {}
-    self.stream = []
+    data = {}
+    stream = []
 
     def __init__(self, connection, guid='', handle=''):
         self._connection = connection
@@ -80,3 +80,22 @@ class User:
         """
         request = self._connection.get('people/{0}.json'.format(guid))
         self._postproc(request)
+
+
+class Contacts():
+    """This class represents user's list of contacts.
+    """
+    def __init__(self, connection):
+        self._connection = connection
+
+    def get_only_sharing(self):
+        """Returns contacts who are only sharing with you.
+
+        :returns: list
+        """
+        params = {'set':'only_sharing'}
+        request = self._connection.get('contacts.json', params=params)
+        if request.status_code != 200:
+            raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
+        contacts = [User(user['guid']) for user in request.json()]
+        return contacts

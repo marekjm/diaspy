@@ -174,6 +174,14 @@ class UserTests(unittest.TestCase):
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
 
+class ContactsTest(unittest.TestCase):
+    def testGetOnlySharing(self):
+        contacts = diaspy.people.Contacts(test_connection)
+        only_sharing = contacts.get_only_sharing()
+        for i in only_sharing:
+            self.assertEqual(diaspy.people.User, type(i))
+
+
 class PostTests(unittest.TestCase):
     def testStringConversion(self):
         s = diaspy.streams.Stream(test_connection)
