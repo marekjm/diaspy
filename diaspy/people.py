@@ -8,12 +8,12 @@ class User:
     extract user data using black magic.
     However, no chickens are harmed when you use it.
 
-    If user has not posted yet diaspy will not be able to extract the information 
+    If user has not posted yet diaspy will not be able to extract the information
     from his/her posts. Since there is no official way to do it we rely
     on user posts. If this will be the case user will be notified with appropriate
     exception message.
 
-    When creating new User() one can pass either guid or handle as 
+    When creating new User() one can pass either guid or handle as
     an optional parameter. GUID takes precedence over handle.
     """
     data = {}
@@ -93,8 +93,29 @@ class Contacts():
 
         :returns: list
         """
-        params = {'set':'only_sharing'}
+        params = {'set': 'only_sharing'}
         request = self._connection.get('contacts.json', params=params)
+        if request.status_code != 200:
+            raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
+        contacts = [User(user['guid']) for user in request.json()]
+        return contacts
+
+    def get_all(self):
+        """Returns list of all contacts.
+
+        :returns: list
+        """
+        params = {'set': 'all'}
+        request = self._connection.get('contacts.json', params=params)
+        if request.status_code != 200:
+            raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
+        contacts = [User(user['guid']) for user in request.json()]
+        return contacts
+
+    def get(self):
+        """Returns list of user contacts.
+        """
+        request = self._connection.get('contacts.json')
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
         contacts = [User(user['guid']) for user in request.json()]
