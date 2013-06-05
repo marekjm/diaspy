@@ -1,5 +1,6 @@
 import re
 from diaspy.streams import Outer
+from diaspy.models import Aspect
 
 
 class User:
@@ -88,34 +89,47 @@ class Contacts():
     def __init__(self, connection):
         self._connection = connection
 
-    def get_only_sharing(self):
-        """Returns contacts who are only sharing with you.
+    def add(self, user_id, aspect_ids):
+        """Add user to aspects of given ids.
 
-        :returns: list
+        :param user_id: user guid
+        :type user_id: str
+        :param aspect_ids: list of aspect ids
+        :type aspect_ids: list
         """
-        params = {'set': 'only_sharing'}
-        request = self._connection.get('contacts.json', params=params)
-        if request.status_code != 200:
-            raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(user['guid']) for user in request.json()]
-        return contacts
+        for aid in aspect_ids:
+            Aspect(self._connection, aid).addUser(user_id)
 
-    def get_all(self):
-        """Returns list of all contacts.
+    def remove(self, user_id, aspect_ids):
+        """Remove user from aspects of given ids.
 
-        :returns: list
+        :param user_id: user guid
+        :type user_id: str
+        :param aspect_ids: list of aspect ids
+        :type aspect_ids: list
         """
-        params = {'set': 'all'}
-        request = self._connection.get('contacts.json', params=params)
-        if request.status_code != 200:
-            raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(user['guid']) for user in request.json()]
-        return contacts
+        for aid in aspect_ids:
+            Aspect(self._connection, aid).removeUser(user_id)
 
-    def get(self):
+    def get(self, set=''):
         """Returns list of user contacts.
+        Contact is a User() who is in one or more of user's
+        aspects.
+
+        By default, it will return list of users who are in logged
+        user aspects.
+        If `set` is `all` it will also include users who only share
+        with logged user and are not in his/hers aspects.
+        If `set` is `only_sharing` it will return users who are only
+        sharing with logged user and ARE NOT in his/hers aspects.
+
+        :param set: if passed could be 'all' or 'only_sharing'
+        :type set: str
         """
-        request = self._connection.get('contacts.json')
+        params = {}
+        if set: params['set'] = set
+
+        request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
         contacts = [User(user['guid']) for user in request.json()]

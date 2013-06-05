@@ -172,8 +172,26 @@ class Aspect():
                 'aspect_id': self.id,
                 'person_id': user_id}
 
-        request = self.connection.delete('aspect_memberships/42.json', data=data)
+        request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
 
         if request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return request.json()
+
+
+class Notifications():
+    """This class represents notifications of a user.
+    """
+    def __init__(self, connection):
+        self._connection = connection
+
+    def get(self):
+        """Returns list of notifications.
+        """
+        request = self._connection.get('notifications.json')
+        
+        if r.status_code != 200:
+            raise Exception('status code: {0}: cannot retreive notifications'.format(r.status_code))
+
+        notifications = request.json()
+        return notifications

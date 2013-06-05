@@ -1,6 +1,6 @@
 import json
 import time
-from diaspy.models import Post
+from diaspy.models import Post, Aspect
 
 """Docstrings for this module are taken from:
 https://gist.github.com/MrZYX/01c93096c30dc44caf71
@@ -255,7 +255,7 @@ class Aspects(Generic):
         Status code 422 is accepted because it is returned by D* when
         you try to add aspect already present on your aspect list.
 
-        :returns: id of created aspect
+        :returns: Aspect() object of just created aspect
         """
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect[name]': aspect_name,
@@ -266,7 +266,7 @@ class Aspects(Generic):
             raise Exception('wrong status code: {0}'.format(request.status_code))
 
         id = self.getAspectID(aspect_name)
-        return id
+        return Aspect(self._connection, id)
 
     def remove(self, aspect_id=-1, name=''):
         """This method removes an aspect.
