@@ -178,20 +178,20 @@ class UserTests(unittest.TestCase):
 class ContactsTest(unittest.TestCase):
     def testGetOnlySharing(self):
         contacts = diaspy.people.Contacts(test_connection)
-        only_sharing = contacts.get_only_sharing()
-        for i in only_sharing:
+        result = contacts.get(set='only_sharing')
+        for i in result:
             self.assertEqual(diaspy.people.User, type(i))
 
     def testGetAll(self):
         contacts = diaspy.people.Contacts(test_connection)
-        only_sharing = contacts.get_all()
-        for i in only_sharing:
+        result = contacts.get(set='all')
+        for i in result:
             self.assertEqual(diaspy.people.User, type(i))
 
     def testGet(self):
         contacts = diaspy.people.Contacts(test_connection)
-        only_sharing = contacts.get()
-        for i in only_sharing:
+        result = contacts.get()
+        for i in result:
             self.assertEqual(diaspy.people.User, type(i))
 
 

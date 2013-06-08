@@ -10,9 +10,8 @@ http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
 """
 
 
-class Generic:
-    """Object representing generic stream. Used in Tag(),
-    Stream(), Activity() etc.
+class Generic():
+    """Object representing generic stream.
     """
     _location = 'stream.json'
     _stream = []
@@ -348,3 +347,18 @@ class FollowedTags(Generic):
         if request.status_code not in [201, 403]:
             raise Exception('wrong error code: {0}'.format(request.status_code))
         return request.status_code
+ 
+
+class Tag(Generic):
+    """This stream contains all posts containing a tag.
+    """
+    def __init__(connection, tag):
+        """
+        :param connection: Connection() object
+        :type connection: diaspy.connection.Connection
+        :param tag: tag name
+        :type tag: str
+        """
+        self._connection = connection
+        self._location = 'tags/{0}'.format(tag)
+        self.fill()

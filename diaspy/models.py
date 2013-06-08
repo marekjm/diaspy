@@ -1,6 +1,47 @@
 #!/usr/bin/env python3
 
 
+class Aspect():
+    """This class represents an aspect.
+    """
+    def __init__(self, connection, id=-1):
+        self._connection = connection
+        self.id = id
+        self.name = ''
+
+    def addUser(self, user_id):
+        """Add user to current aspect.
+
+        :param user_id: user to add to aspect
+        :type user: int
+        """
+        data = {'authenticity_token': self._connection.get_token(),
+                'aspect_id': self.id,
+                'person_id': user_id}
+
+        request = self._connection.post('aspect_memberships.json', data=data)
+
+        if request.status_code != 201:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
+        return request.json()
+
+    def removeUser(self, user_id):
+        """Remove user from current aspect.
+
+        :param user_id: user to remove from aspect
+        :type user: int
+        """
+        data = {'authenticity_token': self._connection.get_token(),
+                'aspect_id': self.id,
+                'person_id': user_id}
+
+        request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
+
+        if request.status_code != 200:
+            raise Exception('wrong status code: {0}'.format(request.status_code))
+        return request.json()
+
+
 class Post():
     """This class represents a post.
 
@@ -136,62 +177,3 @@ class Post():
                                     headers={'accept': 'application/json'})
         if r.status_code != 204:
             raise Exception('{0}: Post could not be deleted'.format(r.status_code))
-
-
-class Aspect():
-    """This class represents an aspect.
-    """
-    def __init__(self, connection, id=-1):
-        self._connection = connection
-        self.id = id
-        self.name = ''
-
-    def addUser(self, user_id):
-        """Add user to current aspect.
-
-        :param user_id: user to add to aspect
-        :type user: int
-        """
-        data = {'authenticity_token': self._connection.get_token(),
-                'aspect_id': self.id,
-                'person_id': user_id}
-
-        request = self._connection.post('aspect_memberships.json', data=data)
-
-        if request.status_code != 201:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
-        return request.json()
-
-    def removeUser(self, user_id):
-        """Remove user from current aspect.
-
-        :param user_id: user to remove from aspect
-        :type user: int
-        """
-        data = {'authenticity_token': self._connection.get_token(),
-                'aspect_id': self.id,
-                'person_id': user_id}
-
-        request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
-
-        if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
-        return request.json()
-
-
-class Notifications():
-    """This class represents notifications of a user.
-    """
-    def __init__(self, connection):
-        self._connection = connection
-
-    def get(self):
-        """Returns list of notifications.
-        """
-        request = self._connection.get('notifications.json')
-        
-        if r.status_code != 200:
-            raise Exception('status code: {0}: cannot retreive notifications'.format(r.status_code))
-
-        notifications = request.json()
-        return notifications

@@ -97,8 +97,7 @@ class Contacts():
         :param aspect_ids: list of aspect ids
         :type aspect_ids: list
         """
-        for aid in aspect_ids:
-            Aspect(self._connection, aid).addUser(user_id)
+        for aid in aspect_ids: Aspect(self._connection, aid).addUser(user_id)
 
     def remove(self, user_id, aspect_ids):
         """Remove user from aspects of given ids.
@@ -108,18 +107,19 @@ class Contacts():
         :param aspect_ids: list of aspect ids
         :type aspect_ids: list
         """
-        for aid in aspect_ids:
-            Aspect(self._connection, aid).removeUser(user_id)
+        for aid in aspect_ids: Aspect(self._connection, aid).removeUser(user_id)
 
     def get(self, set=''):
         """Returns list of user contacts.
         Contact is a User() who is in one or more of user's
         aspects.
 
-        By default, it will return list of users who are in logged
-        user aspects.
+        By default, it will return list of users who are in
+        user's aspects.
+
         If `set` is `all` it will also include users who only share
         with logged user and are not in his/hers aspects.
+
         If `set` is `only_sharing` it will return users who are only
         sharing with logged user and ARE NOT in his/hers aspects.
 
