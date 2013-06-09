@@ -5,6 +5,10 @@ import requests
 import json
 
 
+"""This module abstracts connection to pod.
+"""
+
+
 class LoginError(Exception):
     pass
 
@@ -59,6 +63,14 @@ class Connection():
         """
         string = '{0}/{1}'.format(self.pod, string)
         request = self.session.post(string, data, headers=headers, params=params)
+        return request
+
+    def put(self, string, data=None, headers={}, params={}):
+        """This method PUTs to session.
+        """
+        string = '{0}/{1}'.format(self.pod, string)
+        if data is not None: request = self.session.put(string, data, headers=headers, params=params)
+        else: request = self.session.put(string, headers=headers, params=params)
         return request
 
     def delete(self, string, data, headers={}):

@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
 
+import json
+
+
+"""This module is only imported in other diaspy modules and
+MUST NOT import anything.
+"""
+
+
 class Aspect():
     """This class represents an aspect.
     """
@@ -40,6 +48,35 @@ class Aspect():
         if request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return request.json()
+
+
+class Notification():
+    """This class represents single notification.
+    """
+    def __init__(self, connection, data):
+        self._connection = connection
+
+        self.type = list(data.keys())[0]
+        self.data = data[self.type]
+        self.id = self.data['id']
+        self.unread = self.data['unread']
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def mark(self, unread=False):
+        """Marks notification to read/unread.
+        Marks notification to read if `unread` is False.
+        Marks notification to unread if `unread` is True.
+
+        :param unread: which state set for notification
+        :type unread: bool
+        """
+        headers = {'x-csrf-token': self._connection.get_token()}
+        params = {'set_unread': json.dumps(unread)}
+        print(json.dumps(False))
+        self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
+        self.data['unread'] = unread
 
 
 class Post():

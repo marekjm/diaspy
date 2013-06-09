@@ -1,6 +1,7 @@
 import diaspy.models
 import diaspy.streams
 import diaspy.connection
+from diaspy import notifications
 
 
 class Client:
@@ -47,8 +48,7 @@ class Client:
 
         :returns: diaspy.streams.Activity
         """
-        activity = diaspy.streams.Activity(self.connection, 'activity.json')
-        return activity
+        return diaspy.streams.Activity(self.connection, 'activity.json')
 
     def get_stream(self):
         """This functions returns stream.
@@ -93,13 +93,7 @@ class Client:
 
         :returns: list -- list of json formatted notifications
         """
-        r = self.connection.get('notifications.json')
-
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-
-        notifications = r.json()
-        return notifications
+        return notifications.Notifications(self.connection)
 
     def get_mailbox(self):
         """This functions returns a list of messages found in the conversation.

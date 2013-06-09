@@ -32,8 +32,6 @@ class Generic():
     def __contains__(self, post):
         """Returns True if stream contains given post.
         """
-        if type(post) is not Post:
-            raise TypeError('stream can contain only posts: checked for {0}'.format(type(post)))
         return post in self._stream
 
     def __iter__(self):
@@ -98,12 +96,13 @@ class Generic():
         """
         self._stream = self._obtain()
 
-    def more(self):
+    def more(self, max_time=0):
         """Tries to download more (older ones) Posts from Stream.
         """
-        self.max_time -= 3000000
+        if not max_time: max_time = self.max_time - 3000000
+        self.max_time = max_time
         params = {'max_time': self.max_time}
-        request = self._connection.get('{0}', params=params)
+        request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
 

@@ -1,0 +1,11 @@
+In order to get list of notifications use `diaspy.notifications.Notifications()` object. 
+
+Single notification (it should be obvious that it requires object of its own) is located in 
+`diaspy.models.Notification()`.
+
+
+----
+
+
+To mark notification as `read` or `unread` use `Notification().mark()` method. 
+It has only one parameter - `unread` which is boolean.
