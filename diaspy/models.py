@@ -74,7 +74,6 @@ class Notification():
         """
         headers = {'x-csrf-token': self._connection.get_token()}
         params = {'set_unread': json.dumps(unread)}
-        print(json.dumps(False))
         self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
         self.data['unread'] = unread
 
