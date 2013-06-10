@@ -2,6 +2,7 @@
 
 
 import time
+
 from diaspy.models import Notification
 
 
@@ -19,6 +20,9 @@ class Notifications():
     def __iter__(self):
         return iter(self._notifications)
 
+    def __getitem__(self, n):
+        return self._notifications[n]
+
     def last(self):
         """Returns list of most recent notifications.
         """
@@ -31,7 +35,6 @@ class Notifications():
             raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
         return [Notification(self._connection, n) for n in request.json()]
 
-
     def get(self, per_page=5, page=1):
         """Returns list of notifications.
         """
@@ -39,7 +42,7 @@ class Notifications():
         headers = {'x-csrf-token': self._connection.get_token()}
 
         request = self._connection.get('notifications.json', headers=headers, params=params)
-        
+
         if request.status_code != 200:
             raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
 

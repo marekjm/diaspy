@@ -154,7 +154,7 @@ class Connection():
         request = self.get('stream')
         token = self._token_regex.search(request.text).group(1)
         return token
- 
+
     def get_token(self, new=False):
         """This function returns a token needed for authentication in most cases.
         Each time it is run a _fetchtoken() is called and refreshed token is stored.

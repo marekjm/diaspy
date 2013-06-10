@@ -346,7 +346,7 @@ class FollowedTags(Generic):
         if request.status_code not in [201, 403]:
             raise Exception('wrong error code: {0}'.format(request.status_code))
         return request.status_code
- 
+
 
 class Tag(Generic):
     """This stream contains all posts containing a tag.

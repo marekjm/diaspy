@@ -3,9 +3,11 @@
 import unittest
 
 #   failure to import any of the modules below indicates failed tests
+#   =================================================================
 #   modules used by diaspy
-import requests
 import re
+import requests
+import warnings
 #   actual diaspy code
 import diaspy
 
@@ -66,8 +68,8 @@ class ClientTests(unittest.TestCase):
     def testGettingNotifications(self):
         client = diaspy.client.Client(test_connection)
         notifications = client.get_notifications()
-        self.assertEqual(list, type(notifications))
-        if notifications: self.assertEqual(dict, type(notifications[0]))
+        self.assertEqual(diaspy.notifications.Notifications, type(notifications))
+        if notifications: self.assertEqual(diaspy.models.Notification, type(notifications[0]))
 
     def testGettingTag(self):
         client = diaspy.client.Client(test_connection)
@@ -120,7 +122,7 @@ class StreamTest(unittest.TestCase):
     def testAspectsAdd(self):
         aspects = diaspy.streams.Aspects(test_connection)
         aspects.add(testconf.test_aspect_name_fake)
-        testconf.test_aspect_id = aspects.add(testconf.test_aspect_name)
+        testconf.test_aspect_id = aspects.add(testconf.test_aspect_name).id
 
     def testAspectsGettingID(self):
         aspects = diaspy.streams.Aspects(test_connection)
