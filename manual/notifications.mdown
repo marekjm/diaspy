@@ -12,7 +12,7 @@ Single notification (it should be obvious that it requires object of its own) is
 
 ##### 1. `who()`
 
-This method will return guid of a user who caused you to get this notification.
+This method will return list of guids of the users who caused you to get this notification.
 
 ##### 2. `when()`
 

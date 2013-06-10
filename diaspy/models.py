@@ -82,16 +82,14 @@ class Notification():
         return '{0}: {1}'.format(self.when(), str(self))
 
     def who(self):
-        """Returns guid of user who caused you to get the notification.
+        """Returns list of guids of the users who caused you to get the notification.
         """
-        who = self._who_regexp.search(self.data['note_html']).group(0)
-        return who[8:24]
+        return [who[8:24] for who in self._who_regexp.findall(self.data['note_html'])]
 
     def when(self):
         """Returns UTC time as found in note_html.
         """
-        when = self._when_regexp.search(self.data['note_html']).group(0)
-        return when
+        return self._when_regexp.search(self.data['note_html']).group(0)
 
     def mark(self, unread=False):
         """Marks notification to read/unread.
