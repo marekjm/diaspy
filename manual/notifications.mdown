@@ -1,11 +1,32 @@
+#### `Notifications()` object
+
 In order to get list of notifications use `diaspy.notifications.Notifications()` object. 
-
-Single notification (it should be obvious that it requires object of its own) is located in 
-`diaspy.models.Notification()`.
-
+It support iteration and indexing.
 
 ----
 
+#### `Notification()` model
 
-To mark notification as `read` or `unread` use `Notification().mark()` method. 
-It has only one parameter - `unread` which is boolean.
+Single notification (it should be obvious that it requires object of its own) is located in 
+`diaspy.models.Notification()`. It has several methods you can use.
+
+##### 1. `who()`
+
+This method will return guid of a user who caused you to get this notification.
+
+##### 2. `when()`
+
+This method will return UTC time when you get the notification.
+
+##### 3. `mark()`
+
+To mark notification as `read` or `unread`. It has one parameter - `unread` which is boolean.
+
+&nbsp;
+
+Also, you can use `str()` and `repr()` on the `Notification()` and you will get nice 
+string.
+
+----
+
+###### Manual for `diaspy`, written by Marek Marecki

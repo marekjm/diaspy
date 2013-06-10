@@ -2,6 +2,7 @@
 
 
 import json
+import re
 
 
 """This module is only imported in other diaspy modules and
@@ -53,20 +54,44 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
+    _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
+    _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
+
     def __init__(self, connection, data):
         self._connection = connection
-
         self.type = list(data.keys())[0]
         self.data = data[self.type]
         self.id = self.data['id']
         self.unread = self.data['unread']
 
     def __getitem__(self, key):
+        """Returns a key from notification data.
+        """
         return self.data[key]
 
-    def _refresh(self):
-        """Refreshes data of the notification.
+    def __str__(self):
+        """Returns notification note.
         """
+        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][a-zA-Z0-9/:_#.\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = string.strip().split('\n')[0]
+        return string
+
+    def __repr__(self):
+        """Returns notification note with more details.
+        """
+        return '{0}: {1}'.format(self.when(), str(self))
+
+    def who(self):
+        """Returns guid of user who caused you to get the notification.
+        """
+        who = self._who_regexp.search(self.data['note_html']).group(0)
+        return who[8:24]
+
+    def when(self):
+        """Returns UTC time as found in note_html.
+        """
+        when = self._when_regexp.search(self.data['note_html']).group(0)
+        return when
 
     def mark(self, unread=False):
         """Marks notification to read/unread.
