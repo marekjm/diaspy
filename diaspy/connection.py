@@ -3,6 +3,7 @@
 import re
 import requests
 import json
+import warnings
 
 
 """This module abstracts connection to pod.
@@ -154,20 +155,21 @@ class Connection():
         token = self._token_regex.search(request.text).group(1)
         return token
  
-    def get_token(self):
+    def get_token(self, new=False):
         """This function returns a token needed for authentication in most cases.
         Each time it is run a _fetchtoken() is called and refreshed token is stored.
 
         It is more safe to use than _fetchtoken().
+        By setting new you can request new token or decide to get stored one.
+        If no token is stored new one will be fatched anyway.
 
         :returns: string -- token used to authenticate
         """
         try:
-            token = self._fetchtoken()
+            if new: self.token = self._fetchtoken()
+            if not self.token: self.token = self._fetchtoken()
         except requests.exceptions.ConnectionError as e:
-            warnings.warn('{0} was cought: trying to reuse old token'.format(e))
-            token = self.token
+            warnings.warn('{0} was cought: reusing old token'.format(e))
         finally:
-            if not token: raise TokenError('cannot obtain token and no previous token found for reuse')
-            self.token = token
-        return token
+            if not self.token: raise TokenError('cannot obtain token and no previous token found for reuse')
+        return self.token

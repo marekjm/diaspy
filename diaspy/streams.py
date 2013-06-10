@@ -351,7 +351,7 @@ class FollowedTags(Generic):
 class Tag(Generic):
     """This stream contains all posts containing a tag.
     """
-    def __init__(connection, tag):
+    def __init__(self, connection, tag):
         """
         :param connection: Connection() object
         :type connection: diaspy.connection.Connection
