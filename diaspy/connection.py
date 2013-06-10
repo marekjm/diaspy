@@ -13,6 +13,10 @@ class LoginError(Exception):
     pass
 
 
+class TokenError(Exception):
+    pass
+
+
 class Connection():
     """Object representing connection with the server.
     It is pushed around internally and is considered private.
@@ -20,6 +24,7 @@ class Connection():
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
     login_data = {}
+    token = ''
 
     def __init__(self, pod, username='', password=''):
         """
@@ -89,13 +94,14 @@ class Connection():
 
     def _setlogin(self, username, password):
         """This function is used to set data for login.
+
         .. note::
             It should be called before _login() function.
         """
         self.username, self.password = username, password
         self.login_data = {'user[username]': self.username,
                            'user[password]': self.password,
-                           'authenticity_token': self.get_token()}
+                           'authenticity_token': self._fetchtoken()}
 
     def _login(self):
         """Handles actual login request.
@@ -105,7 +111,7 @@ class Connection():
                             data=self.login_data,
                             headers={'accept': 'application/json'})
         if request.status_code != 201:
-            raise LoginError('{0}: Login failed.'.format(request.status_code))
+            raise LoginError('{0}: login failed'.format(request.status_code))
 
     def login(self, username='', password=''):
         """This function is used to log in to a pod.
@@ -120,6 +126,9 @@ class Connection():
         When logged out you can't do anything.
         """
         self.get('users/sign_out')
+        self.username = ''
+        self.token = ''
+        self.password = ''
 
     def podswitch(self, pod):
         """Switches pod from current to another one.
@@ -136,11 +145,29 @@ class Connection():
         userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
         return userdata
 
+    def _fetchtoken(self):
+        """This method tries to get token string needed for authentication on D*.
+
+        :returns: token string
+        """
+        request = self.get('stream')
+        token = self._token_regex.search(request.text).group(1)
+        return token
+ 
     def get_token(self):
         """This function returns a token needed for authentication in most cases.
+        Each time it is run a _fetchtoken() is called and refreshed token is stored.
+
+        It is more safe to use than _fetchtoken().
 
         :returns: string -- token used to authenticate
         """
-        r = self.get('stream')
-        token = self._token_regex.search(r.text).group(1)
+        try:
+            token = self._fetchtoken()
+        except requests.exceptions.ConnectionError as e:
+            warnings.warn('{0} was cought: trying to reuse old token'.format(e))
+            token = self.token
+        finally:
+            if not token: raise TokenError('cannot obtain token and no previous token found for reuse')
+            self.token = token
         return token

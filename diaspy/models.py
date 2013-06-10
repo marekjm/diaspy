@@ -64,6 +64,10 @@ class Notification():
     def __getitem__(self, key):
         return self.data[key]
 
+    def _refresh(self):
+        """Refreshes data of the notification.
+        """
+
     def mark(self, unread=False):
         """Marks notification to read/unread.
         Marks notification to read if `unread` is False.

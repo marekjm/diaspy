@@ -203,4 +203,17 @@ class PostTests(unittest.TestCase):
         s = diaspy.streams.Stream(test_connection)
 
 
+class NotificationsTests(unittest.TestCase):
+    def testMarkgingRead(self):
+        notifications = diaspy.notifications.Notifications(test_connection)
+        notif = None
+        for n in notifications:
+            if n.unread:
+                notif = n
+                break
+        if notif is not None:
+            n.mark(unread=False)
+        else:
+            warnings.warn('test not sufficient: no unread notifications were found')
+
 if __name__ == '__main__': unittest.main()
