@@ -49,13 +49,38 @@ class Generic():
         """
         return len(self._stream)
 
-    def _obtain(self):
+    def _obtain(self, max_time=0):
         """Obtains stream from pod.
         """
-        request = self._connection.get(self._location)
+        params = {}
+        if max_time: params['max_time'] = max_time
+        request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return [Post(str(post['id']), self._connection) for post in request.json()]
+
+    def _expand(self, new_stream):
+        """Appends older posts to stream.
+        """
+        ids = [post.post_id for post in self._stream]
+        stream = self._stream
+        for post in new_stream:
+            if post.post_id not in ids:
+                stream.append(post)
+                ids.append(post.post_id)
+        self._stream = stream
+
+    def _update(self, new_stream):
+        """Updates stream with new posts.
+        """
+        ids = [post.post_id for post in self._stream]
+
+        stream = self._stream
+        for i in range(len(new_stream)):
+            if new_stream[-i].post_id not in ids:
+                stream = [new_stream[-i]] + stream
+                ids.append(new_stream[-i].post_id)
+        self._stream = stream
 
     def clear(self):
         """Removes all posts from stream.
@@ -80,16 +105,7 @@ class Generic():
     def update(self):
         """Updates stream.
         """
-        new_stream = self._obtain()
-        ids = [post.post_id for post in self._stream]
-
-        stream = self._stream
-        for i in range(len(new_stream)):
-            if new_stream[-i].post_id not in ids:
-                stream = [new_stream[-i]] + stream
-                ids.append(new_stream[-i].post_id)
-
-        self._stream = stream
+        self._update( self._obtain())
 
     def fill(self):
         """Fills the stream with posts.
@@ -98,13 +114,14 @@ class Generic():
 
     def more(self, max_time=0):
         """Tries to download more (older ones) Posts from Stream.
+
+        :param max_time: seconds since epoch (optional, diaspy'll figure everything on its own)
+        :type max_time: int
         """
         if not max_time: max_time = self.max_time - 3000000
         self.max_time = max_time
-        params = {'max_time': self.max_time}
-        request = self._connection.get(self._location, params=params)
-        if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+        new_stream = self._obtain(max_time=max_time)
+        self._expand(new_stream)
 
 
 class Outer(Generic):
