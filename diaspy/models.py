@@ -72,8 +72,9 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][a-zA-Z0-9/:_#.\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#/\- ]*["\'])* */?>', '', self.data['note_html'])
         string = string.strip().split('\n')[0]
+        while '  ' in string: string = string.replace('  ', ' ')
         return string
 
     def __repr__(self):
