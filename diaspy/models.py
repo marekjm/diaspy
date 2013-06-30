@@ -34,7 +34,7 @@ class Aspect():
             raise Exception('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
         elif request.status_code == 404:
             raise Exception('user not found from this pod: {0}'.format(request.status_code))
-        elif request.status_code != 201:
+        elif request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return request.json()
 
