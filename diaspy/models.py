@@ -16,31 +16,50 @@ class Aspect():
     def __init__(self, connection, id=-1):
         self._connection = connection
         self.id = id
-        self.name = ''
+        self.name = self._findname()
+    
+    def _findname(self):
+        """Finds name for aspect.
+        """
+        name = ''
+        aspects = self._connection.getUserInfo()['aspects']
+        for a in aspects:
+            if a['id'] == self.id:
+                name = a['name']
+                break
+        return name
 
     def getUsers(self):
-        """Returns list of users who are listed in this aspect.
+        """Returns list of GUIDs of users who are listed in this aspect.
         """
         start_regexp = re.compile('<ul +class=["\']contacts["\'] *>')
-        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[A-Za-z0-9 _-]+</a>')
         userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9 _-]+</a>')
+        personid_regexp = 'alt="{0}" class="avatar" data-person_id="[0-9]+"'
+        method_regexp = 'data-method="delete" data-person_id="{0}"'
+
         ajax = self._connection.get('aspects/{0}/edit'.format(self.id)).text
         begin = ajax.find(start_regexp.search(ajax).group(0))
         end = ajax.find('</ul>')
         ajax = ajax[begin:end]
-        all_users = userline_regexp.findall(ajax)
-        usernames = [line[35:-4] for line in all_users]
-        personid_regexp = 'alt="{USERNAME}" class="avatar" data-person_id="[0-9]+"'
-        person_ids = [re.compile(personid_regexp.replace('{USERNAME}', name)).search(ajax).group(0) for name in usernames]
-        personids = []
-        for n, line in enumerate(person_ids):
-            i = -2
-            id = ''
+
+        usernames = [(line[17:33], line[35:-4]) for line in userline_regexp.findall(ajax)]
+        personids = [re.compile(personid_regexp.format(name)).search(ajax).group(0) for guid, name in usernames]
+        for n, line in enumerate(personids):
+            i, id = -2, ''
             while line[i].isdigit():
-                id += line[i]
+                id = line[i] + id
                 i -= 1
-            personids.append((usernames[n], id))
-        users = personids
+            personids[n] = (usernames[n][1], id)
+
+        users_in_aspect = []
+        for name, id in personids:
+            if re.compile(method_regexp.format(id, self.id)).search(ajax): users_in_aspect.append(name)
+
+        users = []
+        for i, user in enumerate(usernames):
+            guid, name = user
+            if name in users_in_aspect:
+                users.append(guid)
         return users
 
     def addUser(self, user_id):
