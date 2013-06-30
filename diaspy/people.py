@@ -3,7 +3,7 @@ from diaspy.streams import Outer
 from diaspy.models import Aspect
 
 
-class User:
+class User():
     """This class abstracts a D* user.
     This object goes around the limitations of current D* API and will
     extract user data using black magic.

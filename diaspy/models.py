@@ -18,6 +18,11 @@ class Aspect():
         self.id = id
         self.name = ''
 
+    def getUsers(self):
+        """Returns list of users who are listed in this aspect.
+        """
+        return []
+
     def addUser(self, user_id):
         """Add user to current aspect.
 
