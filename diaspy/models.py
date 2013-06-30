@@ -30,7 +30,11 @@ class Aspect():
 
         request = self._connection.post('aspect_memberships.json', data=data)
 
-        if request.status_code != 201:
+        if request.status_code == 400:
+            raise Exception('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
+        elif request.status_code == 404:
+            raise Exception('user not found from this pod: {0}'.format(request.status_code))
+        elif request.status_code != 201:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return request.json()
 
