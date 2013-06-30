@@ -20,12 +20,13 @@ class User:
     data = {}
     stream = []
 
-    def __init__(self, connection, guid='', handle=''):
+    def __init__(self, connection, guid='', handle='', fetchposts=True):
         self._connection = connection
-        self.guid, self.handle = guid, handle
-        if handle and guid: self.fetchguid(guid)
-        elif guid and not handle: self.fetchguid(guid)
-        elif handle and not guid: self.fetchhandle(handle)
+        self.guid, self.handle, self.fetchposts = guid, handle, fetchposts
+        if self.fetchposts:
+            if handle and guid: self.fetchguid(guid)
+            elif guid and not handle: self.fetchguid(guid)
+            elif handle and not guid: self.fetchhandle(handle)
 
     def __getitem__(self, key):
         return self.data[key]
@@ -55,7 +56,7 @@ class User:
         else:
             request = request.json()
 
-        if not len(request): raise ('Cannot extract user data: no posts to analyze')
+        if not len(request): raise Exception('Cannot extract user data: no posts to analyze')
         data = request[0]['author']
         final = {}
         names = [('id', 'id'),
@@ -132,5 +133,5 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(user['guid']) for user in request.json()]
+        contacts = [User(self._connection, user['guid'], user['handle'], False) for user in request.json()]
         return contacts
