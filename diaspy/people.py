@@ -9,24 +9,52 @@ class User:
     extract user data using black magic.
     However, no chickens are harmed when you use it.
 
-    If user has not posted yet diaspy will not be able to extract the information
-    from his/her posts. Since there is no official way to do it we rely
-    on user posts. If this will be the case user will be notified with appropriate
-    exception message.
+    The parameter fetch should be either 'posts', 'data' or 'none'. By
+    default it is 'posts' which means in addition to user data, stream
+    will be fetched. If user has not posted yet diaspy will not be able 
+    to extract the information from his/her posts. Since there is no official 
+    way to do it we rely on user posts. If this will be the case user 
+    will be notified with appropriate exception message.
+    
+    If fetch is 'data', only user data will be fetched. If the user is
+    not found, no exception will be returned.
 
-    When creating new User() one can pass either guid or handle as
-    an optional parameter. GUID takes precedence over handle.
+    When creating new User() one can pass either guid, handle and/or id as
+    optional parameters. GUID takes precedence over handle when fetching
+    user stream. When fetching user data, handle is required.
     """
     data = {}
     stream = []
 
-    def __init__(self, connection, guid='', handle='', fetchposts=True):
+    def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
-        self.guid, self.handle, self.fetchposts = guid, handle, fetchposts
-        if self.fetchposts:
+        if fetch == 'posts':
             if handle and guid: self.fetchguid(guid)
             elif guid and not handle: self.fetchguid(guid)
             elif handle and not guid: self.fetchhandle(handle)
+            else:
+                # fallback
+                self.data = {
+                    'guid': guid,
+                    'handle': handle,
+                    'id': id
+                }
+        elif fetch == 'data' and len(handle):
+            try:
+                self.fetchprofile(handle)
+            except:
+                # fallback
+                self.data = {
+                    'guid': guid,
+                    'handle': handle,
+                    'id': id
+                }
+        else:
+            self.data = {
+                'guid': guid,
+                'handle': handle,
+                'id': id
+            }
 
     def __getitem__(self, key):
         return self.data[key]
@@ -43,6 +71,12 @@ class User:
         handle = handle.split('@')
         pod, user = handle[1], handle[0]
         return (pod, user)
+        
+    def _finalize_data(self, data, names):
+        final = {}
+        for d, f in names:
+            final[f] = data[d]
+        return final
 
     def _postproc(self, request):
         """Makes necessary modifications to user data and
@@ -55,33 +89,46 @@ class User:
             raise Exception('wrong error code: {0}'.format(request.status_code))
         else:
             request = request.json()
-
         if not len(request): raise Exception('Cannot extract user data: no posts to analyze')
-        data = request[0]['author']
-        final = {}
         names = [('id', 'id'),
                  ('diaspora_id', 'diaspora_id'),
                  ('guid', 'guid'),
                  ('name', 'diaspora_name'),
                  ('avatar', 'image_urls'),
                  ]
-        for d, f in names:
-            final[f] = data[d]
-        self.data = final
+        self.data = self._finalize_data(request[0]['author'], names)
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self.data['guid']))
 
     def fetchhandle(self, diaspora_id, protocol='https'):
-        """Fetch user data using Diaspora handle.
+        """Fetch user data and posts using Diaspora handle.
         """
         pod, user = self._sephandle(diaspora_id)
         request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
         self._postproc(request)
 
     def fetchguid(self, guid):
-        """Fetch user data using guid.
+        """Fetch user data and posts using guid.
         """
         request = self._connection.get('people/{0}.json'.format(guid))
         self._postproc(request)
+        
+    def fetchprofile(self, diaspora_id, protocol='https'):
+        """Fetch user data using Diaspora handle.
+        """
+        pod, user = self._sephandle(diaspora_id)
+        request = self._connection.get('people.json?q={0}'.format(diaspora_id))
+        if request.status_code != 200:
+            raise Exception('wrong error code: {0}'.format(request.status_code))
+        else:
+            request = request.json()
+        if not len(request): raise Exception()
+        names = [('id', 'id'),
+                 ('handle', 'diaspora_id'),
+                 ('guid', 'guid'),
+                 ('name', 'diaspora_name'),
+                 ('avatar', 'image_urls'),
+                 ]
+        self.data = self._finalize_data(request[0], names)
 
 
 class Contacts():
@@ -133,5 +180,5 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(self._connection, user['guid'], user['handle'], False) for user in request.json()]
+        contacts = [User(self._connection, user['guid'], user['handle'], 'none', user['id']) for user in request.json()]
         return contacts
