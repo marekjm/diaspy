@@ -21,7 +21,27 @@ class Aspect():
     def getUsers(self):
         """Returns list of users who are listed in this aspect.
         """
-        return []
+        start_regexp = re.compile('<ul +class=["\']contacts["\'] *>')
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[A-Za-z0-9 _-]+</a>')
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9 _-]+</a>')
+        ajax = self._connection.get('aspects/{0}/edit'.format(self.id)).text
+        begin = ajax.find(start_regexp.search(ajax).group(0))
+        end = ajax.find('</ul>')
+        ajax = ajax[begin:end]
+        all_users = userline_regexp.findall(ajax)
+        usernames = [line[35:-4] for line in all_users]
+        personid_regexp = 'alt="{USERNAME}" class="avatar" data-person_id="[0-9]+"'
+        person_ids = [re.compile(personid_regexp.replace('{USERNAME}', name)).search(ajax).group(0) for name in usernames]
+        personids = []
+        for n, line in enumerate(person_ids):
+            i = -2
+            id = ''
+            while line[i].isdigit():
+                id += line[i]
+                i -= 1
+            personids.append((usernames[n], id))
+        users = personids
+        return users
 
     def addUser(self, user_id):
         """Add user to current aspect.
