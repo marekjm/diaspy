@@ -28,36 +28,23 @@ class User():
 
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
-        if fetch == 'posts':
-            if handle and guid: self.fetchguid(guid)
-            elif guid and not handle: self.fetchguid(guid)
-            elif handle and not guid: self.fetchhandle(handle)
-            else:
-                # fallback
-                self.data = {
-                    'guid': guid,
-                    'handle': handle,
-                    'id': id
-                }
-        elif fetch == 'data' and len(handle):
-            try:
-                self.fetchprofile(handle)
-            except:
-                # fallback
-                self.data = {
-                    'guid': guid,
-                    'handle': handle,
-                    'id': id
-                }
-        else:
-            self.data = {
-                'guid': guid,
-                'handle': handle,
-                'id': id
-            }
+        self.data = {
+            'guid': guid,
+            'handle': handle,
+            'id': id
+        }
+        self._do_fetch(fetch)
 
     def __getitem__(self, key):
         return self.data[key]
+
+    def _do_fetch(self, fetch):
+        if fetch == 'posts':
+            if self['handle'] and self['guid']: self.fetchguid(self['guid'])
+            elif self['guid'] and not self['handle']: self.fetchguid(self['guid'])
+            elif self['handle'] and not self['guid']: self.fetchhandle(self['handle'])
+        elif fetch == 'data' and len(self['handle']):
+            self.fetchprofile(self['handle'])
 
     def _sephandle(self, handle):
         """Separate D* handle into pod pod and user.
@@ -121,14 +108,14 @@ class User():
             raise Exception('wrong error code: {0}'.format(request.status_code))
         else:
             request = request.json()
-        if not len(request): raise Exception()
-        names = [('id', 'id'),
-                 ('handle', 'diaspora_id'),
-                 ('guid', 'guid'),
-                 ('name', 'diaspora_name'),
-                 ('avatar', 'image_urls'),
-                 ]
-        self.data = self._finalize_data(request[0], names)
+        if len(request):
+            names = [('id', 'id'),
+                     ('handle', 'diaspora_id'),
+                     ('guid', 'guid'),
+                     ('name', 'diaspora_name'),
+                     ('avatar', 'image_urls'),
+                     ]
+            self.data = self._finalize_data(request[0], names)
 
 
 class Contacts():
