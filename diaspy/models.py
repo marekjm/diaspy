@@ -59,18 +59,15 @@ class Aspect():
 
         ajax = self._connection.get('aspects/{0}/edit'.format(self.id)).text
 
-        #print(ajax)
-
         begin = ajax.find(start_regexp.search(ajax).group(0))
-        #print(0)
         end = ajax.find('</ul>')
         ajax = ajax[begin:end]
 
-        #print(ajax)
-
         usernames = [(line[17:33], line[35:-4]) for line in userline_regexp.findall(ajax)]
-        for guid, name in usernames:
-            print(name, guid)
+        for i, data in enumerate(usernames):
+            guid, name = data
+            for char in ['(', ')', '.']: name = name.replace(char, '\\'+char)
+            usernames[i] = (guid, name)
         personids = [re.compile(personid_regexp.format(name)).search(ajax).group(0) for guid, name in usernames]
         for n, line in enumerate(personids):
             i, id = -2, ''
@@ -86,8 +83,7 @@ class Aspect():
         users = []
         for i, user in enumerate(usernames):
             guid, name = user
-            if name in users_in_aspect:
-                users.append(guid)
+            if name in users_in_aspect: users.append(guid)
         return users
 
     def addUser(self, user_id):
