@@ -33,16 +33,24 @@ class Aspect():
         """Returns list of GUIDs of users who are listed in this aspect.
         """
         start_regexp = re.compile('<ul +class=["\']contacts["\'] *>')
-        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9 _-]+</a>')
-        personid_regexp = 'alt="{0}" class="avatar" data-person_id="[0-9]+"'
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9()@. _-]+</a>')
+        personid_regexp = 'alt=["\']{0}["\'] class=["\']avatar["\'] data-person_id=["\'][0-9]+["\']'
         method_regexp = 'data-method="delete" data-person_id="{0}"'
 
         ajax = self._connection.get('aspects/{0}/edit'.format(self.id)).text
+
+        #print(ajax)
+
         begin = ajax.find(start_regexp.search(ajax).group(0))
+        #print(0)
         end = ajax.find('</ul>')
         ajax = ajax[begin:end]
 
+        #print(ajax)
+
         usernames = [(line[17:33], line[35:-4]) for line in userline_regexp.findall(ajax)]
+        for guid, name in usernames:
+            print(name, guid)
         personids = [re.compile(personid_regexp.format(name)).search(ajax).group(0) for guid, name in usernames]
         for n, line in enumerate(personids):
             i, id = -2, ''
