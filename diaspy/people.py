@@ -1,6 +1,7 @@
 import re
 from diaspy.streams import Outer
 from diaspy.models import Aspect
+from diaspy import errors
 
 
 class User():
@@ -74,7 +75,7 @@ class User():
             raise Exception('wrong error code: {0}'.format(request.status_code))
         else:
             request = request.json()
-        if not len(request): raise Exception('Cannot extract user data: no posts to analyze')
+        if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
         names = [('id', 'id'),
                  ('diaspora_id', 'diaspora_id'),
                  ('guid', 'guid'),
