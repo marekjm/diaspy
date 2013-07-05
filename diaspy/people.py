@@ -31,12 +31,18 @@ class User():
         self.data = {
             'guid': guid,
             'handle': handle,
-            'id': id
+            'id': id,
         }
         self._do_fetch(fetch)
 
     def __getitem__(self, key):
         return self.data[key]
+
+    def __str__(self):
+        return self['guid']
+
+    def __repr__(self):
+        return '{0} ({1})'.format(self['diaspora_name'], self['guid'])
 
     def _do_fetch(self, fetch):
         if fetch == 'posts':
