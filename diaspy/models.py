@@ -61,20 +61,16 @@ class Aspect():
 
     def _extractusernames(self, ajax):
         """Extracts usernames and GUIDs from ajax returned by Diaspora*.
-        Returns list of two-tuple: (guid, diaspora_name).
+        Returns list of two-tuples: (guid, diaspora_name).
         """
-        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9()@. _-]+</a>')
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9()*@. _-]+</a>')
         return [(line[17:33], re.escape(line[35:-4])) for line in userline_regexp.findall(ajax)]
 
-    def getUsers(self):
-        """Returns list of GUIDs of users who are listed in this aspect.
+    def _extractpersonids(self, ajax, usernames):
+        """Extracts `person_id`s and usernames from ajax and list of usernames.
+        Returns list of two-tuples: (username, id)
         """
         personid_regexp = 'alt=["\']{0}["\'] class=["\']avatar["\'] data-person_id=["\'][0-9]+["\']'
-        method_regexp = 'data-method="delete" data-person_id="{0}"'
-
-        ajax = self._getajax()
-        usernames = self._extractusernames(ajax)
-
         personids = [re.compile(personid_regexp.format(name)).search(ajax).group(0) for guid, name in usernames]
         for n, line in enumerate(personids):
             i, id = -2, ''
@@ -82,16 +78,33 @@ class Aspect():
                 id = line[i] + id
                 i -= 1
             personids[n] = (usernames[n][1], id)
+        return personids
 
-        users_in_aspect = []
-        for name, id in personids:
-            if re.compile(method_regexp.format(id, self.id)).search(ajax): users_in_aspect.append(name)
-
+    def _defineusers(self, ajax, personids):
+        """Gets users contained in this aspect by getting users who have `delete` method.
+        """
+        method_regexp = 'data-method="delete" data-person_id="{0}"'
         users = []
-        for i, user in enumerate(usernames):
-            guid, name = user
-            if name in users_in_aspect: users.append(guid)
+        for name, id in personids:
+            if re.compile(method_regexp.format(id)).search(ajax): users.append(name)
         return users
+
+    def _getguids(self, users_in_aspect, usernames):
+        """Defines users contained in this aspect.
+        """
+        guids = []
+        for guid, name in usernames:
+            if name in users_in_aspect: guids.append(guid)
+        return guids
+
+    def getUsers(self):
+        """Returns list of GUIDs of users who are listed in this aspect.
+        """
+        ajax = self._getajax()
+        usernames = self._extractusernames(ajax)
+        personids = self._extractpersonids(ajax, usernames)
+        users_in_aspect = self._defineusers(ajax, personids)
+        return self._getguids(users_in_aspect, usernames)
 
     def addUser(self, user_id):
         """Add user to current aspect.
