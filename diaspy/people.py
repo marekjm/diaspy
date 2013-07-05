@@ -12,11 +12,11 @@ class User():
 
     The parameter fetch should be either 'posts', 'data' or 'none'. By
     default it is 'posts' which means in addition to user data, stream
-    will be fetched. If user has not posted yet diaspy will not be able 
-    to extract the information from his/her posts. Since there is no official 
-    way to do it we rely on user posts. If this will be the case user 
+    will be fetched. If user has not posted yet diaspy will not be able
+    to extract the information from his/her posts. Since there is no official
+    way to do it we rely on user posts. If this will be the case user
     will be notified with appropriate exception message.
-    
+
     If fetch is 'data', only user data will be fetched. If the user is
     not found, no exception will be returned.
 
@@ -57,7 +57,7 @@ class User():
         handle = self['handle'].split('@')
         pod, user = handle[1], handle[0]
         return (pod, user)
-        
+
     def _finalize_data(self, data, names):
         final = {}
         for d, f in names:
@@ -97,7 +97,7 @@ class User():
         """
         request = self._connection.get('people/{0}.json'.format(self['guid']))
         self._postproc(request)
-        
+
     def fetchprofile(self, protocol='https'):
         """Fetch user data using Diaspora handle.
         """

@@ -12,7 +12,7 @@ MUST NOT import anything.
 
 class Aspect():
     """This class represents an aspect.
-    
+
     Class can be initialized by passing either an id and/or name as
     parameters.
     If both are missing, an exception will be raised.
@@ -26,7 +26,7 @@ class Aspect():
             self.id = self._findid()
         elif not id and not name:
             raise Exception("Aspect must be initialized with either an id or name")
-    
+
     def _findname(self):
         """Finds name for aspect.
         """
@@ -37,7 +37,7 @@ class Aspect():
                 name = a['name']
                 break
         return name
-        
+
     def _findid(self):
         """Finds id for aspect.
         """

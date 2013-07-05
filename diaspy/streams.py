@@ -105,7 +105,7 @@ class Generic():
     def update(self):
         """Updates stream.
         """
-        self._update( self._obtain())
+        self._update(self._obtain())
 
     def fill(self):
         """Fills the stream with posts.
