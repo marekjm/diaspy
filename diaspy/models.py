@@ -63,7 +63,7 @@ class Aspect():
         """Extracts usernames and GUIDs from ajax returned by Diaspora*.
         Returns list of two-tuples: (guid, diaspora_name).
         """
-        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[a-zA-Z0-9()*@. _-]+</a>')
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[\w()*@. -]+</a>')
         return [(line[17:33], re.escape(line[35:-4])) for line in userline_regexp.findall(ajax)]
 
     def _extractpersonids(self, ajax, usernames):
@@ -110,7 +110,8 @@ class Aspect():
         """Add user to current aspect.
 
         :param user_id: user to add to aspect
-        :type user: int
+        :type user_id: int
+        :returns: JSON from request
         """
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect_id': self.id,
