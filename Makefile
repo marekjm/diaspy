@@ -10,4 +10,7 @@ test-python2:
 	python2 -m unittest --verbose --catch --failfast tests.py
 
 clean:
-	rm -rv {*,.}/__pycache__/
+	rm -rv diaspy/__pycache__/
+	rm -rv diaspy/*.pyc
+	rm -rv ./__pycache__/
+	rm -rv *.pyc

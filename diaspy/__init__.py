@@ -4,3 +4,6 @@ import diaspy.streams as streams
 import diaspy.client as client
 import diaspy.people as people
 import diaspy.notifications as notifications
+
+
+__version__ = '0.2.0'

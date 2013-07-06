@@ -4,8 +4,10 @@ diaspy
 .. toctree::
    :maxdepth: 4
 
-   client
+   connection
    models
    streams
-   connection
    conversations
+   people
+   errors
+   client
