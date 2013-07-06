@@ -12,9 +12,10 @@ class Search():
 
     def lookup_user(self, handle):
         """This function will launch a webfinger lookup from the pod for the
-        handle requested. Nothing is returned but if the lookup was successful,
-        user should soon be searchable via this pod.
-        
+        handle requested. Response code is returned and if the lookup was successful,
+        user should soon be searchable via pod used for connection.
+
         :param string: Handle to search for.
         """
-        request = self.get('people', headers={'accept': 'text/html'}, params={'q':handle})
+        request = self.get('people', headers={'accept': 'text/html'}, params={'q': handle})
+        return request.status_code
