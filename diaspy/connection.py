@@ -38,7 +38,10 @@ class Connection():
         """
         self.pod = pod
         self.session = requests.Session()
-        self._setlogin(username, password)
+        try:
+            self._setlogin(username, password)
+        except Exception as e:
+            raise LoginError('cannot create login data (caused by: {0}'.format(e))
 
     def get(self, string, headers={}, params={}):
         """This method gets data from session.

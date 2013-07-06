@@ -12,17 +12,106 @@ MUST NOT import anything.
 
 class Aspect():
     """This class represents an aspect.
+
+    Class can be initialized by passing either an id and/or name as
+    parameters.
+    If both are missing, an exception will be raised.
     """
-    def __init__(self, connection, id=-1):
+    def __init__(self, connection, id=None, name=None):
         self._connection = connection
-        self.id = id
-        self.name = ''
+        self.id, self.name = id, name
+        if id and not name:
+            self.name = self._findname()
+        elif name and not id:
+            self.id = self._findid()
+        elif not id and not name:
+            raise Exception("Aspect must be initialized with either an id or name")
+
+    def _findname(self):
+        """Finds name for aspect.
+        """
+        name = None
+        aspects = self._connection.getUserInfo()['aspects']
+        for a in aspects:
+            if a['id'] == self.id:
+                name = a['name']
+                break
+        return name
+
+    def _findid(self):
+        """Finds id for aspect.
+        """
+        id = None
+        aspects = self._connection.getUserInfo()['aspects']
+        for a in aspects:
+            if a['name'] == self.name:
+                id = a['id']
+                break
+        return id
+
+    def _getajax(self):
+        """Returns HTML returned when editing aspects via web UI.
+        """
+        start_regexp = re.compile('<ul +class=["\']contacts["\'] *>')
+        ajax = self._connection.get('aspects/{0}/edit'.format(self.id)).text
+
+        begin = ajax.find(start_regexp.search(ajax).group(0))
+        end = ajax.find('</ul>')
+        return ajax[begin:end]
+
+    def _extractusernames(self, ajax):
+        """Extracts usernames and GUIDs from ajax returned by Diaspora*.
+        Returns list of two-tuples: (guid, diaspora_name).
+        """
+        userline_regexp = re.compile('<a href=["\']/people/[a-z0-9]{16,16}["\']>[\w()*@. -]+</a>')
+        return [(line[17:33], re.escape(line[35:-4])) for line in userline_regexp.findall(ajax)]
+
+    def _extractpersonids(self, ajax, usernames):
+        """Extracts `person_id`s and usernames from ajax and list of usernames.
+        Returns list of two-tuples: (username, id)
+        """
+        personid_regexp = 'alt=["\']{0}["\'] class=["\']avatar["\'] data-person_id=["\'][0-9]+["\']'
+        personids = [re.compile(personid_regexp.format(name)).search(ajax).group(0) for guid, name in usernames]
+        for n, line in enumerate(personids):
+            i, id = -2, ''
+            while line[i].isdigit():
+                id = line[i] + id
+                i -= 1
+            personids[n] = (usernames[n][1], id)
+        return personids
+
+    def _defineusers(self, ajax, personids):
+        """Gets users contained in this aspect by getting users who have `delete` method.
+        """
+        method_regexp = 'data-method="delete" data-person_id="{0}"'
+        users = []
+        for name, id in personids:
+            if re.compile(method_regexp.format(id)).search(ajax): users.append(name)
+        return users
+
+    def _getguids(self, users_in_aspect, usernames):
+        """Defines users contained in this aspect.
+        """
+        guids = []
+        for guid, name in usernames:
+            if name in users_in_aspect: guids.append(guid)
+        return guids
+
+    def getUsers(self):
+        """Returns list of GUIDs of users who are listed in this aspect.
+        """
+        ajax = self._getajax()
+        usernames = self._extractusernames(ajax)
+        personids = self._extractpersonids(ajax, usernames)
+        users_in_aspect = self._defineusers(ajax, personids)
+        return self._getguids(users_in_aspect, usernames)
 
     def addUser(self, user_id):
         """Add user to current aspect.
 
         :param user_id: user to add to aspect
-        :type user: int
+        :type user_id: int
+        :returns: JSON from request
         """
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect_id': self.id,
@@ -30,7 +119,11 @@ class Aspect():
 
         request = self._connection.post('aspect_memberships.json', data=data)
 
-        if request.status_code != 201:
+        if request.status_code == 400:
+            raise Exception('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
+        elif request.status_code == 404:
+            raise Exception('user not found from this pod: {0}'.format(request.status_code))
+        elif request.status_code != 200:
             raise Exception('wrong status code: {0}'.format(request.status_code))
         return request.json()
 

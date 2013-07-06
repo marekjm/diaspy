@@ -17,4 +17,3 @@ class Settings():
     def downloadxml(self):
         request = self._connection.get('user/export')
         return request.text
-
