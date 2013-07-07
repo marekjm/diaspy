@@ -25,7 +25,7 @@ class Conversation():
     def _fetch(self):
         """Fetches JSON data representing conversation.
         """
-        request = self._connection.get('conversations/{}.json'.format(self.conv_id))
+        request = self._connection.get('conversations/{}.json'.format(self.id))
         if request.status_code == 200:
             self.data = request.json()['conversation']
         else:

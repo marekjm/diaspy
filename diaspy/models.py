@@ -231,11 +231,16 @@ class Post():
     def _fetch(self):
         """This function retrieves data of the post.
         """
-        request = self._connection.get('posts/{0}.json'.format(self.post_id))
+        request = self._connection.get('posts/{0}.json'.format(self.id))
         if request.status_code != 200:
             raise errors.PostError('wrong status code: {0}'.format(request.status_code))
         else:
             self.data = request.json()
+
+    def update(self):
+        """Updates post data.
+        """
+        self._fetch()
 
     def like(self):
         """This function likes a post.
@@ -245,7 +250,7 @@ class Post():
         """
         data = {'authenticity_token': repr(self._connection)}
 
-        request = self._connection.post('posts/{0}/likes'.format(self.post_id),
+        request = self._connection.post('posts/{0}/likes'.format(self.id),
                                   data=data,
                                   headers={'accept': 'application/json'})
 
@@ -260,7 +265,7 @@ class Post():
         data = {'authenticity_token': self._connection.get_token()}
 
         request = self._connection.delete('posts/{0}/likes/{1}'
-                                    .format(self.post_id,
+                                    .format(self.id,
                                             self.data['interactions']
                                                      ['likes'][0]['id']),
                                     data=data)
