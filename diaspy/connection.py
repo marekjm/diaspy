@@ -43,6 +43,14 @@ class Connection():
         except Exception as e:
             raise LoginError('cannot create login data (caused by: {0}'.format(e))
 
+    def __repr__(self):
+        """Returns token string.
+        It will be easier to change backend if programs will just use:
+            repr(connection)
+        instead of calling a specified method.
+        """
+        return self.get_token()
+
     def get(self, string, headers={}, params={}):
         """This method gets data from session.
         Performs additional checks if needed.
