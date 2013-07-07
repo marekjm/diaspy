@@ -17,5 +17,13 @@ class Search():
 
         :param string: Handle to search for.
         """
-        request = self.get('people', headers={'accept': 'text/html'}, params={'q': handle})
+        request = self._connection.get('people', headers={'accept': 'text/html'}, params={'q': handle})
         return request.status_code
+
+    def _query(self, query):
+        """Sends search query to pod.
+
+        :param query: search query
+        :type query: str
+        """
+        pass
