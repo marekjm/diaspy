@@ -24,11 +24,9 @@ class User():
     optional parameters. GUID takes precedence over handle when fetching
     user stream. When fetching user data, handle is required.
     """
-    data = {}
-    stream = []
-
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
+        self.stream = []
         self.handle = handle
         self.guid = guid
         self.data = {
@@ -174,5 +172,5 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(self._connection, user['guid'], user['handle'], 'none', user['id']) for user in request.json()]
+        contacts = [User(self._connection, guid=user['guid'], handle=user['handle'], fetch=None, id=user['id']) for user in request.json()]
         return contacts
