@@ -24,11 +24,9 @@ class User():
     optional parameters. GUID takes precedence over handle when fetching
     user stream. When fetching user data, handle is required.
     """
-    data = {}
-    stream = []
-
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
+        self.stream = []
         self.data = {
             'guid': guid,
             'handle': handle,

@@ -376,5 +376,5 @@ class Tag(Generic):
         :type tag: str
         """
         self._connection = connection
-        self._location = 'tags/{0}'.format(tag)
+        self._location = 'tags/{0}.json'.format(tag)
         self.fill()

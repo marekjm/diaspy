@@ -24,8 +24,6 @@ class Connection():
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
-    login_data = {}
-    token = ''
 
     def __init__(self, pod, username='', password=''):
         """
@@ -38,6 +36,8 @@ class Connection():
         """
         self.pod = pod
         self.session = requests.Session()
+        self.login_data = {}
+        self.token = ''
         try:
             self._setlogin(username, password)
         except Exception as e:
