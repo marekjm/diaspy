@@ -28,12 +28,14 @@ class User():
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
         self.stream = []
+        self.handle = handle
+        self.guid = guid
         self.data = {
             'guid': guid,
             'handle': handle,
             'id': id,
         }
-        self._do_fetch(fetch)
+        self._fetch(fetch)
 
     def __getitem__(self, key):
         return self.data[key]
@@ -44,22 +46,23 @@ class User():
     def __repr__(self):
         return '{0} ({1})'.format(self['diaspora_name'], self['guid'])
 
-    def _do_fetch(self, fetch):
+    def _fetch(self, fetch):
+        """Fetch user posts or data.
+        """
         if fetch == 'posts':
-            if self['handle'] and self['guid']: self.fetchguid()
-            elif self['guid'] and not self['handle']: self.fetchguid()
-            elif self['handle'] and not self['guid']: self.fetchhandle()
-        elif fetch == 'data' and len(self['handle']):
-            self._postproc(search.Search(self._connection).users(query=handle)[0])
+            if self.handle and not self.guid: self.fetchhandle()
+            else: self.fetchguid()
+        elif fetch == 'data' and self.handle:
+            self.fetchprofile()
 
     def _sephandle(self):
         """Separate D* handle into pod pod and user.
 
         :returns: two-tuple (pod, user)
         """
-        if re.match('^[a-zA-Z]+[a-zA-Z0-9_-]*@[a-z0-9.]+\.[a-z]+$', self['handle']) is None:
-            raise Exception('invalid handle: {0}'.format(self['handle']))
-        handle = self['handle'].split('@')
+        if re.match('^[a-zA-Z]+[a-zA-Z0-9_-]*@[a-z0-9.]+\.[a-z]+$', self.handle) is None:
+            raise errors.UserError('invalid handle: {0}'.format(self.handle))
+        handle = self.handle.split('@')
         pod, user = handle[1], handle[0]
         return (pod, user)
 
@@ -100,7 +103,7 @@ class User():
     def fetchguid(self):
         """Fetch user data and posts using guid.
         """
-        request = self._connection.get('people/{0}.json'.format(self['guid']))
+        request = self._connection.get('people/{0}.json'.format(self.guid))
         self._postproc(request)
 
 

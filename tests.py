@@ -103,7 +103,7 @@ class StreamTest(unittest.TestCase):
         stream.update()
         post.delete()
         stream.purge()
-        self.assertNotIn(post.post_id, [p.post_id for p in stream])
+        self.assertNotIn(post.id, [p.id for p in stream])
 
     def testPostingText(self):
         stream = diaspy.streams.Stream(test_connection)
@@ -159,8 +159,8 @@ class UserTests(unittest.TestCase):
             self.assertRaises(Exception, user._sephandle, h)
 
     def testGettingUserByHandle(self):
-        user = diaspy.people.User(test_connection)
-        user.fetchhandle(testconf.diaspora_id)
+        user = diaspy.people.User(test_connection, handle=testconf.diaspora_id)
+        user.fetchhandle()
         self.assertEqual(testconf.guid, user['guid'])
         self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
         self.assertIn('id', user.data)
@@ -168,8 +168,8 @@ class UserTests(unittest.TestCase):
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
     def testGettingUserByGUID(self):
-        user = diaspy.people.User(test_connection)
-        user.fetchguid(testconf.guid)
+        user = diaspy.people.User(test_connection, guid=testconf.guid)
+        user.fetchguid()
         self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
         self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
         self.assertIn('id', user.data)

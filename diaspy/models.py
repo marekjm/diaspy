@@ -4,6 +4,8 @@
 import json
 import re
 
+from diaspy import errors
+
 
 """This module is only imported in other diaspy modules and
 MUST NOT import anything.
@@ -113,18 +115,18 @@ class Aspect():
         :type user_id: int
         :returns: JSON from request
         """
-        data = {'authenticity_token': self._connection.get_token(),
+        data = {'authenticity_token': repr(self._connection),
                 'aspect_id': self.id,
                 'person_id': user_id}
 
         request = self._connection.post('aspect_memberships.json', data=data)
 
         if request.status_code == 400:
-            raise Exception('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
+            raise errors.AspectError('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
         elif request.status_code == 404:
-            raise Exception('user not found from this pod: {0}'.format(request.status_code))
+            raise errors.AspectError('user not found from this pod: {0}'.format(request.status_code))
         elif request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+            raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
         return request.json()
 
     def removeUser(self, user_id):
@@ -136,11 +138,10 @@ class Aspect():
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect_id': self.id,
                 'person_id': user_id}
-
         request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
 
         if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+            raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))
         return request.json()
 
 
@@ -193,7 +194,7 @@ class Notification():
         :param unread: which state set for notification
         :type unread: bool
         """
-        headers = {'x-csrf-token': self._connection.get_token()}
+        headers = {'x-csrf-token': repr(self._connection)}
         params = {'set_unread': json.dumps(unread)}
         self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
         self.data['unread'] = unread
@@ -205,15 +206,16 @@ class Post():
     .. note::
         Remember that you need to have access to the post.
     """
-    def __init__(self, post_id, connection):
+    def __init__(self, connection, id, fetch=True):
         """
-        :param post_id: id or guid of the post
-        :type post_id: str
+        :param id: id or guid of the post
+        :type id: str
         :param connection: connection object used to authenticate
         :type connection: connection.Connection
         """
         self._connection = connection
-        self.post_id = post_id
+        self.id = id
+        if fetch: self._fetch()
 
     def __repr__(self):
         """Returns string containing more information then str().
@@ -226,13 +228,19 @@ class Post():
         """
         return self.get_data()['text']
 
-    def get_data(self):
+    def _fetch(self):
         """This function retrieves data of the post.
         """
-        r = self._connection.get('posts/{0}.json'.format(self.post_id))
-        if r.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
-        return r.json()
+        request = self._connection.get('posts/{0}.json'.format(self.id))
+        if request.status_code != 200:
+            raise errors.PostError('wrong status code: {0}'.format(request.status_code))
+        else:
+            self.data = request.json()
+
+    def update(self):
+        """Updates post data.
+        """
+        self._fetch()
 
     def like(self):
         """This function likes a post.
@@ -240,53 +248,43 @@ class Post():
 
         :returns: dict -- json formatted like object.
         """
-        data = {'authenticity_token': self._connection.get_token()}
+        data = {'authenticity_token': repr(self._connection)}
 
-        r = self._connection.post('posts/{0}/likes'.format(self.post_id),
+        request = self._connection.post('posts/{0}/likes'.format(self.id),
                                   data=data,
                                   headers={'accept': 'application/json'})
 
-        if r.status_code != 201:
-            raise Exception('{0}: Post could not be liked.'
-                            .format(r.status_code))
-
-        return r.json()
+        if request.status_code != 201:
+            raise errors.PostError('{0}: Post could not be liked.'
+                            .format(request.status_code))
+        return request.json()
 
     def delete_like(self):
         """This function removes a like from a post
         """
         data = {'authenticity_token': self._connection.get_token()}
 
-        post_data = self.get_data()
-
-        r = self._connection.delete('posts/{0}/likes/{1}'
-                                    .format(self.post_id,
-                                            post_data['interactions']
+        request = self._connection.delete('posts/{0}/likes/{1}'
+                                    .format(self.id,
+                                            self.data['interactions']
                                                      ['likes'][0]['id']),
                                     data=data)
-
-        if r.status_code != 204:
-            raise Exception('{0}: Like could not be removed.'
-                            .format(r.status_code))
+        if request.status_code != 204:
+            raise errors.PostError('{0}: Like could not be removed.'
+                            .format(request.status_code))
 
     def reshare(self):
         """This function reshares a post
-
         """
-        post_data = self.get_data()
+        data = {'root_guid': self.data['guid'],
+                'authenticity_token': repr(self._connection)}
 
-        data = {'root_guid': post_data['guid'],
-                'authenticity_token': self._connection.get_token()}
-
-        r = self._connection.post('reshares',
+        request = self._connection.post('reshares',
                                   data=data,
                                   headers={'accept': 'application/json'})
-
-        if r.status_code != 201:
-            raise Exception('{0}: Post could not be reshared.'
-                            .format(r.status_code))
-
-        return r.json()
+        if request.status_code != 201:
+            raise Exception('{0}: Post could not be reshared'.format(request.status_code))
+        return request.json()
 
     def comment(self, text):
         """This function comments on a post
@@ -295,17 +293,15 @@ class Post():
         :type text: str
         """
         data = {'text': text,
-                'authenticity_token': self._connection.get_token()}
-
-        r = self._connection.post('posts/{0}/comments'.format(self.post_id),
+                'authenticity_token': repr(self._connection)}
+        request = self._connection.post('posts/{0}/comments'.format(self.id),
                                   data=data,
                                   headers={'accept': 'application/json'})
 
-        if r.status_code != 201:
+        if request.status_code != 201:
             raise Exception('{0}: Comment could not be posted.'
-                            .format(r.status_code))
-
-        return r.json()
+                            .format(request.status_code))
+        return request.json()
 
     def delete_comment(self, comment_id):
         """This function removes a comment from a post
@@ -313,24 +309,23 @@ class Post():
         :param comment_id: id of the comment to remove.
         :type comment_id: str
         """
-        data = {'authenticity_token': self._connection.get_token()}
-
-        r = self._connection.delete('posts/{0}/comments/{1}'
-                                    .format(self.post_id,
+        data = {'authenticity_token': repr(self._connection)}
+        request = self._connection.delete('posts/{0}/comments/{1}'
+                                    .format(self.id,
                                             comment_id),
                                     data=data,
                                     headers={'accept': 'application/json'})
 
-        if r.status_code != 204:
-            raise Exception('{0}: Comment could not be deleted.'
-                            .format(r.status_code))
+        if request.status_code != 204:
+            raise errors.PostError('{0}: Comment could not be deleted'
+                            .format(request.status_code))
 
     def delete(self):
         """ This function deletes this post
         """
-        data = {'authenticity_token': self._connection.get_token()}
-        r = self._connection.delete('posts/{0}'.format(self.post_id),
+        data = {'authenticity_token': repr(self._connection)}
+        request = self._connection.delete('posts/{0}'.format(self.id),
                                     data=data,
                                     headers={'accept': 'application/json'})
-        if r.status_code != 204:
-            raise Exception('{0}: Post could not be deleted'.format(r.status_code))
+        if request.status_code != 204:
+            raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
