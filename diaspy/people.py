@@ -106,6 +106,11 @@ class User():
         request = self._connection.get('people/{0}.json'.format(self.guid))
         self._postproc(request)
 
+    def fetchprofile(self):
+        """Fetches user data.
+        """
+        self.data = self._finalize_data(search.Search(self._connection).user(self.handle)[0])
+
 
 class Contacts():
     """This class represents user's list of contacts.
