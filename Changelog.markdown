@@ -23,3 +23,13 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 Version `0.3.0` (2013-07-07):
 
+First edition of Changelog for `diaspy`. 
+Developers should update their code as version `0.3.0` may not be fully 
+backwards compatible depending on how the code is written. 
+If you always pass named arguments and do not rely on their order you can, at least in 
+theory, not worry about this update. 
+
+Version `0.3.0` introduces few new features, fixes several bugs and brings a bit of 
+redesign and refactoring od `diaspy`'s code.
+
+----
