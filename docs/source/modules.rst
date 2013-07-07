@@ -9,5 +9,6 @@ diaspy
    streams
    conversations
    people
+   search
    errors
    client
