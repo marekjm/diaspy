@@ -4,6 +4,8 @@
 import json
 import re
 
+from diaspy import errors
+
 
 """This module is only imported in other diaspy modules and
 MUST NOT import anything.
@@ -113,18 +115,18 @@ class Aspect():
         :type user_id: int
         :returns: JSON from request
         """
-        data = {'authenticity_token': self._connection.get_token(),
+        data = {'authenticity_token': repr(self._connection),
                 'aspect_id': self.id,
                 'person_id': user_id}
 
         request = self._connection.post('aspect_memberships.json', data=data)
 
         if request.status_code == 400:
-            raise Exception('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
+            raise errors.AspectError('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
         elif request.status_code == 404:
-            raise Exception('user not found from this pod: {0}'.format(request.status_code))
+            raise errors.AspectError('user not found from this pod: {0}'.format(request.status_code))
         elif request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+            raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
         return request.json()
 
     def removeUser(self, user_id):
@@ -136,11 +138,10 @@ class Aspect():
         data = {'authenticity_token': self._connection.get_token(),
                 'aspect_id': self.id,
                 'person_id': user_id}
-
         request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
 
         if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
+            raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))
         return request.json()
 
 

@@ -28,6 +28,12 @@ class ConversationError(DiaspyError):
     pass
 
 
+class AspectError(DiaspyError):
+    """Exception raised when something related to aspects goes wrong.
+    """
+    pass
+
+
 def react(r, message='', accepted=[200, 201, 202, 203, 204, 205, 206], exception=DiaspyError):
     """This method tries to decides how to react
     to a response code passed to it. If it's an
