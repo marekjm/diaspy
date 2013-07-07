@@ -20,10 +20,14 @@ class Search():
         request = self._connection.get('people', headers={'accept': 'text/html'}, params={'q': handle})
         return request.status_code
 
-    def _query(self, query):
-        """Sends search query to pod.
-
-        :param query: search query
-        :type query: str
+    def users(self, query):
+        """Searches for a user.
+        Will return list of dictionaries containing
+        data of found users.
         """
-        pass
+        request = self._connection.get('people.json', params={'q': query, 'utf-8': ''})
+        if request.status_code == 200:
+            result = request.json()
+        else:
+            raise errors.SearchError('wrong status code: {0}'.format(request.status_code))
+        return result

@@ -2,6 +2,7 @@ import re
 from diaspy.streams import Outer
 from diaspy.models import Aspect
 from diaspy import errors
+from diaspy import search
 
 
 class User():
@@ -49,7 +50,7 @@ class User():
             elif self['guid'] and not self['handle']: self.fetchguid()
             elif self['handle'] and not self['guid']: self.fetchhandle()
         elif fetch == 'data' and len(self['handle']):
-            self.fetchprofile()
+            self._postproc(search.Search(self._connection).users(query=handle)[0])
 
     def _sephandle(self):
         """Separate D* handle into pod pod and user.
@@ -62,7 +63,13 @@ class User():
         pod, user = handle[1], handle[0]
         return (pod, user)
 
-    def _finalize_data(self, data, names):
+    def _finalize_data(self, data):
+        names = [('id', 'id'),
+                 ('handle', 'diaspora_id'),
+                 ('guid', 'guid'),
+                 ('name', 'diaspora_name'),
+                 ('avatar', 'image_urls'),
+                 ]
         final = {}
         for d, f in names:
             final[f] = data[d]
@@ -80,13 +87,7 @@ class User():
         else:
             request = request.json()
         if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
-        names = [('id', 'id'),
-                 ('diaspora_id', 'diaspora_id'),
-                 ('guid', 'guid'),
-                 ('name', 'diaspora_name'),
-                 ('avatar', 'image_urls'),
-                 ]
-        self.data = self._finalize_data(request[0]['author'], names)
+        self.data = self._finalize_data(request[0]['author'])
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
 
     def fetchhandle(self, protocol='https'):
@@ -101,23 +102,6 @@ class User():
         """
         request = self._connection.get('people/{0}.json'.format(self['guid']))
         self._postproc(request)
-
-    def fetchprofile(self, protocol='https'):
-        """Fetch user data using Diaspora handle.
-        """
-        request = self._connection.get('people.json?q={0}'.format(self['handle']))
-        if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format(request.status_code))
-        else:
-            request = request.json()
-        if len(request):
-            names = [('id', 'id'),
-                     ('handle', 'diaspora_id'),
-                     ('guid', 'guid'),
-                     ('name', 'diaspora_name'),
-                     ('avatar', 'image_urls'),
-                     ]
-            self.data = self._finalize_data(request[0], names)
 
 
 class Contacts():
