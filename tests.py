@@ -34,7 +34,7 @@ test_count_file.write(str(test_count))
 test_count_file.close()
 print('Running test no. {0}'.format(test_count))
 
-print('Running tests on connection to pod: "{0}"\t'.format(__pod__), end='')
+print('Running tests on connection: "{0}:{1}@{2}"\t'.format(testconf.__username__, '*'*len(testconf.__passwd__), __pod__), end='')
 test_connection = diaspy.connection.Connection(pod=__pod__, username=__username__, password=__passwd__)
 test_connection.login()
 print('[ CONNECTED ]\n')
@@ -148,7 +148,6 @@ class StreamTest(unittest.TestCase):
 
 class UserTests(unittest.TestCase):
     def testHandleSeparatorRaisingExceptions(self):
-        user = diaspy.people.User(test_connection)
         handles = ['user.pod.example.com',
                    'user@podexamplecom',
                    '@pod.example.com',
@@ -156,24 +155,33 @@ class UserTests(unittest.TestCase):
                    'user0@pod300 example.com',
                    ]
         for h in handles:
-            self.assertRaises(Exception, user._sephandle, h)
+            self.assertRaises(Exception, diaspy.people.sephandle, h)
 
-    def testGettingUserByHandle(self):
-        user = diaspy.people.User(test_connection, handle=testconf.diaspora_id)
-        user.fetchhandle()
+    def testGettingUserByHandleData(self):
+        user = diaspy.people.User(test_connection, handle=testconf.diaspora_id, fetch='data')
         self.assertEqual(testconf.guid, user['guid'])
-        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
+        self.assertEqual(testconf.diaspora_id, user['handle'])
+        self.assertEqual(testconf.diaspora_name, user['name'])
+        self.assertEqual(type(user.stream), list)
+        self.assertEqual(user.stream, [])
         self.assertIn('id', user.data)
-        self.assertIn('image_urls', user.data)
-        self.assertEqual(type(user.stream), diaspy.streams.Outer)
+        self.assertIn('avatar', user.data)
 
+    def testGettingUserByHandlePosts(self):
+        user = diaspy.people.User(test_connection, handle=testconf.diaspora_id)
+        self.assertEqual(testconf.guid, user['guid'])
+        self.assertEqual(testconf.diaspora_id, user['handle'])
+        self.assertEqual(testconf.diaspora_name, user['name'])
+        self.assertIn('id', user.data)
+        self.assertIn('avatar', user.data)
+        self.assertEqual(type(user.stream), diaspy.streams.Outer)
+ 
     def testGettingUserByGUID(self):
         user = diaspy.people.User(test_connection, guid=testconf.guid)
-        user.fetchguid()
-        self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
-        self.assertEqual(testconf.diaspora_name, user['diaspora_name'])
+        self.assertEqual(testconf.diaspora_id, user['handle'])
+        self.assertEqual(testconf.diaspora_name, user['name'])
         self.assertIn('id', user.data)
-        self.assertIn('image_urls', user.data)
+        self.assertIn('avatar', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
 
@@ -218,4 +226,9 @@ class NotificationsTests(unittest.TestCase):
         else:
             warnings.warn('test not sufficient: no unread notifications were found')
 
-if __name__ == '__main__': unittest.main()
+if __name__ == '__main__': 
+    print('Hello World!')
+    print('It\'s testing time!')
+    n = unittest.main()
+    print(n)
+    print('It was testing time!')

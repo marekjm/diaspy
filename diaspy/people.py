@@ -5,6 +5,18 @@ from diaspy import errors
 from diaspy import search
 
 
+def sephandle(handle):
+    """Separate Diaspora* handle into pod pod and user.
+
+    :returns: two-tuple (pod, user)
+    """
+    if re.match('^[a-zA-Z]+[a-zA-Z0-9_-]*@[a-z0-9.]+\.[a-z]+$', handle) is None:
+        raise errors.UserError('invalid handle: {0}'.format(handle))
+    handle = handle.split('@')
+    pod, user = handle[1], handle[0]
+    return (pod, user)
+
+
 class User():
     """This class abstracts a D* user.
     This object goes around the limitations of current D* API and will
@@ -55,26 +67,18 @@ class User():
         elif fetch == 'data' and self.handle:
             self.fetchprofile()
 
-    def _sephandle(self):
-        """Separate D* handle into pod pod and user.
-
-        :returns: two-tuple (pod, user)
-        """
-        if re.match('^[a-zA-Z]+[a-zA-Z0-9_-]*@[a-z0-9.]+\.[a-z]+$', self.handle) is None:
-            raise errors.UserError('invalid handle: {0}'.format(self.handle))
-        handle = self.handle.split('@')
-        pod, user = handle[1], handle[0]
-        return (pod, user)
-
     def _finalize_data(self, data):
-        names = [('id', 'id'),
-                 ('handle', 'diaspora_id'),
-                 ('guid', 'guid'),
-                 ('name', 'diaspora_name'),
-                 ('avatar', 'image_urls'),
-                 ]
+        """Adjustments are needed to have similar results returned
+        by search feature and fetchguid/handle().
+        """
+        names = [   ('id', 'id'),
+                    ('guid', 'guid'),
+                    ('name', 'name'),
+                    ('avatar', 'avatar'),
+                    ('handle', 'diaspora_id'),
+                    ]
         final = {}
-        for d, f in names:
+        for f, d in names:
             final[f] = data[d]
         return final
 
@@ -85,10 +89,8 @@ class User():
         :param request: request object
         :type request: request
         """
-        if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format(request.status_code))
-        else:
-            request = request.json()
+        if request.status_code != 200: raise Exception('wrong error code: {0}'.format(request.status_code))
+        else: request = request.json()
         if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
         self.data = self._finalize_data(request[0]['author'])
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
@@ -96,7 +98,7 @@ class User():
     def fetchhandle(self, protocol='https'):
         """Fetch user data and posts using Diaspora handle.
         """
-        pod, user = self._sephandle()
+        pod, user = sephandle(self.handle)
         request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
         self._postproc(request)
 
@@ -109,7 +111,8 @@ class User():
     def fetchprofile(self):
         """Fetches user data.
         """
-        self.data = self._finalize_data(search.Search(self._connection).user(self.handle)[0])
+        data = search.Search(self._connection).user(self.handle)[0]
+        self.data = data
 
 
 class Contacts():

@@ -4,44 +4,46 @@ This object is used to represent a D\* user.
 
 ----
 
-##### Getting user data
+##### `User()` object -- getting user data
 
-You have to know either GUID or *diaspora_id* of a user. 
-Assume that *12345678abcdefgh* and *otheruser@pod.example.com* point to 
+You have to know either GUID or *handle* of a user. 
+Assume that *1234567890abcdef* and *otheruser@pod.example.com* point to 
 the same user.
-
 
     >>> c = diaspy.connection.Connection('https://pod.example.com', 'foo', 'bar')
     >>> 
-    >>> user_guid = diaspy.people.User(c)
-    >>> user_guid.fetchguid('12345678abcdefgh')
-    >>> 
-    >>> user_handle = diaspy.people.User(c)
-    >>> user_handle.fetchhandle('otheruser@pod.example.com')
+    >>> user_guid = diaspy.people.User(c, guid='1234567890abcdef')
+    >>> user_handle = diaspy.people.User(c, handle='otheruser@pod.example.com')
 
-Now, you have two `User()` objects containing the data of one user.
+Now, you have two `User` objects containing the data of one user.
 
 The object is subscriptable so you can do like this:
 
-    >>> user_guid['diaspora_id']
+    >>> user_guid['handle']
     'otheruser@pod.example.com'
     >>> 
     >>> user_handle['guid']
-    '12345678abcdefgh'
+    '1234567890abcdef'
 
-
-User object contains following items in its `data` dict:
+`User` object contains following items in its `data` dict:
 
 * `id`, `str`, id of the user;
 * `guid`, `str`, guid of the user;
-* `diaspora_id`, `str`, D\* id of the user;
-* `diaspora_name`, `str`, name of the user;
-* `image_urls`, `dict`, links to avatar of the user;
+* `handle`, `str`, D\* id (or handle) of the user;
+* `name`, `str`, name of the user;
+* `avatar`, `dict`, links to avatars of the user;
 
-Also `User()` object contains a stream for this user.
+>   **Historical note:** the above values were changed in version `0.3.0`.  
+>   `diaspora_id` became `handle` and `image_urls` became `avatar` to have more
+>   consistent results.
+>   This is because we can get only user data and this returns dict containing 
+>   `handle` and `avatar` and not `diaspora_id` and `image_urls`. 
+>   Users who migrated from version `0.2.x` and before to version `0.3.0` had to
+>   update their software.
+
+Also `User` object contains a stream for this user.
 
 * `stream`, `diaspy.streams.Outer`, stream of the user (provides all methods of generic stream);
-
 
 ====
 
@@ -53,7 +55,7 @@ It may be slightly confusing to use and reading just docs could be not enough.
 
 The only method of this object is `get()` and its only parameter is `set` which 
 is optional (defaults to empty string).  
-If called without specifying `set` `get()` will return list of users (`User()` objects) 
+If called without specifying `set` `get()` will return list of users (`User` objects) 
 who are in your aspects.
 
 Optional `set` parameter can be either `all` or `only_sharing`. 

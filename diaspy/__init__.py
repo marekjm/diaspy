@@ -6,4 +6,4 @@ import diaspy.people as people
 import diaspy.notifications as notifications
 
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'

@@ -3,6 +3,19 @@
 In order to get list of notifications use `diaspy.notifications.Notifications()` object. 
 It support iteration and indexing.
 
+When creating new instance of `Notifications` only `Connection` object is needed.
+
+#### Methods
+
+##### `last()`
+
+This method will return you last five notifications.
+
+##### `get()`
+
+This is slightly more advanced then `last()`. It allows you to specify how many 
+notifications per page you want to get and which page you want to recieve.
+
 ----
 
 #### `Notification()` model

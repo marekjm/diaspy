@@ -164,9 +164,10 @@ class Connection():
         """
         request = self.get('stream')
         token = self._token_regex.search(request.text).group(1)
+        self.token = token
         return token
 
-    def get_token(self, new=False):
+    def get_token(self, fetch=False):
         """This function returns a token needed for authentication in most cases.
         Each time it is run a _fetchtoken() is called and refreshed token is stored.
 
@@ -177,8 +178,8 @@ class Connection():
         :returns: string -- token used to authenticate
         """
         try:
-            if new: self.token = self._fetchtoken()
-            if not self.token: self.token = self._fetchtoken()
+            if fetch: self._fetchtoken()
+            if not self.token: self._fetchtoken()
         except requests.exceptions.ConnectionError as e:
             warnings.warn('{0} was cought: reusing old token'.format(e))
         finally:
