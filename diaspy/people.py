@@ -156,5 +156,5 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(self._connection, user['guid'], user['handle'], 'none', user['id']) for user in request.json()]
+        contacts = [User(self._connection, guid=user['guid'], handle=user['handle'], fetch=None, id=user['id']) for user in request.json()]
         return contacts
