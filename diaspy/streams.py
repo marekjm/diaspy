@@ -79,7 +79,7 @@ class Generic():
         for i in range(len(new_stream)):
             if new_stream[-i].id not in ids:
                 stream = [new_stream[-i]] + stream
-                ids.append(new_stream[-i].post_id)
+                ids.append(new_stream[-i].id)
         self._stream = stream
 
     def clear(self):
