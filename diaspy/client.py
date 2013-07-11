@@ -106,7 +106,7 @@ class Client:
             raise Exception('wrong status code: {0}'.format(r.status_code))
 
         mailbox = r.json()
-        return [diaspy.conversations.Conversation(str(conversation['conversation']['id']), self.connection)
+        return [diaspy.conversations.Conversation(self.connection, conversation['conversation']['id'])
                 for conversation in mailbox]
 
     def add_aspect(self, aspect_name, visible=0):

@@ -27,7 +27,7 @@ class Notifications():
         """Returns list of most recent notifications.
         """
         params = {'per_page': 5, '_': int(round(time.time(), 3)*1000)}
-        headers = {'x-csrf-token': self._connection.get_token()}
+        headers = {'x-csrf-token': repr(self._connection)}
 
         request = self._connection.get('notifications.json', headers=headers, params=params)
 
@@ -39,7 +39,7 @@ class Notifications():
         """Returns list of notifications.
         """
         params = {'per_page': per_page, 'page': page}
-        headers = {'x-csrf-token': self._connection.get_token()}
+        headers = {'x-csrf-token': repr(self._connection)}
 
         request = self._connection.get('notifications.json', headers=headers, params=params)
 

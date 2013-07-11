@@ -56,8 +56,8 @@ class Generic():
         if max_time: params['max_time'] = max_time
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
-        return [Post(str(post['id']), self._connection) for post in request.json()]
+            raise error.StreamError('wrong status code: {0}'.format(request.status_code))
+        return [Post(self._connection, post['id']) for post in request.json()]
 
     def _expand(self, new_stream):
         """Appends older posts to stream.
@@ -73,13 +73,13 @@ class Generic():
     def _update(self, new_stream):
         """Updates stream with new posts.
         """
-        ids = [post.post_id for post in self._stream]
+        ids = [post.id for post in self._stream]
 
         stream = self._stream
         for i in range(len(new_stream)):
-            if new_stream[-i].post_id not in ids:
+            if new_stream[-i].id not in ids:
                 stream = [new_stream[-i]] + stream
-                ids.append(new_stream[-i].post_id)
+                ids.append(new_stream[-i].id)
         self._stream = stream
 
     def clear(self):
@@ -94,7 +94,7 @@ class Generic():
         for post in self._stream:
             deleted = False
             try:
-                post.get_data()
+                post.update()
                 stream.append(post)
             except Exception:
                 deleted = True
@@ -133,8 +133,8 @@ class Outer(Generic):
         """
         request = self._connection.get(self._location)
         if request.status_code != 200:
-            raise Exception('wrong status code: {0}'.format(request.status_code))
-        return [Post(str(post['id']), self._connection) for post in request.json()]
+            raise error.StreamError('wrong status code: {0}'.format(request.status_code))
+        return [Post(self._connection, post['id']) for post in request.json()]
 
 
 class Stream(Generic):
@@ -169,11 +169,11 @@ class Stream(Generic):
                                         data=json.dumps(data),
                                         headers={'content-type': 'application/json',
                                                  'accept': 'application/json',
-                                                 'x-csrf-token': self._connection.get_token()})
+                                                 'x-csrf-token': repr(self._connection)})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(request.status_code))
 
-        post = Post(str(request.json()['id']), self._connection)
+        post = Post(self._connection, request.json()['id'])
         return post
 
     def _photoupload(self, filename):
@@ -197,7 +197,7 @@ class Stream(Generic):
             params['photo[aspect_ids][{0}]'.format(i)] = aspect['id']
 
         headers = {'content-type': 'application/octet-stream',
-                   'x-csrf-token': self._connection.get_token(),
+                   'x-csrf-token': repr(self._connection),
                    'x-file-name': filename}
 
         request = self._connection.post('photos', data=image, params=params, headers=headers)
@@ -376,5 +376,5 @@ class Tag(Generic):
         :type tag: str
         """
         self._connection = connection
-        self._location = 'tags/{0}'.format(tag)
+        self._location = 'tags/{0}.json'.format(tag)
         self.fill()

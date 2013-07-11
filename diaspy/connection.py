@@ -24,8 +24,6 @@ class Connection():
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
-    login_data = {}
-    token = ''
 
     def __init__(self, pod, username='', password=''):
         """
@@ -38,10 +36,20 @@ class Connection():
         """
         self.pod = pod
         self.session = requests.Session()
+        self.login_data = {}
+        self.token = ''
         try:
             self._setlogin(username, password)
         except Exception as e:
             raise LoginError('cannot create login data (caused by: {0}'.format(e))
+
+    def __repr__(self):
+        """Returns token string.
+        It will be easier to change backend if programs will just use:
+            repr(connection)
+        instead of calling a specified method.
+        """
+        return self.get_token()
 
     def get(self, string, headers={}, params={}):
         """This method gets data from session.
@@ -156,9 +164,10 @@ class Connection():
         """
         request = self.get('stream')
         token = self._token_regex.search(request.text).group(1)
+        self.token = token
         return token
 
-    def get_token(self, new=False):
+    def get_token(self, fetch=False):
         """This function returns a token needed for authentication in most cases.
         Each time it is run a _fetchtoken() is called and refreshed token is stored.
 
@@ -169,8 +178,8 @@ class Connection():
         :returns: string -- token used to authenticate
         """
         try:
-            if new: self.token = self._fetchtoken()
-            if not self.token: self.token = self._fetchtoken()
+            if fetch: self._fetchtoken()
+            if not self.token: self._fetchtoken()
         except requests.exceptions.ConnectionError as e:
             warnings.warn('{0} was cought: reusing old token'.format(e))
         finally:

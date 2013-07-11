@@ -1,72 +1,70 @@
 #!/usr/bin/env python3
 
 
+from diaspy import errors
+
+
 class Conversation():
     """This class represents a conversation.
 
     .. note::
         Remember that you need to have access to the conversation.
     """
-    def __init__(self, conv_id, connection):
+    def __init__(self, connection, id, fetch=True):
         """
         :param conv_id: id of the post and not the guid!
         :type conv_id: str
         :param connection: connection object used to authenticate
         :type connection: connection.Connection
-
-        .. note::
-            The login function of the connection should be called,
-            before calling any of the post functions.
-
         """
         self._connection = connection
-        self.conv_id = conv_id
+        self.id = id
+        self.data = {}
+        if fetch: self._fetch()
 
-    def get_data(self):
-        """ returns the plain json data representing conversation.
+    def _fetch(self):
+        """Fetches JSON data representing conversation.
         """
-        r = self._connection.get('conversations/{1}.json'.format(self.conv_id))
-        if r.status_code == 200:
-            return r.json()['conversation']
+        request = self._connection.get('conversations/{}.json'.format(self.id))
+        if request.status_code == 200:
+            self.data = request.json()['conversation']
         else:
-            raise Exception('wrong status code: {0}'.format(r.status_code))
+            raise errors.ConversationError('cannot download conversation data: {0}'.format(request.status_code))
 
     def answer(self, text):
-        """ answer that conversation
+        """Answer that conversation
 
         :param text: text to answer.
         :type text: str
-
         """
-
         data = {'message[text]': text,
                 'utf8': '&#x2713;',
-                'authenticity_token': self._connection.get_token()}
+                'authenticity_token': repr(self._connection)}
 
-        r = self._connection.post('conversations/{}/messages'.format(self.conv_id),
-                                  data=data,
-                                  headers={'accept': 'application/json'})
-        if r.status_code != 200:
-            raise Exception('{0}: Answer could not be posted.'
-                            .format(r.status_code))
-        return r.json()
+        request = self._connection.post('conversations/{}/messages'.format(self.id),
+                                        data=data,
+                                        headers={'accept': 'application/json'})
+        if request.status_code != 200:
+            raise errors.ConversationError('{0}: Answer could not be posted.'
+                            .format(request.status_code))
+        return request.json()
 
     def delete(self):
-        """ delete this conversation
-            has to be implemented
+        """Delete this conversation.
+        Has to be implemented.
         """
-        data = {'authenticity_token': self._connection.get_token()}
+        data = {'authenticity_token': repr(self._connection)}
 
-        r = self._connection.delete('conversations/{0}/visibility/'
-                                    .format(self.conv_id),
+        request = self._connection.delete('conversations/{0}/visibility/'
+                                    .format(self.id),
                                     data=data,
                                     headers={'accept': 'application/json'})
 
-        if r.status_code != 404:
-            raise Exception('{0}: Conversation could not be deleted.'
-                            .format(r.status_code))
+        if request.status_code != 404:
+            raise errors.ConversationError('{0}: Conversation could not be deleted.'
+                            .format(request.status_code))
 
     def get_subject(self):
-        """ return the subject of this conversation
+        """Returns the subject of this conversation
         """
-        return self.get_data()['subject']
+        return self.data['subject']

@@ -21,13 +21,15 @@ Now you have a stream filled with posts (if any can be found on user's stream).
 
 ----
 
-##### `fill()` and `update()`
+##### `fill()`, `update()` and `more()`
 
 When you want to refresh stream call it's `fill()` method. It will overwrite old stream 
 contents.
 
 On the contrary, `update()` will get a new stream but will not overwrite old stream saved 
 in the object memory. It will append every new post to the old stream.
+
+`more()` complements `update()` it will fetch you older posts instead of newer ones.
 
 ----
 
@@ -57,6 +59,19 @@ Second, iterating directly over the stream contents:
 ##### Posting data to stream
 
 This is described in [`posting`](./posting.mdown) document in this manual.
+
+
+----
+
+##### Clearing stream
+
+##### `clear()`
+
+This will remove all posts from visible stream.
+
+##### `purge()`
+
+This will scan stream for nonexistent posts (eg. deleted) and remove them.
 
 ----
 

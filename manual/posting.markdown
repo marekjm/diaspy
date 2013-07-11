@@ -1,15 +1,15 @@
 #### `Post()` object and posting
 
-`Post()` object is used to represent a post on D\*.
+`Post` object is used to represent a post on D\*.
 
 ----
 
 ##### Posting
 
-Posting is done through a `Stream()` object method `post()`. 
+Posting is done through a `Stream` object method `post()`. 
 It supports posting just text, images or text and images.
 
-`Stream().post()` returns `Post()` object referring to the post 
+`Stream().post()` returns `Post` object referring to the post 
 which have just been created.
 
 
@@ -20,7 +20,7 @@ If you want to post just text you should call `post()` method with
 
     stream.post(text='Your post.')
 
-It will return `Post()` you have just created.
+It will return `Post` you have just created.
 
 
 ##### Posting images
