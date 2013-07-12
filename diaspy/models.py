@@ -220,13 +220,12 @@ class Post():
     def __repr__(self):
         """Returns string containing more information then str().
         """
-        data = self.get_data()
-        return '{0} ({1}): {2}'.format(data['author']['name'], data['author']['diaspora_id'], data['text'])
+        return '{0} ({1}): {2}'.format(self.data['author']['name'], self.data['author']['guid'], self.data['text'])
 
     def __str__(self):
         """Returns text of a post.
         """
-        return self.get_data()['text']
+        return self.data['text']
 
     def _fetch(self):
         """This function retrieves data of the post.

@@ -39,9 +39,11 @@ class Connection():
         self.login_data = {}
         self.token = ''
         try: self._setlogin(username, password)
-        except request.exceptions.MissingSchema: self.pod = '{0}://{1}'.format(schema, self.pod)
+        except requests.exceptions.MissingSchema:
+            self.pod = '{0}://{1}'.format(schema, self.pod)
+            warnings.warn('schema was missing')
         finally: pass
-        try: self._setlogin()
+        try: self._setlogin(username, password)
         except Exception as e: raise LoginError('cannot create login data (caused by: {0})'.format(e))
 
     def __repr__(self):

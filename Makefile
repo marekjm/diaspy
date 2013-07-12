@@ -14,3 +14,8 @@ clean:
 	rm -rv diaspy/*.pyc
 	rm -rv ./__pycache__/
 	rm -rv *.pyc
+
+install:
+	python setup.py install
+	rm -rvf dist/
+	rm -rvf diaspy.egg-info
