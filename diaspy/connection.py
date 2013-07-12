@@ -25,7 +25,7 @@ class Connection():
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
 
-    def __init__(self, pod, username='', password=''):
+    def __init__(self, pod, username='', password='', schema='https'):
         """
         :param pod: The complete url of the diaspora pod to use.
         :type pod: str
@@ -38,10 +38,11 @@ class Connection():
         self.session = requests.Session()
         self.login_data = {}
         self.token = ''
-        try:
-            self._setlogin(username, password)
-        except Exception as e:
-            raise LoginError('cannot create login data (caused by: {0}'.format(e))
+        try: self._setlogin(username, password)
+        except request.exceptions.MissingSchema: self.pod = '{0}://{1}'.format(schema, self.pod)
+        finally: pass
+        try: self._setlogin()
+        except Exception as e: raise LoginError('cannot create login data (caused by: {0})'.format(e))
 
     def __repr__(self):
         """Returns token string.

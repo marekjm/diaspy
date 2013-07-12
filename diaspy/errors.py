@@ -22,6 +22,12 @@ class UserError(DiaspyError):
     pass
 
 
+class InvalidHandleError(DiaspyError):
+    """Raised when invalid handle is found.
+    """
+    pass
+
+
 class SearchError(DiaspyError):
     """Exception raised when something related to search goes wrong.
     """

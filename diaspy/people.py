@@ -11,7 +11,7 @@ def sephandle(handle):
     :returns: two-tuple (pod, user)
     """
     if re.match('^[a-zA-Z]+[a-zA-Z0-9_-]*@[a-z0-9.]+\.[a-z]+$', handle) is None:
-        raise errors.UserError('invalid handle: {0}'.format(handle))
+        raise errors.InvalidHandleError('{0}'.format(handle))
     handle = handle.split('@')
     pod, user = handle[1], handle[0]
     return (pod, user)

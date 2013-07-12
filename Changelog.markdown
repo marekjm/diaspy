@@ -21,6 +21,22 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+Version `0.3.1` (2013-07-12):
+
+* __upd__:  `diaspy.people.sephandle()` raises `InvalidHandleError` instead of `UserError`
+* __new__:  `connection.Connection` has new parameter in `__init__()`: it's `schema`
+
+
+The new parameter in `connection.Connection` is useful when operating with handles. 
+As handle does not contain schema (`http`, `https`, etc.) `_setlogin()` would raise an 
+unhandled exception -- `requests.exceptions.MissingSchema`. 
+Now, however, `Connection` will catch the exception, add missing schema and try once more. 
+This parameter is provided to give programmers ability to manipulate it. 
+
+Also, now you can pass just `pod.example.com` as `pod` parameter. Less typing!
+
+----
+
 Version `0.3.0` (2013-07-07):
 
 First edition of Changelog for `diaspy`. 
