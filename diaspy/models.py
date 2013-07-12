@@ -166,6 +166,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
+        print(self.data['note_html'])
         string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#/\- ]*["\'])* */?>', '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
@@ -200,22 +201,61 @@ class Notification():
         self.data['unread'] = unread
 
 
+class Comment():
+    """Represents comment on post.
+    
+    Does not require Connection() object. Note that you should not manually
+    create `Comment()` objects -- they are designed to be created automatically
+    by `Post()` objects.
+    """
+    def __init__(self, data):
+        self.data = data
+
+    def __str__(self):
+        """Returns comment's text.
+        """
+        return self.data['text']
+
+    def __repr__(self):
+        """Returns comments text and author.
+        Format: AUTHOR (AUTHOR'S GUID): COMMENT
+        """
+        return '{0} ({1}): {2}'.format(self.author(), self.author('guid'), str(self))
+
+    def when(self):
+        """Returns time when the comment had been created.
+        """
+        return self.data['created_at']
+
+    def author(self, key='name'):
+        """Returns author of the comment.
+        """
+        return self.data['author'][key]
+
+
 class Post():
     """This class represents a post.
 
     .. note::
         Remember that you need to have access to the post.
     """
-    def __init__(self, connection, id, fetch=True):
+    def __init__(self, connection, id, fetch=True, comments=True):
         """
         :param id: id or guid of the post
         :type id: str
         :param connection: connection object used to authenticate
         :type connection: connection.Connection
+        :param fetch: defines whether to fetch post's data or not
+        :type fetch: bool
+        :param comments: defines whether to fetch post's comments or not
+        :type comments: bool
         """
         self._connection = connection
         self.id = id
-        if fetch: self._fetch()
+        self.data = {}
+        self.comments = []
+        if fetch: self._fetchdata()
+        if comments: self._fetchcomments()
 
     def __repr__(self):
         """Returns string containing more information then str().
@@ -227,19 +267,29 @@ class Post():
         """
         return self.data['text']
 
-    def _fetch(self):
+    def _fetchdata(self):
         """This function retrieves data of the post.
         """
         request = self._connection.get('posts/{0}.json'.format(self.id))
         if request.status_code != 200:
-            raise errors.PostError('wrong status code: {0}'.format(request.status_code))
+            raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, self.id))
         else:
             self.data = request.json()
+
+    def _fetchcomments(self):
+        """Retireves comments for this post.
+        """
+        request = self._connection.get('posts/{0}/comments.json'.format(self.id))
+        if request.status_code != 200:
+            raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, self.id))
+        else:
+            self.comments = [Comment(c) for c in request.json()]
 
     def update(self):
         """Updates post data.
         """
-        self._fetch()
+        self._fetchdata()
+        self._fetchcomments()
 
     def like(self):
         """This function likes a post.
@@ -328,3 +378,9 @@ class Post():
                                     headers={'accept': 'application/json'})
         if request.status_code != 204:
             raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
+
+    def author(self, key='name'):
+        """Returns author of the post.
+        :param key: all keys available in data['author']
+        """
+        return self.data['author'][key]

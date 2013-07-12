@@ -24,7 +24,10 @@ up-to-date than manual and if conflicts appear they should follow the order:
 Version `0.3.1` (2013-07-12):
 
 * __upd__:  `diaspy.people.sephandle()` raises `InvalidHandleError` instead of `UserError`
+* __new__:  `models.Comment()` object: wrapper for comments, not to be created manually
+* __new__:  `comments` parameter in `models.Post`: defines whether to fetch post's commets
 * __new__:  `connection.Connection` has new parameter in `__init__()`: it's `schema`
+* __new__:  `author()` method in `models.Post()`
 
 
 The new parameter in `connection.Connection` is useful when operating with handles. 
@@ -34,6 +37,8 @@ Now, however, `Connection` will catch the exception, add missing schema and try 
 This parameter is provided to give programmers ability to manipulate it. 
 
 Also, now you can pass just `pod.example.com` as `pod` parameter. Less typing!
+
+When it comes to posts, we are now able to fetch comments.
 
 ----
 
