@@ -150,6 +150,7 @@ class Notification():
     """
     _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
+    _aboutid_regexp = re.compile(r'/posts/[0-9]+')
 
     def __init__(self, connection, data):
         self._connection = connection
@@ -166,8 +167,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        print(self.data['note_html'])
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#/\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#@=/\- ]*["\'])* */?>', '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -176,6 +176,14 @@ class Notification():
         """Returns notification note with more details.
         """
         return '{0}: {1}'.format(self.when(), str(self))
+
+    def about(self):
+        """Returns id of post about which the notification is informing.
+        """
+        about = self._aboutid_regexp.search(self.data['note_html'])
+        if about is None: about = self.who()
+        else: about = int(about.group(0)[7:])
+        return about
 
     def who(self):
         """Returns list of guids of the users who caused you to get the notification.

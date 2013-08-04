@@ -14,9 +14,6 @@ class Generic():
     """Object representing generic stream.
     """
     _location = 'stream.json'
-    _stream = []
-    #   since epoch
-    max_time = int(time.mktime(time.gmtime()))
 
     def __init__(self, connection, location=''):
         """
@@ -27,6 +24,9 @@ class Generic():
         """
         self._connection = connection
         if location: self._location = location
+        self._stream = []
+        #   since epoch
+        self.max_time = int(time.mktime(time.gmtime()))
         self.fill()
 
     def __contains__(self, post):
@@ -232,8 +232,7 @@ class Activity(Stream):
         """
         if type(post) == str: self._delid(post)
         elif type(post) == Post: post.delete()
-        else:
-            raise TypeError('this method accepts str or Post types: {0} given')
+        else: raise TypeError('this method accepts str or Post types: {0} given')
         self.fill()
 
 
