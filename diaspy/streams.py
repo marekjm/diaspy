@@ -204,7 +204,7 @@ class Stream(Generic):
 
         request = self._connection.post('photos', data=image, params=params, headers=headers)
         if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format(request.status_code))
+            raise errors.StreamError('photo cannot be uploaded: {0}'.format(request.status_code))
         return request.json()['data']['photo']['id']
 
 
