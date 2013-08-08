@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 
+"""This module is only imported in other diaspy modules and
+MUST NOT import anything.
+"""
+
+
 import json
 import re
 
 from diaspy import errors
-
-
-"""This module is only imported in other diaspy modules and
-MUST NOT import anything.
-"""
 
 
 class Aspect():
@@ -27,7 +27,7 @@ class Aspect():
         elif name and not id:
             self.id = self._findid()
         elif not id and not name:
-            raise Exception("Aspect must be initialized with either an id or name")
+            raise Exception('Aspect must be initialized with either an id or name')
 
     def _findname(self):
         """Finds name for aspect.
@@ -150,6 +150,7 @@ class Notification():
     """
     _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
+    _aboutid_regexp = re.compile(r'/posts/[0-9]+')
 
     def __init__(self, connection, data):
         self._connection = connection
@@ -166,7 +167,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#/\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#@=/\- ]*["\'])* */?>', '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -175,6 +176,14 @@ class Notification():
         """Returns notification note with more details.
         """
         return '{0}: {1}'.format(self.when(), str(self))
+
+    def about(self):
+        """Returns id of post about which the notification is informing.
+        """
+        about = self._aboutid_regexp.search(self.data['note_html'])
+        if about is None: about = self.who()
+        else: about = int(about.group(0)[7:])
+        return about
 
     def who(self):
         """Returns list of guids of the users who caused you to get the notification.
@@ -200,22 +209,61 @@ class Notification():
         self.data['unread'] = unread
 
 
+class Comment():
+    """Represents comment on post.
+    
+    Does not require Connection() object. Note that you should not manually
+    create `Comment()` objects -- they are designed to be created automatically
+    by `Post()` objects.
+    """
+    def __init__(self, data):
+        self.data = data
+
+    def __str__(self):
+        """Returns comment's text.
+        """
+        return self.data['text']
+
+    def __repr__(self):
+        """Returns comments text and author.
+        Format: AUTHOR (AUTHOR'S GUID): COMMENT
+        """
+        return '{0} ({1}): {2}'.format(self.author(), self.author('guid'), str(self))
+
+    def when(self):
+        """Returns time when the comment had been created.
+        """
+        return self.data['created_at']
+
+    def author(self, key='name'):
+        """Returns author of the comment.
+        """
+        return self.data['author'][key]
+
+
 class Post():
     """This class represents a post.
 
     .. note::
         Remember that you need to have access to the post.
     """
-    def __init__(self, connection, id, fetch=True):
+    def __init__(self, connection, id, fetch=True, comments=True):
         """
         :param id: id or guid of the post
         :type id: str
         :param connection: connection object used to authenticate
         :type connection: connection.Connection
+        :param fetch: defines whether to fetch post's data or not
+        :type fetch: bool
+        :param comments: defines whether to fetch post's comments or not
+        :type comments: bool
         """
         self._connection = connection
         self.id = id
-        if fetch: self._fetch()
+        self.data = {}
+        self.comments = []
+        if fetch: self._fetchdata()
+        if comments: self._fetchcomments()
 
     def __repr__(self):
         """Returns string containing more information then str().
@@ -227,19 +275,29 @@ class Post():
         """
         return self.data['text']
 
-    def _fetch(self):
+    def _fetchdata(self):
         """This function retrieves data of the post.
         """
         request = self._connection.get('posts/{0}.json'.format(self.id))
         if request.status_code != 200:
-            raise errors.PostError('wrong status code: {0}'.format(request.status_code))
+            raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, self.id))
         else:
             self.data = request.json()
+
+    def _fetchcomments(self):
+        """Retireves comments for this post.
+        """
+        request = self._connection.get('posts/{0}/comments.json'.format(self.id))
+        if request.status_code != 200:
+            raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, self.id))
+        else:
+            self.comments = [Comment(c) for c in request.json()]
 
     def update(self):
         """Updates post data.
         """
-        self._fetch()
+        self._fetchdata()
+        self._fetchcomments()
 
     def like(self):
         """This function likes a post.
@@ -257,20 +315,6 @@ class Post():
             raise errors.PostError('{0}: Post could not be liked.'
                             .format(request.status_code))
         return request.json()
-
-    def delete_like(self):
-        """This function removes a like from a post
-        """
-        data = {'authenticity_token': self._connection.get_token()}
-
-        request = self._connection.delete('posts/{0}/likes/{1}'
-                                    .format(self.id,
-                                            self.data['interactions']
-                                                     ['likes'][0]['id']),
-                                    data=data)
-        if request.status_code != 204:
-            raise errors.PostError('{0}: Like could not be removed.'
-                            .format(request.status_code))
 
     def reshare(self):
         """This function reshares a post
@@ -302,6 +346,16 @@ class Post():
                             .format(request.status_code))
         return request.json()
 
+    def delete(self):
+        """ This function deletes this post
+        """
+        data = {'authenticity_token': repr(self._connection)}
+        request = self._connection.delete('posts/{0}'.format(self.id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
+        if request.status_code != 204:
+            raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
+
     def delete_comment(self, comment_id):
         """This function removes a comment from a post
 
@@ -319,12 +373,22 @@ class Post():
             raise errors.PostError('{0}: Comment could not be deleted'
                             .format(request.status_code))
 
-    def delete(self):
-        """ This function deletes this post
+    def delete_like(self):
+        """This function removes a like from a post
         """
-        data = {'authenticity_token': repr(self._connection)}
-        request = self._connection.delete('posts/{0}'.format(self.id),
-                                    data=data,
-                                    headers={'accept': 'application/json'})
+        data = {'authenticity_token': self._connection.get_token()}
+
+        request = self._connection.delete('posts/{0}/likes/{1}'
+                                    .format(self.id,
+                                            self.data['interactions']
+                                                     ['likes'][0]['id']),
+                                    data=data)
         if request.status_code != 204:
-            raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
+            raise errors.PostError('{0}: Like could not be removed.'
+                            .format(request.status_code))
+
+    def author(self, key='name'):
+        """Returns author of the post.
+        :param key: all keys available in data['author']
+        """
+        return self.data['author'][key]

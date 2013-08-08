@@ -1,7 +1,3 @@
-import json
-import time
-from diaspy.models import Post, Aspect
-
 """Docstrings for this module are taken from:
 https://gist.github.com/MrZYX/01c93096c30dc44caf71
 
@@ -10,13 +6,16 @@ http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
 """
 
 
+import json
+import time
+from diaspy.models import Post, Aspect
+from diaspy import errors
+
+
 class Generic():
     """Object representing generic stream.
     """
     _location = 'stream.json'
-    _stream = []
-    #   since epoch
-    max_time = int(time.mktime(time.gmtime()))
 
     def __init__(self, connection, location=''):
         """
@@ -27,6 +26,9 @@ class Generic():
         """
         self._connection = connection
         if location: self._location = location
+        self._stream = []
+        #   since epoch
+        self.max_time = int(time.mktime(time.gmtime()))
         self.fill()
 
     def __contains__(self, post):
@@ -56,7 +58,7 @@ class Generic():
         if max_time: params['max_time'] = max_time
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
-            raise error.StreamError('wrong status code: {0}'.format(request.status_code))
+            raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         return [Post(self._connection, post['id']) for post in request.json()]
 
     def _expand(self, new_stream):
@@ -202,7 +204,7 @@ class Stream(Generic):
 
         request = self._connection.post('photos', data=image, params=params, headers=headers)
         if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format(request.status_code))
+            raise errors.StreamError('photo cannot be uploaded: {0}'.format(request.status_code))
         return request.json()['data']['photo']['id']
 
 
@@ -232,8 +234,7 @@ class Activity(Stream):
         """
         if type(post) == str: self._delid(post)
         elif type(post) == Post: post.delete()
-        else:
-            raise TypeError('this method accepts str or Post types: {0} given')
+        else: raise TypeError('this method accepts str or Post types: {0} given')
         self.fill()
 
 
