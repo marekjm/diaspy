@@ -27,7 +27,7 @@ class Aspect():
         elif name and not id:
             self.id = self._findid()
         elif not id and not name:
-            raise Exception("Aspect must be initialized with either an id or name")
+            raise Exception('Aspect must be initialized with either an id or name')
 
     def _findname(self):
         """Finds name for aspect.
@@ -376,6 +376,7 @@ class Post():
         if request.status_code != 204:
             raise errors.PostError('{0}: Comment could not be deleted'
                             .format(request.status_code))
+        return request.status_code
 
     def delete(self):
         """ This function deletes this post

@@ -1,13 +1,15 @@
-import json
-import time
-from diaspy.models import Post, Aspect
-
 """Docstrings for this module are taken from:
 https://gist.github.com/MrZYX/01c93096c30dc44caf71
 
 Documentation for D* JSON API taken from:
 http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
 """
+
+
+import json
+import time
+from diaspy.models import Post, Aspect
+from diaspy import errors
 
 
 class Generic():
@@ -56,7 +58,7 @@ class Generic():
         if max_time: params['max_time'] = max_time
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
-            raise error.StreamError('wrong status code: {0}'.format(request.status_code))
+            raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         return [Post(self._connection, post['id']) for post in request.json()]
 
     def _expand(self, new_stream):
