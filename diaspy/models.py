@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 
+"""This module is only imported in other diaspy modules and
+MUST NOT import anything.
+"""
+
+
 import json
 import re
 
 from diaspy import errors
-
-
-"""This module is only imported in other diaspy modules and
-MUST NOT import anything.
-"""
 
 
 class Aspect():
@@ -316,20 +316,6 @@ class Post():
                             .format(request.status_code))
         return request.json()
 
-    def delete_like(self):
-        """This function removes a like from a post
-        """
-        data = {'authenticity_token': self._connection.get_token()}
-
-        request = self._connection.delete('posts/{0}/likes/{1}'
-                                    .format(self.id,
-                                            self.data['interactions']
-                                                     ['likes'][0]['id']),
-                                    data=data)
-        if request.status_code != 204:
-            raise errors.PostError('{0}: Like could not be removed.'
-                            .format(request.status_code))
-
     def reshare(self):
         """This function reshares a post
         """
@@ -360,6 +346,16 @@ class Post():
                             .format(request.status_code))
         return request.json()
 
+    def delete(self):
+        """ This function deletes this post
+        """
+        data = {'authenticity_token': repr(self._connection)}
+        request = self._connection.delete('posts/{0}'.format(self.id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
+        if request.status_code != 204:
+            raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
+
     def delete_comment(self, comment_id):
         """This function removes a comment from a post
 
@@ -376,17 +372,20 @@ class Post():
         if request.status_code != 204:
             raise errors.PostError('{0}: Comment could not be deleted'
                             .format(request.status_code))
-        return request.status_code
 
-    def delete(self):
-        """ This function deletes this post
+    def delete_like(self):
+        """This function removes a like from a post
         """
-        data = {'authenticity_token': repr(self._connection)}
-        request = self._connection.delete('posts/{0}'.format(self.id),
-                                    data=data,
-                                    headers={'accept': 'application/json'})
+        data = {'authenticity_token': self._connection.get_token()}
+
+        request = self._connection.delete('posts/{0}/likes/{1}'
+                                    .format(self.id,
+                                            self.data['interactions']
+                                                     ['likes'][0]['id']),
+                                    data=data)
         if request.status_code != 204:
-            raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
+            raise errors.PostError('{0}: Like could not be removed.'
+                            .format(request.status_code))
 
     def author(self, key='name'):
         """Returns author of the post.
