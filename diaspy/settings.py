@@ -1,10 +1,10 @@
+"""This module provides access to user's settings on Diaspora*.
+"""
+
+
 import json
 import re
 import urllib
-
-
-"""This module provides access to user's settings on Diaspora*.
-"""
 
 
 class Settings():
@@ -34,11 +34,15 @@ class Settings():
         """Returns a list of tuples containing ('Language name', 'identifier').
         One of the Black Magic(tm) methods.
         """
-        select_start = '<select id="user_language" name="user[language]"')
+        select_start = '<select id="user_language" name="user[language]">'
         select_end = '</select>'
         languages = []
         request = self._connection.get('user/edit')
-        data = request.text[request.text.find(select_start):]
-        data = data[:data.find(select_end)]
-        print(data)
+        data = request.text[request.text.find(select_start)+len(select_start):]
+        data = data[:data.find(select_end)].split('\n')
+        for item in data:
+            name = item[item.find('>')+1:item.rfind('<')]
+            identifier = item[item.find('"')+1:]
+            identifier = identifier[:identifier.find('"')]
+            languages.append((name, identifier))
         return languages

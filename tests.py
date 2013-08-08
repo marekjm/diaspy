@@ -230,6 +230,12 @@ class NotificationsTests(unittest.TestCase):
         else:
             warnings.warn('test not sufficient: no unread notifications were found')
 
+
+class SettingsTests(unittest.TestCase):
+    def testGettingLanguages(self):
+        settings = diaspy.settings.Settings(test_connection)
+        self.assertIn(('English', 'en'), settings.getLanguages())
+
 if __name__ == '__main__': 
     print('Hello World!')
     print('It\'s testing time!')
