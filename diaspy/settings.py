@@ -29,3 +29,16 @@ class Settings():
         """
         data = {'_method': 'put', 'utf-8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
         request = self._connection.post('user')
+
+    def getLanguages(self):
+        """Returns a list of tuples containing ('Language name', 'identifier').
+        One of the Black Magic(tm) methods.
+        """
+        select_start = '<select id="user_language" name="user[language]"')
+        select_end = '</select>'
+        languages = []
+        request = self._connection.get('user/edit')
+        data = request.text[request.text.find(select_start):]
+        data = data[:data.find(select_end)]
+        print(data)
+        return languages
