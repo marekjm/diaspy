@@ -42,14 +42,14 @@ while len(oldstream) != len(user.stream):
 
 print('Posts found:', len(user.stream))
 for i, p in enumerate(oldstream):
-    #print(repr(p), '\n(', p.data, ')', '\n\n----\n')
     print(repr(p))
     if p.data['photos']:
         print('Downloading photos...')
         for n, photo in enumerate(p.data['photos']):
             print('{0}/{1}'.format(n+1, len(p.data['photos'])), end='\t')
             try:
-                urllib.request.urlretrieve(url=photo['sizes']['large'], filename=photo['guid'])
+                name = photo['guid'] + photo['sizes']['large'].split('.')[-1]
+                urllib.request.urlretrieve(url=photo['sizes']['large'], filename=name)
                 print('[  OK  ]')
             except Exception as e:
                 print('[ FAIL: {0}]'.format(e))
