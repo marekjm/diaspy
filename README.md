@@ -1,12 +1,19 @@
-#### Python API for Diaspora (unofficial)
+#### Unofficial Python interface for Diaspora\* social network
 
-`diaspy` is a set of modules which form API for D\* social network. 
-The API is written in Python and should be both 3.x and 2.x compatible. 
+`diaspy` is a set of modules which form an Python interface to the API of
+Disapora\* social network. 
+
 Test suite will cause problems when run with 2.x so testing should be done 
 using python3 interpreter.
 
 Object oriented design of `diaspy` makes it easily reusable by other 
-developers who want to use only part of the API.
+developers who want to use only part of the interface and create derivative
+works from it.
+
+Developrs who don't like the design of `diaspy` and want to create something better
+can use only `diaspy.connection.Connection()` object as it is capable of
+doing everything. Other modules are just layers that provide easier access to
+parts of the Diaspora\* API.
 
 ----
 
@@ -25,12 +32,13 @@ You only need two objects to do this: `Stream()` and `Connection()`.
     >>> stream.post('Your first post')
 
 
-#### 2. More features
+#### 2. Reference implementation
 
-There is a special `client` module in diaspy which is an example client 
-of D\* written using the `diapsy` API. It provides many features useful for 
-interactions with social network like messages, mentions, likes etc. 
-It is full of good, useful stuff.
+There is no official reference implementation of D\* client using `diaspy`.
+The `diaspy.client` module is no longer maintained and will be removed in the future.
+
+However, there is a small script written that uses `diaspy` as its backend.
+Look for `diacli` in marekjm's repositories on GitHub.
 
 ----
 
