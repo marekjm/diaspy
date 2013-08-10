@@ -49,7 +49,7 @@ for i, p in enumerate(oldstream):
         for n, photo in enumerate(p.data['photos']):
             print('{0}/{1}'.format(n+1, len(p.data['photos'])), end='\t')
             try:
-                name = photo['guid'] + photo['sizes']['large'].split('.')[-1]
+                name = '{0}.{1}'.format(photo['guid'] + photo['sizes']['large'].split('.')[-1])
                 urllib.request.urlretrieve(url=photo['sizes']['large'], filename=name)
                 print('[  OK  ]')
             except Exception as e:
