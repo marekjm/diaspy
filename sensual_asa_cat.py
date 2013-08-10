@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-"""Script for downloading all user data.
+"""Script for downloading Diaspora* user pictures.
 
-Named after SensualAsaCat user whose account was deleted after some
+Named after SensualAsaCat user whose account was to be deleted after some
 radikal transgender reported her to admins of joindiaspora.com for
 posting *inappropriate* content.
 
-I disaggred with him. So, here it is get all SensualAsaCat's pictures.
+I disaggred with him and he can go to hell.
+So, here is a script that allows you to get all of SensualAsaCat's pictures.
 """
 
 import getpass
