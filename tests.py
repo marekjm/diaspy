@@ -60,18 +60,12 @@ class ConnectionTest(unittest.TestCase):
         self.assertEqual(dict, type(info))
 
 
-class ClientTests(unittest.TestCase):
-    def testGettingTag(self):
-        client = dclient.Client(test_connection)
-        tag = client.get_tag('foo')
-        self.assertEqual(diaspy.streams.Generic, type(tag))
-        if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
-
+class MessagesTests(unittest.TestCase):
     def testGettingMailbox(self):
-        client = dclient.Client(test_connection)
-        mailbox = client.get_mailbox()
-        self.assertEqual(list, type(mailbox))
-        self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
+        mailbox = diaspy.messages.Mailbox(test_connection)
+        if mailbox: 
+            for i in range(len(mailbox)):
+                self.assertEqual(diaspy.models.Conversation, type(mailbox[i]))
 
 
 class StreamTest(unittest.TestCase):
