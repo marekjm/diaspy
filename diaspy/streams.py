@@ -55,7 +55,9 @@ class Generic():
         """Obtains stream from pod.
         """
         params = {}
-        if max_time: params['max_time'] = max_time
+        if max_time:
+            params['max_time'] = max_time
+            params['_'] = self.max_time
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
@@ -64,12 +66,12 @@ class Generic():
     def _expand(self, new_stream):
         """Appends older posts to stream.
         """
-        ids = [post.post_id for post in self._stream]
+        ids = [post.id for post in self._stream]
         stream = self._stream
         for post in new_stream:
-            if post.post_id not in ids:
+            if post.id not in ids:
                 stream.append(post)
-                ids.append(post.post_id)
+                ids.append(post.id)
         self._stream = stream
 
     def _update(self, new_stream):
@@ -125,17 +127,24 @@ class Generic():
         new_stream = self._obtain(max_time=max_time)
         self._expand(new_stream)
 
+    def copy(self):
+        """Returns copy (list of posts) of current stream.
+        """
+        return [p for p in self._stream]
+
 
 class Outer(Generic):
     """Object used by diaspy.models.User to represent
     stream of other user.
     """
-    def _obtain(self):
-        """Obtains stream of other user.
+    def _obtain(self, max_time=0):
+        """Obtains stream from pod.
         """
-        request = self._connection.get(self._location)
+        params = {}
+        if max_time: params['max_time'] = max_time
+        request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
-            raise error.StreamError('wrong status code: {0}'.format(request.status_code))
+            raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         return [Post(self._connection, post['id']) for post in request.json()]
 
 
@@ -204,7 +213,7 @@ class Stream(Generic):
 
         request = self._connection.post('photos', data=image, params=params, headers=headers)
         if request.status_code != 200:
-            raise Exception('wrong error code: {0}'.format(request.status_code))
+            raise errors.StreamError('photo cannot be uploaded: {0}'.format(request.status_code))
         return request.json()['data']['photo']['id']
 
 

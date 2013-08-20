@@ -19,8 +19,7 @@ class TokenError(Exception):
 
 
 class Connection():
-    """Object representing connection with the server.
-    It is pushed around internally and is considered private.
+    """Object representing connection with the pod.
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
@@ -157,7 +156,10 @@ class Connection():
         :returns: dict -- json formatted user info.
         """
         request = self.get('bookmarklet')
-        userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
+        try:
+            userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
+        except AttributeError:
+            raise errors.DiaspyError('cannot find user data')
         return userdata
 
     def _fetchtoken(self):
