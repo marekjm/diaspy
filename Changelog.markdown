@@ -25,6 +25,8 @@ Version `0.3.2` (2013-08-):
 
 * __upd__:  `diaspy.connection.getUserData()` raises `DiaspyError` when it cannot find user data,
 
+* __rem__:  `diaspy.client.Client` must be explicitly imported,
+
 ----
 
 Version `0.3.1` (2013-07-12):
