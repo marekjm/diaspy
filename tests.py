@@ -10,6 +10,7 @@ import requests
 import warnings
 #   actual diaspy code
 import diaspy
+from diaspy import client as dclient
 
 
 ####    SETUP STUFF
@@ -60,25 +61,14 @@ class ConnectionTest(unittest.TestCase):
 
 
 class ClientTests(unittest.TestCase):
-    def testGettingStream(self):
-        client = diaspy.client.Client(test_connection)
-        stream = client.get_stream()
-        if len(stream): self.assertEqual(diaspy.models.Post, type(stream[0]))
-
-    def testGettingNotifications(self):
-        client = diaspy.client.Client(test_connection)
-        notifications = client.get_notifications()
-        self.assertEqual(diaspy.notifications.Notifications, type(notifications))
-        if notifications: self.assertEqual(diaspy.models.Notification, type(notifications[0]))
-
     def testGettingTag(self):
-        client = diaspy.client.Client(test_connection)
+        client = dclient.Client(test_connection)
         tag = client.get_tag('foo')
         self.assertEqual(diaspy.streams.Generic, type(tag))
         if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
 
     def testGettingMailbox(self):
-        client = diaspy.client.Client(test_connection)
+        client = dclient.Client(test_connection)
         mailbox = client.get_mailbox()
         self.assertEqual(list, type(mailbox))
         self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))

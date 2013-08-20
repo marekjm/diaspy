@@ -7,8 +7,10 @@ __pycache__/*
 
 check-*.py
 
+# Testing
 testconf.py
 TEST_COUNT
+sketch.py
 
 *.py[cod]
 

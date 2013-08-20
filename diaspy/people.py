@@ -105,8 +105,11 @@ class User():
     def fetchguid(self):
         """Fetch user data and posts using guid.
         """
-        request = self._connection.get('people/{0}.json'.format(self.guid))
-        self._postproc(request)
+        if self.guid:
+            request = self._connection.get('people/{0}.json'.format(self.guid))
+            self._postproc(request)
+        else:
+            raise errors.UserError('GUID not set')
 
     def fetchprofile(self):
         """Fetches user data.
