@@ -114,7 +114,7 @@ class StreamTest(unittest.TestCase):
         stream = diaspy.streams.Stream(test_connection)
         try:
             stream.post(text=post_text, photo='test-image.png')
-        except (StreamError) as e:
+        except (diaspy.errors.StreamError) as e:
             warnings.warn('{0}')
         finally:
             pass

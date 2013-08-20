@@ -21,6 +21,12 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+Version `0.3.2` (2013-08-):
+
+* __upd__:  `diaspy.connection.getUserData()` raises `DiaspyError` when it cannot find user data,
+
+----
+
 Version `0.3.1` (2013-07-12):
 
 * __upd__:  `diaspy.people.sephandle()` raises `InvalidHandleError` instead of `UserError`
