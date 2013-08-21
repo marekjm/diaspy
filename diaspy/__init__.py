@@ -7,4 +7,4 @@ import diaspy.notifications as notifications
 import diaspy.settings as settings
 
 
-__version__ = '0.3.2.1'
+__version__ = '0.4.0'

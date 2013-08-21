@@ -148,9 +148,10 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
-    _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
+    _who_regexp = re.compile(r'/people/[0-9a-f]+" class=\'hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
-    _aboutid_regexp = re.compile(r'/posts/[0-9]+')
+    _aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
+    _htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
 
     def __init__(self, connection, data):
         self._connection = connection
@@ -167,7 +168,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#@=/\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub(self._htmltag_regexp, '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -178,7 +179,8 @@ class Notification():
         return '{0}: {1}'.format(self.when(), str(self))
 
     def about(self):
-        """Returns id of post about which the notification is informing.
+        """Returns id of post about which the notification is informing OR:
+        If the id is None it means that it's about user so .who() is called.
         """
         about = self._aboutid_regexp.search(self.data['note_html'])
         if about is None: about = self.who()
