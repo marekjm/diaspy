@@ -6,6 +6,8 @@ import json
 import re
 import urllib
 
+from diaspy import errors
+
 
 class Settings():
     """This object is used to get access to user's settings on
@@ -18,13 +20,23 @@ class Settings():
         request = self._connection.get('user/export')
         return request.text
 
-    def changeEmail(self, email):
+    def setEmail(self, email):
         """Changes user's email.
         """
         data = {'_method': 'put', 'utf-8': '✓', 'user[email]': email, 'authenticity_token': repr(self._connection)}
         request = self._connection.post('user')
 
-    def changeLanguage(self, lang):
+    def getEmail(self):
+        """Returns currently used email.
+        """
+        data = self._connection.get('user/edit')
+        email = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value=".+?"').search(data.text)
+        if email is None: raise errors.DiaspyError('cannot fetch email')
+        email = email.group(0)[:-1]
+        email = email[email.rfind('"')+1:]
+        return email
+
+    def setLanguage(self, lang):
         """Changes user's email.
         """
         data = {'_method': 'put', 'utf-8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
