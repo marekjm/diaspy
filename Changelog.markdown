@@ -21,6 +21,21 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.4.1` (2013-08-):
+
+* __new__:  `__getitem__()` in `diaspy.models.Post`,
+* __new__:  `json()` method in `diaspy.streams.Generic` adds the possibility to export streams to JSON,
+* __new__:  `full()` method in `diaspy.streams.Generic` will try to fetch full stream (containing all posts),
+* __new__:  `setEmail()` method in `diaspy.settings.Settings`,
+* __new__:  `setLanguage()` method in `diaspy.settings.Settings`,
+* __new__:  `downloadPhotos()` method in `diaspy.settings.Settings`,
+
+* __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
+            (html tag removal, so you get nicer notifications),
+
+
+----
+
 #### Version `0.4.0` (2013-08-20):
 
 This release is **not backwards compatible with `0.3.x` line**! You'll have to check your code for corrections.

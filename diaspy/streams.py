@@ -127,10 +127,39 @@ class Generic():
         new_stream = self._obtain(max_time=max_time)
         self._expand(new_stream)
 
+    def full(self):
+        """Fetches full stream - containing all posts.
+        WARNING: this can be a **VERY** time consuming function on slow connections of massive streams.
+
+        :returns: integer, lenght of the stream
+        """
+        oldstream = self.copy()
+        self.more()
+        while len(oldstream) != len(self):
+            oldstream = self.copy()
+            self.more()
+        return len(self)
+
     def copy(self):
         """Returns copy (list of posts) of current stream.
         """
         return [p for p in self._stream]
+
+    def json(self, comments=False):
+        """Returns JSON encoded string containing stream's data.
+
+        :param comments: to include comments or not to include 'em, that is the question this param holds answer to
+        :type comments: bool
+        """
+        stream = [post for post in self._stream]
+        if comments:
+            for i, post in enumerate(stream):
+                post._fetchcomments()
+                comments = [c.data for c in post.comments]
+                post['interactions']['comments'] = comments
+                stream[i] = post
+        stream = [post.data for post in stream]
+        return json.dumps(stream)
 
 
 class Outer(Generic):

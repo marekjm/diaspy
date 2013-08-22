@@ -3,10 +3,12 @@
 
 
 import json
+import os
 import re
 import urllib
+import warnings
 
-from diaspy import errors
+from diaspy import errors, streams
 
 
 class Settings():
@@ -17,8 +19,48 @@ class Settings():
         self._connection = connection
     
     def downloadxml(self):
+        """Returns downloaded XML.
+        """
         request = self._connection.get('user/export')
         return request.text
+
+    def downloadPhotos(self, size='large', path='.', _critical=False, _stream=None):
+        """Downloads photos into the current working directory.
+        Sizes are: large, medium, small.
+        Filename is: {photo_guid}.{extension}
+
+        Normally, this method will catch urllib-generated errors and
+        just issue warnings about photos that couldn't be downloaded.
+        However, with _critical param set to True errors will become
+        critical - the will be reraised in finally block.
+
+        :param size: size of the photos to download - large, medium or small
+        :type size: str
+        :param path: path to download (defaults to current working directory
+        :type path: str
+        :param _stream: diaspy.streams.Generic-like object (only for testing)
+        :param _critical: if True urllib errors will be reraised after generating a warning (may be removed)
+
+        :returns: integer, number of photos downloaded
+        """
+        photos = 0
+        if _stream is not None: stream = _stream
+        else: stream = streams.Activity
+        stream = stream(self._connection)
+        stream.full()
+        for i, post in enumerate(stream):
+            if post['photos']:
+                for n, photo in enumerate(post['photos']):
+                    name = '{0}.{1}'.format(photo['guid'], photo['sizes'][size].split('.')[-1])
+                    filename = os.path.join(path, name)
+                    try:
+                        urllib.request.urlretrieve(url=photo['sizes'][size], filename=filename)
+                    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+                        warnings.warn('downloading image {0} from post {1}: {2}'.format(photo['guid'], post['guid'], e))
+                    finally:
+                        if _critical: raise
+                photos += 1
+        return photos
 
     def setEmail(self, email):
         """Changes user's email.
