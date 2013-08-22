@@ -10,6 +10,7 @@ import requests
 import warnings
 #   actual diaspy code
 import diaspy
+from diaspy import client as dclient
 
 
 ####    SETUP STUFF
@@ -59,29 +60,12 @@ class ConnectionTest(unittest.TestCase):
         self.assertEqual(dict, type(info))
 
 
-class ClientTests(unittest.TestCase):
-    def testGettingStream(self):
-        client = diaspy.client.Client(test_connection)
-        stream = client.get_stream()
-        if len(stream): self.assertEqual(diaspy.models.Post, type(stream[0]))
-
-    def testGettingNotifications(self):
-        client = diaspy.client.Client(test_connection)
-        notifications = client.get_notifications()
-        self.assertEqual(diaspy.notifications.Notifications, type(notifications))
-        if notifications: self.assertEqual(diaspy.models.Notification, type(notifications[0]))
-
-    def testGettingTag(self):
-        client = diaspy.client.Client(test_connection)
-        tag = client.get_tag('foo')
-        self.assertEqual(diaspy.streams.Generic, type(tag))
-        if tag: self.assertEqual(diaspy.models.Post, type(tag[0]))
-
+class MessagesTests(unittest.TestCase):
     def testGettingMailbox(self):
-        client = diaspy.client.Client(test_connection)
-        mailbox = client.get_mailbox()
-        self.assertEqual(list, type(mailbox))
-        self.assertEqual(diaspy.conversations.Conversation, type(mailbox[0]))
+        mailbox = diaspy.messages.Mailbox(test_connection)
+        if mailbox: 
+            for i in range(len(mailbox)):
+                self.assertEqual(diaspy.models.Conversation, type(mailbox[i]))
 
 
 class StreamTest(unittest.TestCase):
@@ -114,7 +98,7 @@ class StreamTest(unittest.TestCase):
         stream = diaspy.streams.Stream(test_connection)
         try:
             stream.post(text=post_text, photo='test-image.png')
-        except (StreamError) as e:
+        except (diaspy.errors.StreamError) as e:
             warnings.warn('{0}')
         finally:
             pass

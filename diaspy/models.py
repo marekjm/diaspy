@@ -148,9 +148,10 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
-    _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
+    _who_regexp = re.compile(r'/people/[0-9a-f]+" class=\'hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
-    _aboutid_regexp = re.compile(r'/posts/[0-9]+')
+    _aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
+    _htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
 
     def __init__(self, connection, data):
         self._connection = connection
@@ -167,7 +168,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#@=/\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub(self._htmltag_regexp, '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -178,7 +179,8 @@ class Notification():
         return '{0}: {1}'.format(self.when(), str(self))
 
     def about(self):
-        """Returns id of post about which the notification is informing.
+        """Returns id of post about which the notification is informing OR:
+        If the id is None it means that it's about user so .who() is called.
         """
         about = self._aboutid_regexp.search(self.data['note_html'])
         if about is None: about = self.who()
@@ -207,6 +209,72 @@ class Notification():
         params = {'set_unread': json.dumps(unread)}
         self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
         self.data['unread'] = unread
+
+
+class Conversation():
+    """This class represents a conversation.
+
+    .. note::
+        Remember that you need to have access to the conversation.
+    """
+    def __init__(self, connection, id, fetch=True):
+        """
+        :param conv_id: id of the post and not the guid!
+        :type conv_id: str
+        :param connection: connection object used to authenticate
+        :type connection: connection.Connection
+        """
+        self._connection = connection
+        self.id = id
+        self.data = {}
+        if fetch: self._fetch()
+
+    def _fetch(self):
+        """Fetches JSON data representing conversation.
+        """
+        request = self._connection.get('conversations/{}.json'.format(self.id))
+        if request.status_code == 200:
+            self.data = request.json()['conversation']
+        else:
+            raise errors.ConversationError('cannot download conversation data: {0}'.format(request.status_code))
+
+    def answer(self, text):
+        """Answer that conversation
+
+        :param text: text to answer.
+        :type text: str
+        """
+        data = {'message[text]': text,
+                'utf8': '&#x2713;',
+                'authenticity_token': repr(self._connection)}
+
+        request = self._connection.post('conversations/{}/messages'.format(self.id),
+                                        data=data,
+                                        headers={'accept': 'application/json'})
+        if request.status_code != 200:
+            raise errors.ConversationError('{0}: Answer could not be posted.'
+                            .format(request.status_code))
+        return request.json()
+
+    def delete(self):
+        """Delete this conversation.
+        Has to be implemented.
+        """
+        data = {'authenticity_token': repr(self._connection)}
+
+        request = self._connection.delete('conversations/{0}/visibility/'
+                                    .format(self.id),
+                                    data=data,
+                                    headers={'accept': 'application/json'})
+
+        if request.status_code != 404:
+            raise errors.ConversationError('{0}: Conversation could not be deleted.'
+                            .format(request.status_code))
+
+    def get_subject(self):
+        """Returns the subject of this conversation
+        """
+        return self.data['subject']
 
 
 class Comment():

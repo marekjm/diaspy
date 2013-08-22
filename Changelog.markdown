@@ -21,6 +21,28 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.4.0` (2013-08-20):
+
+This release is **not backwards compatible with `0.3.x` line**! You'll have to check your code for corrections.
+Also, this release if first to officially released fork version.
+
+* __dep__:  `diaspy.client` is officially deprecated (will be removed in `0.4.1`),
+
+* __upd__:  `diaspy.conversations` renamed to `diaspy.messages`,
+* __udp__:  `diaspy.conversations.Conversation` moved to `diaspy.models`,
+
+* __new__:  `diaspy.messages.Mailbox()` object representing diaspora\* mailbox,
+
+----
+
+Version `0.3.2` (2013-08-20):
+
+* __upd__:  `diaspy.connection.getUserData()` raises `DiaspyError` when it cannot find user data,
+
+* __rem__:  `diaspy.client.Client` must be explicitly imported,
+
+----
+
 Version `0.3.1` (2013-07-12):
 
 * __upd__:  `diaspy.people.sephandle()` raises `InvalidHandleError` instead of `UserError`
