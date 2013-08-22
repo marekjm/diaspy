@@ -38,9 +38,11 @@ class Settings():
 
     def setLanguage(self, lang):
         """Changes user's email.
+
+        :param lang: language identifier from getLanguages()
         """
         data = {'_method': 'put', 'utf-8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
-        request = self._connection.post('user')
+        request = self._connection.post('user', data=data)
 
     def getLanguages(self):
         """Returns a list of tuples containing ('Language name', 'identifier').
