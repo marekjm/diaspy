@@ -343,6 +343,9 @@ class Post():
         """
         return self.data['text']
 
+    def __getitem__(self, key):
+        return self.data[key]
+
     def _fetchdata(self):
         """This function retrieves data of the post.
         """
