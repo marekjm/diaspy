@@ -24,10 +24,10 @@ class Settings():
         request = self._connection.get('user/export')
         return request.text
 
-    def downloadPhotos(self, size='large', path='.', _critical=False, _stream=None):
+    def downloadPhotos(self, size='large', path='.', mark_nsfw=True, _critical=False, _stream=None):
         """Downloads photos into the current working directory.
         Sizes are: large, medium, small.
-        Filename is: {photo_guid}.{extension}
+        Filename is: {post_guid}_{photo_guid}.{extension}
 
         Normally, this method will catch urllib-generated errors and
         just issue warnings about photos that couldn't be downloaded.
@@ -38,20 +38,25 @@ class Settings():
         :type size: str
         :param path: path to download (defaults to current working directory
         :type path: str
+        :param mark_nsfw: will append '-nsfw' to images from posts marked as nsfw,
+        :type mark_nsfw: bool
         :param _stream: diaspy.streams.Generic-like object (only for testing)
         :param _critical: if True urllib errors will be reraised after generating a warning (may be removed)
 
         :returns: integer, number of photos downloaded
         """
         photos = 0
-        if _stream is not None: stream = _stream
-        else: stream = streams.Activity
-        stream = stream(self._connection)
-        stream.full()
+        if _stream is None:
+            stream = streams.Activity(self._connection)
+            stream.full()
+        else:
+            stream = _stream
         for i, post in enumerate(stream):
+            if post['nsfw'] is not False: nsfw = '-nsfw'
+            else: nsfw = ''
             if post['photos']:
                 for n, photo in enumerate(post['photos']):
-                    name = '{0}.{1}'.format(photo['guid'], photo['sizes'][size].split('.')[-1])
+                    name = '{0}_{1}{2}.{3}'.format(post['guid'], photo['guid'], nsfw, photo['sizes'][size].split('.')[-1])
                     filename = os.path.join(path, name)
                     try:
                         urllib.request.urlretrieve(url=photo['sizes'][size], filename=filename)

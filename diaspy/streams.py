@@ -57,7 +57,7 @@ class Generic():
         params = {}
         if max_time:
             params['max_time'] = max_time
-            params['_'] = self.max_time
+            params['_'] = int(time.time() * 1000)
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
@@ -116,28 +116,62 @@ class Generic():
         """
         self._stream = self._obtain()
 
-    def more(self, max_time=0):
+    def more(self, max_time=0, backtime=84600):
         """Tries to download more (older ones) Posts from Stream.
 
+        :param backtime: how many seconds substract each time (defaults to one day)
+        :type backtime: int
         :param max_time: seconds since epoch (optional, diaspy'll figure everything on its own)
         :type max_time: int
         """
-        if not max_time: max_time = self.max_time - 3000000
+        if not max_time: max_time = self.max_time - backtime
         self.max_time = max_time
         new_stream = self._obtain(max_time=max_time)
         self._expand(new_stream)
 
-    def full(self):
+    def full(self, backtime=84600, retry=42, callback=None):
         """Fetches full stream - containing all posts.
-        WARNING: this can be a **VERY** time consuming function on slow connections of massive streams.
+        WARNING: this is a **VERY** long running function.
+        Use callback parameter to access information about the stream during its
+        run.
 
+        Default backtime is one day. But sometimes user might not have any activity for longer
+        period (on the beginning I posted once a month or so).
+        The role of retry is to hadle such situations by trying to go further back in time.
+        If a post is found the counter is restored.
+
+        :param backtime: how many seconds to substract each time
+        :type backtime: int
+        :param retry: how many times the functin should look deeper than your last post
+        :type retry: int
+        :param callback: callable taking diaspy.streams.Generic as an argument
         :returns: integer, lenght of the stream
         """
         oldstream = self.copy()
         self.more()
-        while len(oldstream) != len(self):
+        while len(oldstream) < len(self):
             oldstream = self.copy()
-            self.more()
+            if callback is not None: callback(self)
+            self.more(backtime=backtime)
+            if len(oldstream) < len(self): continue
+            # but if no posts were found start retrying...
+            print('retrying... {0}'.format(retry))
+            n = retry
+            while n > 0:
+                print('\t', n, self.max_time)
+                # try to get even more posts...
+                self.more(backtime=backtime)
+                print('\t', len(oldstream), len(self))
+                # check if it was a success...
+                if len(oldstream) < len(self):
+                    # and if so restore normal order of execution by
+                    # going one loop higher
+                    break
+                oldstream = self.copy()
+                # if it was not a success substract one day, keep calm and
+                # try going further rback in time...
+                n -= 1
+            #if len(oldstream) == len(self): break
         return len(self)
 
     def copy(self):
