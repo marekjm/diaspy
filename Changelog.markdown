@@ -23,6 +23,13 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 #### Version `0.4.1` (2013-08-):
 
+Login and authentication procedure backend received major changes in this version.
+There are no longer `username` and `password` variables in `Connection` object.
+Instead, credentials are stored (together with the token) in single variable `_login_data`.
+This is preserved until you call `login()` at which point credentials are erased and
+only token is left -- it can be obtained by calling `repr(Connection)`.
+
+
 * __new__:  `__getitem__()` in `diaspy.models.Post`,
 * __new__:  `__dict__()` in `diaspy.models.Post`,
 * __new__:  `guid` argument in `diaspy.models.Post.__init__()`,
@@ -32,11 +39,15 @@ up-to-date than manual and if conflicts appear they should follow the order:
 * __new__:  `setLanguage()` method in `diaspy.settings.Settings`,
 * __new__:  `downloadPhotos()` method in `diaspy.settings.Settings`,
 * __new__:  `backtime` argument in `more()` method in `diaspy.streams.Generic`,
+* __new__:  `DiaspyError` will be raised when connection is created with empty password and/or username,
 
 * __upd__:  if `Post()` is created with fetched comments, data will also be fetched as a dependency,
 * __upd__:  `id` argument type is now `int` (`diaspy.models.Post.__init__()`),
 * __upd__:  `Search().lookup_user()` renamed to `Search().lookupUser()`,
 * __upd__:  `diaspy.messages` renamed to `diaspy.conversations` (but will be accessible under both names for this and next release),
+* __upd__:  `LoginError` moved to `diaspy.errors`,
+* __upd__:  `TokenError` moved to `diaspy.errors`,
+* __upd__:  `diaspy.connection.Connection.podswitch()` gained two new positional arguments: `username` and `password`,
 
 * __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
             (html tag removal, so you get nicer notifications),

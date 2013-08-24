@@ -87,7 +87,7 @@ class Generic():
         self._stream = stream
 
     def clear(self):
-        """Removes all posts from stream.
+        """Set stream to empty.
         """
         self._stream = []
 

@@ -49,11 +49,11 @@ post_text = '#diaspy test no. {0}'.format(test_count)
 class ConnectionTest(unittest.TestCase):
     def testLoginWithoutUsername(self):
         connection = diaspy.connection.Connection(pod=__pod__)
-        self.assertRaises(diaspy.connection.LoginError, connection.login, password='foo')
+        self.assertRaises(diaspy.errors.LoginError, connection.login, password='foo')
 
     def testLoginWithoutPassword(self):
         connection = diaspy.connection.Connection(pod=__pod__)
-        self.assertRaises(diaspy.connection.LoginError, connection.login, username='user')
+        self.assertRaises(diaspy.errors.LoginError, connection.login, username='user')
 
     def testGettingUserInfo(self):
         info = test_connection.getUserInfo()

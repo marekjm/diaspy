@@ -16,6 +16,10 @@ class LoginError(DiaspyError):
     pass
 
 
+class TokenError(Exception):
+    pass
+
+
 class UserError(DiaspyError):
     """Exception raised when something related to users goes wrong.
     """

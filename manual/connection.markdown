@@ -5,7 +5,6 @@ It is pushed around and used by various methods and other objects:
 
 *   `Post()` and `Conversation()` objects require it to authenticate and 
     do their work,
-*   `Client()` uses it for loging in to pod and other stuff,
 *   streams use it for getting their contents,
 *   etc.
 
@@ -51,7 +50,6 @@ created and `login()` is called without any arguments.
 Both ways are valid and will result in exactly the same connection. 
 But consider the following example:
 
-
     connection = diaspy.connection.Connection(pod='https://pod.example.com',
                                               username='user',
                                               password='password')
@@ -61,20 +59,9 @@ This code will result in connection with username `loser` and
 password `passphrase` because data passed to `login()` overrides data 
 passed directly to object. 
 
-**Remember:** if you pass something to `login()` it will not only *override* but 
-also *overwrite* the username and password!
+**Remember:** if you pass something to `login()` it will *override* credentials set when the
+connection was created.
 
-
-----
-
-##### Switching pods
-
-`Connection()` provides functionality for switching pods on the fly. 
-This can be achieved with `podswitch()` method. 
-
-If login to a new pod is successful your connection is just changed 
-overwritten but if it fails everything else also fails and the current 
-connection is broken.
 
 ----
 
@@ -84,10 +71,10 @@ Authentication in Diaspora\* is done with *token*. It is a string
 which is passed to pod with several requests to prove you are who you are 
 pretending to be.
 
-`Connection` providesyou with a method to fetch this token and perform 
+`Connection` provides you with a method to fetch this token and perform 
 various actions on your account.
 This method is called `_fetchtoken()`. 
-It will try to download new token for you. 
+It will try to download a token for you. 
 
 Once a token is fetched there is no use for doing it again. 
 You can save time by using `get_token()` method. 
@@ -114,7 +101,7 @@ Here is how you should create your auth flow:
 ##### Note for developers
 
 If you want to write your own interface or client for D\* 
-`Connection()` will be the only object you need.
+`Connection()` is the only object you need.
 
 ----
 

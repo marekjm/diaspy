@@ -5,17 +5,11 @@ import requests
 import json
 import warnings
 
+from diaspy import errors
+
 
 """This module abstracts connection to pod.
 """
-
-
-class LoginError(Exception):
-    pass
-
-
-class TokenError(Exception):
-    pass
 
 
 class Connection():
@@ -34,16 +28,20 @@ class Connection():
         :type password: str
         """
         self.pod = pod
-        self.session = requests.Session()
-        self.login_data = {}
-        self.token = ''
-        try: self._setlogin(username, password)
+        self._session = requests.Session()
+        self._login_data = {}
+        self._token = ''
+        try:
+            self._setlogin(username, password)
         except requests.exceptions.MissingSchema:
             self.pod = '{0}://{1}'.format(schema, self.pod)
             warnings.warn('schema was missing')
-        finally: pass
-        try: self._setlogin(username, password)
-        except Exception as e: raise LoginError('cannot create login data (caused by: {0})'.format(e))
+        finally:
+            pass
+        try:
+            self._setlogin(username, password)
+        except Exception as e:
+            raise errors.LoginError('cannot create login data (caused by: {0})'.format(e))
 
     def __repr__(self):
         """Returns token string.
@@ -51,7 +49,7 @@ class Connection():
             repr(connection)
         instead of calling a specified method.
         """
-        return self.get_token()
+        return self._token
 
     def get(self, string, headers={}, params={}):
         """This method gets data from session.
@@ -63,7 +61,7 @@ class Connection():
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
         """
-        return self.session.get('{0}/{1}'.format(self.pod, string), params=params, headers=headers)
+        return self._session.get('{0}/{1}'.format(self.pod, string), params=params, headers=headers)
 
     def post(self, string, data, headers={}, params={}):
         """This method posts data to session.
@@ -81,15 +79,15 @@ class Connection():
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self.session.post(string, data, headers=headers, params=params)
+        request = self._session.post(string, data, headers=headers, params=params)
         return request
 
     def put(self, string, data=None, headers={}, params={}):
         """This method PUTs to session.
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if data is not None: request = self.session.put(string, data, headers=headers, params=params)
-        else: request = self.session.put(string, headers=headers, params=params)
+        if data is not None: request = self._session.put(string, data, headers=headers, params=params)
+        else: request = self._session.put(string, headers=headers, params=params)
         return request
 
     def delete(self, string, data, headers={}):
@@ -103,7 +101,7 @@ class Connection():
         :type headers: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self.session.delete(string, data=data, headers=headers)
+        request = self._session.delete(string, data=data, headers=headers)
         return request
 
     def _setlogin(self, username, password):
@@ -112,42 +110,42 @@ class Connection():
         .. note::
             It should be called before _login() function.
         """
-        self.username, self.password = username, password
-        self.login_data = {'user[username]': self.username,
-                           'user[password]': self.password,
-                           'authenticity_token': self._fetchtoken()}
+        self._login_data = {'user[username]': username,
+                            'user[password]': password,
+                            'authenticity_token': self._fetchtoken()}
 
     def _login(self):
         """Handles actual login request.
         Raises LoginError if login failed.
         """
         request = self.post('users/sign_in',
-                            data=self.login_data,
+                            data=self._login_data,
                             headers={'accept': 'application/json'})
         if request.status_code != 201:
-            raise LoginError('{0}: login failed'.format(request.status_code))
+            raise errors.LoginError('{0}: login failed'.format(request.status_code))
 
     def login(self, username='', password=''):
         """This function is used to log in to a pod.
         Will raise LoginError if password or username was not specified.
         """
         if username and password: self._setlogin(username, password)
-        if not self.username or not self.password: raise LoginError('password or username not specified')
+        if not self._login_data['user[username]'] or not self._login_data['user[password]']:
+            raise errors.LoginError('username and/or password is not specified')
         self._login()
+        self._login_data = {}
 
     def logout(self):
         """Logs out from a pod.
         When logged out you can't do anything.
         """
         self.get('users/sign_out')
-        self.username = ''
         self.token = ''
-        self.password = ''
 
-    def podswitch(self, pod):
+    def podswitch(self, pod, username, password):
         """Switches pod from current to another one.
         """
         self.pod = pod
+        self._setlogin(username, password)
         self._login()
 
     def getUserInfo(self):
@@ -169,24 +167,20 @@ class Connection():
         """
         request = self.get('stream')
         token = self._token_regex.search(request.text).group(1)
-        self.token = token
+        self._token = token
         return token
 
     def get_token(self, fetch=False):
         """This function returns a token needed for authentication in most cases.
-        Each time it is run a _fetchtoken() is called and refreshed token is stored.
-
-        It is more safe to use than _fetchtoken().
-        By setting new you can request new token or decide to get stored one.
-        If no token is stored new one will be fatched anyway.
+        **Notice:** using repr() is recommended method for getting token.
 
         :returns: string -- token used to authenticate
         """
         try:
             if fetch: self._fetchtoken()
-            if not self.token: self._fetchtoken()
+            if not self._token: self._fetchtoken()
         except requests.exceptions.ConnectionError as e:
             warnings.warn('{0} was cought: reusing old token'.format(e))
         finally:
-            if not self.token: raise TokenError('cannot obtain token and no previous token found for reuse')
-        return self.token
+            if not self._token: raise errors.TokenError('cannot obtain token and no previous token found for reuse')
+        return self._token
