@@ -35,6 +35,7 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 * __upd__:  if `Post()` is created with fetched comments, data will also be fetched as a dependency,
 * __upd__:  `id` argument type is now `int` (`diaspy.models.Post.__init__()`),
+* __upd__:  `Search().lookup_user()` renamed to `Search().lookupUser()`,
 
 * __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
             (html tag removal, so you get nicer notifications),
