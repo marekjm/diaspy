@@ -10,7 +10,7 @@ class Search():
     def __init__(self, connection):
         self._connection = connection
 
-    def lookup_user(self, handle):
+    def lookupUser(self, handle):
         """This function will launch a webfinger lookup from the pod for the
         handle requested. Response code is returned and if the lookup was successful,
         user should soon be searchable via pod used for connection.

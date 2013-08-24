@@ -148,9 +148,10 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
-    _who_regexp = re.compile(r'/people/[0-9a-z]+" class=\'hovercardable')
+    _who_regexp = re.compile(r'/people/[0-9a-f]+" class=\'hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
-    _aboutid_regexp = re.compile(r'/posts/[0-9]+')
+    _aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
+    _htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
 
     def __init__(self, connection, data):
         self._connection = connection
@@ -167,7 +168,7 @@ class Notification():
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub('</?[a-z]+( *[a-z_-]+=["\'][\w():.,!?#@=/\- ]*["\'])* */?>', '', self.data['note_html'])
+        string = re.sub(self._htmltag_regexp, '', self.data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -178,7 +179,8 @@ class Notification():
         return '{0}: {1}'.format(self.when(), str(self))
 
     def about(self):
-        """Returns id of post about which the notification is informing.
+        """Returns id of post about which the notification is informing OR:
+        If the id is None it means that it's about user so .who() is called.
         """
         about = self._aboutid_regexp.search(self.data['note_html'])
         if about is None: about = self.who()
@@ -313,23 +315,29 @@ class Post():
     .. note::
         Remember that you need to have access to the post.
     """
-    def __init__(self, connection, id, fetch=True, comments=True):
+    def __init__(self, connection, id=0, guid='', fetch=True, comments=True):
         """
-        :param id: id or guid of the post
-        :type id: str
+        :param id: id of the post (GUID is recommended)
+        :type id: int
+        :param guid: GUID of the post
+        :type guid: str
         :param connection: connection object used to authenticate
         :type connection: connection.Connection
         :param fetch: defines whether to fetch post's data or not
         :type fetch: bool
-        :param comments: defines whether to fetch post's comments or not
+        :param comments: defines whether to fetch post's comments or not (if True also data will be fetched)
         :type comments: bool
         """
+        if not (guid or id): raise TypeError('guid and/or id missing')
         self._connection = connection
         self.id = id
+        self.guid = guid
         self.data = {}
         self.comments = []
         if fetch: self._fetchdata()
-        if comments: self._fetchcomments()
+        if comments:
+            if not self.data: self._fetchdata()
+            self._fetchcomments()
 
     def __repr__(self):
         """Returns string containing more information then str().
@@ -341,23 +349,39 @@ class Post():
         """
         return self.data['text']
 
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __dict__(self):
+        """Returns dictionary of posts data.
+        """
+        return self.data
+
     def _fetchdata(self):
         """This function retrieves data of the post.
+
+        :returns: guid of post whose data was fetched
         """
-        request = self._connection.get('posts/{0}.json'.format(self.id))
+        if self.id: id = self.id
+        if self.guid: id = self.guid
+        request = self._connection.get('posts/{0}.json'.format(id))
         if request.status_code != 200:
-            raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, self.id))
+            raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, id))
         else:
             self.data = request.json()
+        return self['guid']
 
     def _fetchcomments(self):
-        """Retireves comments for this post.
+        """Retreives comments for this post.
         """
-        request = self._connection.get('posts/{0}/comments.json'.format(self.id))
-        if request.status_code != 200:
-            raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, self.id))
-        else:
-            self.comments = [Comment(c) for c in request.json()]
+        if self.id: id = self.id
+        if self.guid: id = self.guid
+        if self['interactions']['comments_count']:
+            request = self._connection.get('posts/{0}/comments.json'.format(id))
+            if request.status_code != 200:
+                raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, id))
+            else:
+                self.comments = [Comment(c) for c in request.json()]
 
     def update(self):
         """Updates post data.
