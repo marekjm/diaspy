@@ -28,7 +28,7 @@ You only need two objects to do this: `Stream()` and `Connection()`.
     ...                                  username='foo',
     ...                                  password='bar')
     >>> c.login()
-    >>> stream = diaspy.models.Stream(c)
+    >>> stream = diaspy.streams.Stream(c)
     >>> stream.post('Your first post')
 
 
