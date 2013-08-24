@@ -154,10 +154,9 @@ class Connection():
         :returns: dict -- json formatted user info.
         """
         request = self.get('bookmarklet')
-        try:
-            userdata = json.loads(self._userinfo_regex.search(request.text).group(1))
-        except AttributeError:
-            raise errors.DiaspyError('cannot find user data')
+        userdata = self._userinfo_regex.search(request.text)
+        if userdata is None: raise errors.DiaspyError('cannot find user data')
+        userdata = json.loads(userdata.group(1))
         return userdata
 
     def _fetchtoken(self):
