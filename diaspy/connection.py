@@ -23,7 +23,7 @@ class Connection():
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
-
+    
     def __init__(self, pod, username='', password='', schema='https'):
         """
         :param pod: The complete url of the diaspora pod to use.
@@ -122,9 +122,9 @@ class Connection():
         Raises LoginError if login failed.
         """
         request = self.post('users/sign_in',
-                            data=self.login_data,
-                            headers={'accept': 'application/json'})
-        if request.status_code != 201:
+                            data=self.login_data)
+        if request.status_code != 200:
+            print(request)
             raise LoginError('{0}: login failed'.format(request.status_code))
 
     def login(self, username='', password=''):
@@ -172,13 +172,13 @@ class Connection():
         self.token = token
         return token
 
-    def get_token(self, fetch=False):
+    def get_token(self, fetch=True):
         """This function returns a token needed for authentication in most cases.
         Each time it is run a _fetchtoken() is called and refreshed token is stored.
 
         It is more safe to use than _fetchtoken().
         By setting new you can request new token or decide to get stored one.
-        If no token is stored new one will be fatched anyway.
+        If no token is stored new one will be fetched anyway.
 
         :returns: string -- token used to authenticate
         """
