@@ -356,7 +356,7 @@ class Aspects(Generic):
         id = self.getAspectID(aspect_name)
         return Aspect(self._connection, id)
 
-    def remove(self, aspect_id=-1, name=''):
+    def remove(self, id=-1, name=''):
         """This method removes an aspect.
         You can give it either id or name of the aspect.
         When both are specified, id takes precedence over name.
@@ -369,10 +369,10 @@ class Aspects(Generic):
         :param name: name of aspect to remove
         :type name: str
         """
-        if aspect_id == -1 and name: aspect_id = self.getAspectID(name)
+        if id == -1 and name: id = self.getAspectID(name)
         data = {'_method': 'delete',
                 'authenticity_token': self._connection.get_token()}
-        request = self._connection.post('aspects/{0}'.format(aspect_id), data=data)
+        request = self._connection.post('aspects/{0}'.format(id), data=data)
         if request.status_code not in [200, 302, 500]:
             raise Exception('wrong status code: {0}: cannot remove aspect'.format(request.status_code))
 

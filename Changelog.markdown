@@ -21,7 +21,7 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
-#### Version `0.4.1` (2013-08-):
+#### Version `0.4.1` (2013-09-):
 
 Login and authentication procedure backend received major changes in this version.
 There are no longer `username` and `password` variables in `Connection` object.
@@ -29,6 +29,12 @@ Instead, credentials are stored (together with the token) in single variable `_l
 This is preserved until you call `login()` at which point credentials are erased and
 only token is left -- it can be obtained by calling `repr(Connection)`.
 
+Also, this release is compatible with DIASPORA\* 0.2.0.0 but should still support
+pods running on older versions.
+
+And the test suite was updated. Yay!
+
+**`0.4.1-rc.1` (2013-09-02):**
 
 * __new__:  `__getitem__()` in `diaspy.models.Post`,
 * __new__:  `__dict__()` in `diaspy.models.Post`,
@@ -40,7 +46,8 @@ only token is left -- it can be obtained by calling `repr(Connection)`.
 * __new__:  `downloadPhotos()` method in `diaspy.settings.Settings`,
 * __new__:  `backtime` argument in `more()` method in `diaspy.streams.Generic`,
 * __new__:  `DiaspyError` will be raised when connection is created with empty password and/or username,
-* __new__:  `getSessionToken()` method in `diaspy.connection.Connection`,
+* __new__:  `getSessionToken()` method in `diaspy.connection.Connection` returns string from `_diaspora_session` cookie,
+* __new__:  `direct` parameter in `diaspy.connection.Connection().get()` allowing to disable pod expansion,
 
 * __upd__:  if `Post()` is created with fetched comments, data will also be fetched as a dependency,
 * __upd__:  `id` argument type is now `int` (`diaspy.models.Post.__init__()`),
@@ -49,6 +56,7 @@ only token is left -- it can be obtained by calling `repr(Connection)`.
 * __upd__:  `LoginError` moved to `diaspy.errors`,
 * __upd__:  `TokenError` moved to `diaspy.errors`,
 * __upd__:  `diaspy.connection.Connection.podswitch()` gained two new positional arguments: `username` and `password`,
+* __upd__:  `aspect_id` renamed to `id` in `diaspy.streams.Aspects().remove()`,
 
 * __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
             (html tag removal, so you get nicer notifications),

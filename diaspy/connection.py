@@ -54,7 +54,7 @@ class Connection():
         """
         return self._token
 
-    def get(self, string, headers={}, params={}):
+    def get(self, string, headers={}, params={}, direct=False):
         """This method gets data from session.
         Performs additional checks if needed.
 
@@ -63,8 +63,12 @@ class Connection():
 
         :param string: URL to get without the pod's URL and slash eg. 'stream'.
         :type string: str
+        :param direct: if passed as True it will not be expanded
+        :type direct: bool
         """
-        return self._session.get('{0}/{1}'.format(self.pod, string), params=params, headers=headers)
+        if not direct: url = '{0}/{1}'.format(self.pod, string)
+        else: url = string
+        return self._session.get(url, params=params, headers=headers)
 
     def post(self, string, data, headers={}, params={}):
         """This method posts data to session.
@@ -122,11 +126,10 @@ class Connection():
         Raises LoginError if login failed.
         """
         request = self.post('users/sign_in',
-                            data=self._login_data,
-                            headers={'accept': 'application/json,text/html'})
+                            data=self._login_data)
         if request.status_code not in [200, 201]:
             raise errors.LoginError('{0}: login failed'.format(request.status_code))
-        print(request.headers)
+        self._diaspora_session = request.cookies['_diaspora_session']
 
     def login(self, username='', password=''):
         """This function is used to log in to a pod.
@@ -157,15 +160,13 @@ class Connection():
 
         :returns: dict -- json formatted user info.
         """
-        if self._userdata == {} or fetch:
-            request = self.get('bookmarklet')
-            userdata = self._userinfo_regex.search(request.text)
-            if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
-            if userdata is None: raise errors.DiaspyError('cannot find user data')
-            userdata = userdata.group(1)
-            print(userdata)
-            self._userdata = json.loads(userdata)
-        return self._userdata
+        request = self.get('bookmarklet')
+        userdata = self._userinfo_regex.search(request.text)
+        if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
+        if userdata is None: raise errors.DiaspyError('cannot find user data')
+        userdata = userdata.group(1)
+        warnings.warn(userdata)
+        return json.loads(userdata)
 
     def _fetchtoken(self):
         """This method tries to get token string needed for authentication on D*.
@@ -177,9 +178,15 @@ class Connection():
         self._token = token
         return token
 
-    def get_token(self, fetch=False):
+    def get_token(self, fetch=True):
         """This function returns a token needed for authentication in most cases.
         **Notice:** using repr() is recommended method for getting token.
+
+        Each time it is run a _fetchtoken() is called and refreshed token is stored.
+
+        It is more safe to use than _fetchtoken().
+        By setting new you can request new token or decide to get stored one.
+        If no token is stored new one will be fetched anyway.
 
         :returns: string -- token used to authenticate
         """

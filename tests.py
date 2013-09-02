@@ -40,6 +40,15 @@ test_connection = diaspy.connection.Connection(pod=__pod__, username=__username_
 test_connection.login()
 print('[ CONNECTED ]\n')
 
+# Setup test aspects
+print('Adding test aspects...\t', end='')
+diaspy.streams.Aspects(test_connection).add(testconf.test_aspect_name_fake)
+testconf.test_aspect_id = diaspy.streams.Aspects(test_connection).add(testconf.test_aspect_name).id
+print('OK')
+
+print([i['name'] for i in test_connection.getUserInfo()['aspects']])
+
+
 post_text = '#diaspy test no. {0}'.format(test_count)
 
 
@@ -66,6 +75,32 @@ class MessagesTests(unittest.TestCase):
         if mailbox: 
             for i in range(len(mailbox)):
                 self.assertEqual(diaspy.models.Conversation, type(mailbox[i]))
+
+
+class AspectsTests(unittest.TestCase):
+    def testAspectsGettingID(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        id = aspects.getAspectID(testconf.test_aspect_name)
+        self.assertEqual(testconf.test_aspect_id, id)
+
+    def testAspectsRemoveById(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        for i in test_connection.getUserInfo()['aspects']:
+            if i['name'] == testconf.test_aspect_name:
+                print(i['id'], end=' ')
+                aspects.remove(id=i['id'])
+                break
+        names = [i['name'] for i in test_connection.getUserInfo()['aspects']]
+        print(names)
+        self.assertNotIn(testconf.test_aspect_name, names)
+
+    def testAspectsRemoveByName(self):
+        aspects = diaspy.streams.Aspects(test_connection)
+        print(testconf.test_aspect_name_fake, end=' ')
+        aspects.remove(name=testconf.test_aspect_name_fake)
+        names = [i['name'] for i in test_connection.getUserInfo()['aspects']]
+        print(names)
+        self.assertNotIn(testconf.test_aspect_name_fake, names)
 
 
 class StreamTest(unittest.TestCase):
@@ -106,26 +141,6 @@ class StreamTest(unittest.TestCase):
     def testingAddingTag(self):
         ft = diaspy.streams.FollowedTags(test_connection)
         ft.add('test')
-
-    def testAspectsAdd(self):
-        aspects = diaspy.streams.Aspects(test_connection)
-        aspects.add(testconf.test_aspect_name_fake)
-        testconf.test_aspect_id = aspects.add(testconf.test_aspect_name).id
-
-    def testAspectsGettingID(self):
-        aspects = diaspy.streams.Aspects(test_connection)
-        id = aspects.getAspectID(testconf.test_aspect_name)
-        self.assertEqual(testconf.test_aspect_id, id)
-
-    def testAspectsRemoveById(self):
-        aspects = diaspy.streams.Aspects(test_connection)
-        aspects.remove(testconf.test_aspect_id)
-        self.assertEqual(-1, aspects.getAspectID(testconf.test_aspect_name))
-
-    def testAspectsRemoveByName(self):
-        aspects = diaspy.streams.Aspects(test_connection)
-        aspects.remove(name=testconf.test_aspect_name_fake)
-        self.assertEqual(-1, aspects.getAspectID(testconf.test_aspect_name_fake))
 
     def testActivity(self):
         activity = diaspy.streams.Activity(test_connection)

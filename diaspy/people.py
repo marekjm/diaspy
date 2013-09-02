@@ -99,7 +99,7 @@ class User():
         """Fetch user data and posts using Diaspora handle.
         """
         pod, user = sephandle(self.handle)
-        request = self._connection.session.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user))
+        request = self._connection.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user), direct=True)
         self._postproc(request)
 
     def fetchguid(self):
