@@ -17,6 +17,7 @@ class Connection():
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
+    _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
 
     def __init__(self, pod, username='', password='', schema='https'):
         """
@@ -30,7 +31,9 @@ class Connection():
         self.pod = pod
         self._session = requests.Session()
         self._login_data = {}
+        self._userdata = {}
         self._token = ''
+        self._diaspora_session = ''
         try:
             self._setlogin(username, password)
         except requests.exceptions.MissingSchema:
@@ -120,9 +123,10 @@ class Connection():
         """
         request = self.post('users/sign_in',
                             data=self._login_data,
-                            headers={'accept': 'application/json'})
-        if request.status_code != 201:
+                            headers={'accept': 'application/json,text/html'})
+        if request.status_code not in [200, 201]:
             raise errors.LoginError('{0}: login failed'.format(request.status_code))
+        print(request.headers)
 
     def login(self, username='', password=''):
         """This function is used to log in to a pod.
@@ -148,16 +152,20 @@ class Connection():
         self._setlogin(username, password)
         self._login()
 
-    def getUserInfo(self):
+    def getUserInfo(self, fetch=False):
         """This function returns the current user's attributes.
 
         :returns: dict -- json formatted user info.
         """
-        request = self.get('bookmarklet')
-        userdata = self._userinfo_regex.search(request.text)
-        if userdata is None: raise errors.DiaspyError('cannot find user data')
-        userdata = json.loads(userdata.group(1))
-        return userdata
+        if self._userdata == {} or fetch:
+            request = self.get('bookmarklet')
+            userdata = self._userinfo_regex.search(request.text)
+            if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
+            if userdata is None: raise errors.DiaspyError('cannot find user data')
+            userdata = userdata.group(1)
+            print(userdata)
+            self._userdata = json.loads(userdata)
+        return self._userdata
 
     def _fetchtoken(self):
         """This method tries to get token string needed for authentication on D*.
@@ -183,3 +191,8 @@ class Connection():
         finally:
             if not self._token: raise errors.TokenError('cannot obtain token and no previous token found for reuse')
         return self._token
+
+    def getSessionToken(self):
+        """Returns session token string (_diaspora_session).
+        """
+        return self._diaspora_session

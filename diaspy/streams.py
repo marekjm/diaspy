@@ -58,7 +58,7 @@ class Generic():
         if max_time:
             params['max_time'] = max_time
             params['_'] = int(time.time() * 1000)
-        request = self._connection.get(self._location, params=params)
+        request = self._connection.get(self._location, params=params, headers={'cookie': ''})
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         return [Post(self._connection, post['id']) for post in request.json()]

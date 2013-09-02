@@ -40,6 +40,7 @@ only token is left -- it can be obtained by calling `repr(Connection)`.
 * __new__:  `downloadPhotos()` method in `diaspy.settings.Settings`,
 * __new__:  `backtime` argument in `more()` method in `diaspy.streams.Generic`,
 * __new__:  `DiaspyError` will be raised when connection is created with empty password and/or username,
+* __new__:  `getSessionToken()` method in `diaspy.connection.Connection`,
 
 * __upd__:  if `Post()` is created with fetched comments, data will also be fetched as a dependency,
 * __upd__:  `id` argument type is now `int` (`diaspy.models.Post.__init__()`),
@@ -51,6 +52,7 @@ only token is left -- it can be obtained by calling `repr(Connection)`.
 
 * __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
             (html tag removal, so you get nicer notifications),
+* __fix__:  fixed authentication issues,
 
 
 ----

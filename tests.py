@@ -202,7 +202,7 @@ class PostTests(unittest.TestCase):
 
 
 class NotificationsTests(unittest.TestCase):
-    def testMarkgingRead(self):
+    def testMarkingRead(self):
         notifications = diaspy.notifications.Notifications(test_connection)
         notif = None
         for n in notifications:
