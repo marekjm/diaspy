@@ -1,4 +1,4 @@
-## Changelog for `diaspy`, unofficla Diaspora\* API for Python
+## Changelog for `diaspy`, unofficial DIASPORA\* interface for Python
 
 This changelog file follows few rules:
 
