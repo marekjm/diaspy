@@ -38,6 +38,12 @@ And the test suite was updated. Yay!
 
 * __new__:  `diaspy.search.Search.tags()` method for getting tag suggestions,
 
+* __upd__:  `remeber_me` parameter in `diaspy.connection.Connection.login()`,
+* __upd__:  you must supply `username` and `password` parameters on init of `diaspy.connection.Connection`,
+
+* __rem__:  `username` and `password` parameters removed from `diaspy.connection.Connection.login()`
+            must be supplied on init,
+
 
 **`0.4.1-rc.1` (2013-09-02):**
 
