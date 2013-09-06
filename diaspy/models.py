@@ -135,7 +135,7 @@ class Aspect():
         :param user_id: user to remove from aspect
         :type user: int
         """
-        data = {'authenticity_token': self._connection.get_token(),
+        data = {'authenticity_token': repr(self._connection),
                 'aspect_id': self.id,
                 'person_id': user_id}
         request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)

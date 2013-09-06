@@ -4,6 +4,9 @@
 """
 
 
+from diaspy import errors
+
+
 class Search():
     """This object is used for searching for content on Diaspora*.
     """
@@ -26,8 +29,20 @@ class Search():
         data of found users.
         """
         request = self._connection.get('people.json', params={'q': query, 'utf-8': '%u2713'})
-        if request.status_code == 200:
-            result = request.json()
-        else:
+        if request.status_code != 200:
             raise errors.SearchError('wrong status code: {0}'.format(request.status_code))
-        return result
+        return request.json()
+
+    def tags(self, query, limit=10):
+        """Retrieve tag suggestions.
+
+        :param query: query used to search
+        :type query: str
+        :param limit: maxmal number of suggestions returned
+        :type limit: int
+        """
+        params = {'q': query, 'limit': limit}
+        request = self._connection.get('tags', params=params, headers={'x-csrf-token': repr(self._connection)})
+        if request.status_code != 200:
+            raise errors.SearchError('wrong status code: {0}'.format(request.status_code))
+        return [i['name'] for i in request.json()]

@@ -34,6 +34,11 @@ pods running on older versions.
 
 And the test suite was updated. Yay!
 
+**`0.4.1-rc.2` (2013-09-06):**
+
+* __new__:  `diaspy.search.Search.tags()` method for getting tag suggestions,
+
+
 **`0.4.1-rc.1` (2013-09-02):**
 
 * __new__:  `__getitem__()` in `diaspy.models.Post`,

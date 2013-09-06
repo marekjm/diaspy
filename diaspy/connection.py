@@ -52,7 +52,7 @@ class Connection():
             repr(connection)
         instead of calling a specified method.
         """
-        return self._token
+        return self._fetchtoken()
 
     def get(self, string, headers={}, params={}, direct=False):
         """This method gets data from session.
