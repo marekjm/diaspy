@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+
+"""This module abstracts connection to pod.
+"""
+
+
 import re
 import requests
 import json
@@ -8,8 +13,7 @@ import warnings
 from diaspy import errors
 
 
-"""This module abstracts connection to pod.
-"""
+DEBUG = True
 
 
 class Connection():
@@ -19,7 +23,7 @@ class Connection():
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
     _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
 
-    def __init__(self, pod, username='', password='', schema='https'):
+    def __init__(self, pod, username, password, schema='https'):
         """
         :param pod: The complete url of the diaspora pod to use.
         :type pod: str
@@ -30,21 +34,34 @@ class Connection():
         """
         self.pod = pod
         self._session = requests.Session()
-        self._login_data = {}
+        self._login_data = {'user[remember_me]': 1, 'utf8': '✓'}
         self._userdata = {}
         self._token = ''
         self._diaspora_session = ''
+        self._cookies = self._fetchcookies()
         try:
-            self._setlogin(username, password)
+            #self._setlogin(username, password)
+            self._login_data = {'user[username]': username,
+                                'user[password]': password,
+                                'authenticity_token': self._fetchtoken()}
+            success = True
         except requests.exceptions.MissingSchema:
             self.pod = '{0}://{1}'.format(schema, self.pod)
             warnings.warn('schema was missing')
+            success = False
         finally:
             pass
         try:
-            self._setlogin(username, password)
+            if not success:
+                self._login_data = {'user[username]': username,
+                                    'user[password]': password,
+                                    'authenticity_token': self._fetchtoken()}
         except Exception as e:
             raise errors.LoginError('cannot create login data (caused by: {0})'.format(e))
+
+    def _fetchcookies(self):
+        request = self.get('stream')
+        return request.cookies
 
     def __repr__(self):
         """Returns token string.
@@ -54,7 +71,7 @@ class Connection():
         """
         return self._fetchtoken()
 
-    def get(self, string, headers={}, params={}, direct=False):
+    def get(self, string, headers={}, params={}, direct=False, **kwargs):
         """This method gets data from session.
         Performs additional checks if needed.
 
@@ -68,9 +85,9 @@ class Connection():
         """
         if not direct: url = '{0}/{1}'.format(self.pod, string)
         else: url = string
-        return self._session.get(url, params=params, headers=headers)
+        return self._session.get(url, params=params, headers=headers, **kwargs)
 
-    def post(self, string, data, headers={}, params={}):
+    def post(self, string, data, headers={}, params={}, **kwargs):
         """This method posts data to session.
         Performs additional checks if needed.
 
@@ -86,18 +103,18 @@ class Connection():
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self._session.post(string, data, headers=headers, params=params)
+        request = self._session.post(string, data, headers=headers, params=params, **kwargs)
         return request
 
-    def put(self, string, data=None, headers={}, params={}):
+    def put(self, string, data=None, headers={}, params={}, **kwargs):
         """This method PUTs to session.
         """
         string = '{0}/{1}'.format(self.pod, string)
-        if data is not None: request = self._session.put(string, data, headers=headers, params=params)
-        else: request = self._session.put(string, headers=headers, params=params)
+        if data is not None: request = self._session.put(string, data, headers=headers, params=params, **kwargs)
+        else: request = self._session.put(string, headers=headers, params=params, **kwargs)
         return request
 
-    def delete(self, string, data, headers={}):
+    def delete(self, string, data, headers={}, **kwargs):
         """This method lets you send delete request to session.
         Performs additional checks if needed.
 
@@ -108,7 +125,7 @@ class Connection():
         :type headers: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self._session.delete(string, data=data, headers=headers)
+        request = self._session.delete(string, data=data, headers=headers, **kwargs)
         return request
 
     def _setlogin(self, username, password):
@@ -126,20 +143,22 @@ class Connection():
         Raises LoginError if login failed.
         """
         request = self.post('users/sign_in',
-                            data=self._login_data)
-        if request.status_code not in [200, 201]:
+                            data=self._login_data,
+                            allow_redirects=False)
+        if request.status_code != 302:
             raise errors.LoginError('{0}: login failed'.format(request.status_code))
-        self._diaspora_session = request.cookies['_diaspora_session']
+        return request.status_code
 
-    def login(self, username='', password=''):
+    def login(self, remember_me=1):
         """This function is used to log in to a pod.
         Will raise LoginError if password or username was not specified.
         """
-        if username and password: self._setlogin(username, password)
         if not self._login_data['user[username]'] or not self._login_data['user[password]']:
             raise errors.LoginError('username and/or password is not specified')
-        self._login()
+        self._login_data['user[remember_me]'] = remember_me
+        status = self._login()
         self._login_data = {}
+        return status
 
     def logout(self):
         """Logs out from a pod.
@@ -174,6 +193,7 @@ class Connection():
         :returns: token string
         """
         request = self.get('stream')
+        if DEBUG: print('_fetchtoken(): status code:', request.status_code)
         token = self._token_regex.search(request.text).group(1)
         self._token = token
         return token
@@ -191,8 +211,7 @@ class Connection():
         :returns: string -- token used to authenticate
         """
         try:
-            if fetch: self._fetchtoken()
-            if not self._token: self._fetchtoken()
+            if fetch or not self._token: self._fetchtoken()
         except requests.exceptions.ConnectionError as e:
             warnings.warn('{0} was cought: reusing old token'.format(e))
         finally:

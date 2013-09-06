@@ -11,6 +11,38 @@ import warnings
 from diaspy import errors, streams
 
 
+class Profile():
+    """Provides profile editing methods.
+    """
+    def __init__(self, connection):
+        self._connection = connection
+        self.data = {'utf-8': '✓',
+                     '_method': 'put',
+                     'profile[first_name]': '',
+                     'profile[last_name]': '',
+                     'profile[tag_string]': '',
+                     'tags': '',
+                     'file': '',
+                     'profile[bio]': '',
+                     'profile[location]': '',
+                     'profile[gender]': '',
+                     'profile[date][year]': '',
+                     'profile[date][month]': '',
+                     'profile[date][day]': '',
+                     }
+
+    def setName(self, first='', last=''):
+        """Set first name.
+        """
+        data = self.data
+        data['profile[first_name]'] = first
+        data['profile[last_name]'] = last
+        data['authenticity_token'] = repr(self._connection)
+        print(data)
+        request = self._connection.post('profile', data=data, allow_redirects=False)
+        return request.status_code
+
+
 class Settings():
     """This object is used to get access to user's settings on
     Diaspora* and provides interface for downloading user's stuff.
@@ -70,8 +102,8 @@ class Settings():
     def setEmail(self, email):
         """Changes user's email.
         """
-        data = {'_method': 'put', 'utf-8': '✓', 'user[email]': email, 'authenticity_token': repr(self._connection)}
-        request = self._connection.post('user')
+        data = {'_method': 'put', 'utf8': '✓', 'user[email]': email, 'authenticity_token': repr(self._connection)}
+        request = self._connection.post('user', data=data, allow_redirects=False)
 
     def getEmail(self):
         """Returns currently used email.
@@ -88,19 +120,20 @@ class Settings():
 
         :param lang: language identifier from getLanguages()
         """
-        data = {'_method': 'put', 'utf-8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
-        request = self._connection.post('user', data=data)
+        data = {'_method': 'put', 'utf8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
+        request = self._connection.post('user', data=data, allow_redirects=False)
+        return request.status_code
 
     def getLanguages(self):
         """Returns a list of tuples containing ('Language name', 'identifier').
         One of the Black Magic(tm) methods.
         """
-        select_start = '<select id="user_language" name="user[language]">'
-        select_end = '</select>'
+        selection_start = '<select id="user_language" name="user[language]">'
+        selection_end = '</select>'
         languages = []
         request = self._connection.get('user/edit')
-        data = request.text[request.text.find(select_start)+len(select_start):]
-        data = data[:data.find(select_end)].split('\n')
+        data = request.text[request.text.find(selection_start)+len(selection_start):]
+        data = data[:data.find(selection_end)].split('\n')
         for item in data:
             name = item[item.find('>')+1:item.rfind('<')]
             identifier = item[item.find('"')+1:]
