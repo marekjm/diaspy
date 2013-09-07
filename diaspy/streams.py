@@ -218,7 +218,7 @@ class Stream(Generic):
     """
     location = 'stream.json'
 
-    def post(self, text='', aspect_ids='public', photos=None, photo=''):
+    def post(self, text='', aspect_ids='public', photos=None, photo='', provider_display_name=''):
         """This function sends a post to an aspect.
         If both `photo` and `photos` are specified `photos` takes precedence.
 
@@ -230,12 +230,14 @@ class Stream(Generic):
         :type photo: str
         :param photos: id of photo to post (obtained from _photoupload())
         :type photos: int
+        :param provider_display_name: name of provider displayed under the post
+        :type provider_display_name: str
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
         data = {}
         data['aspect_ids'] = aspect_ids
-        data['status_message'] = {'text': text}
+        data['status_message'] = {'text': text, 'provider_display_name': provider_display_name}
         if photo: data['photos'] = self._photoupload(photo)
         if photos: data['photos'] = photos
 
