@@ -14,6 +14,17 @@ from diaspy import errors, streams
 class Profile():
     """Provides profile editing methods.
     """
+    firstname_regexp = re.compile('<input id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
+    lastname_regexp = re.compile('<input id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
+    bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
+    location_regexp = re.compile('<input id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    gender_regexp = re.compile('<input id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    birth_year_regexp = re.compile('<option selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
+    birth_month_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">(.*?)</option>')
+    birth_day_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
+    is_searchable_regexp = re.compile('<input checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
+    is_nsfw_regexp = re.compile('<input checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
+
     def __init__(self, connection):
         self._connection = connection
         self.data = {'utf-8': '✓',
@@ -31,6 +42,79 @@ class Profile():
                      'profile[date][day]': '',
                      }
 
+    def getName(self):
+        """Returns two-tuple: (first, last) name.
+        """
+        html = self._connection.get('profile/edit').text
+        first = self.firstname_regexp.search(html).group(1)
+        last = self.lastname_regexp.search(html).group(1)
+        return (first, last)
+
+    def getBio(self):
+        """Returns user bio.
+        """
+        html = self._connection.get('profile/edit').text
+        bio = self.bio_regexp.search(html).group(1)
+        return bio
+
+    def getLocation(self):
+        """Returns location string.
+        """
+        html = self._connection.get('profile/edit').text
+        location = self.location_regexp.search(html).group(1)
+        return location
+
+    def getGender(self):
+        """Returns location string.
+        """
+        html = self._connection.get('profile/edit').text
+        gender = self.gender_regexp.search(html).group(1)
+        return gender
+
+    def getBirthDate(self, named_month=False):
+        """Returns three-tuple: (year, month, day).
+
+        :param named_month: if True, return name of the month instead of integer
+        :type named_month: bool
+        """
+        html = self._connection.get('profile/edit').text
+        year = self.birth_year_regexp.search(html)
+        if year is None: year = -1
+        else: year = int(year.group(1))
+        month = self.birth_month_regexp.search(html)
+        if month is None:
+            if named_month: month = ''
+            else: month = -1
+        else:
+            if named_month:
+                month = month.group(2)
+            else:
+                month = int(month.group(1))
+        day = self.birth_day_regexp.search(html)
+        if day is None: day = -1
+        else: day = int(day.group(1))
+        return (year, month, day)
+
+    def isSearchable(self):
+        """Returns True if profile is searchable.
+        """
+        html = self._connection.get('profile/edit').text
+        searchable = self.is_searchable_regexp.search(html)
+        # this is because value="true" in every case so we just
+        # check if the field is "checked"
+        if searchable is None: searchable = False  # if it isn't - the regexp just won't match
+        else: searchable = True
+        return searchable
+
+    def isNSFW(self):
+        """Returns True if profile is marked as NSFW.
+        """
+        html = self._connection.get('profile/edit').text
+        nsfw = self.is_nsfw_regexp.search(html)
+        if nsfw is None: nsfw = False
+        else: nsfw = True
+        return nsfw
+
     def setName(self, first='', last=''):
         """Set first name.
         """
@@ -38,12 +122,11 @@ class Profile():
         data['profile[first_name]'] = first
         data['profile[last_name]'] = last
         data['authenticity_token'] = repr(self._connection)
-        print(data)
         request = self._connection.post('profile', data=data, allow_redirects=False)
         return request.status_code
 
 
-class Settings():
+class Account():
     """This object is used to get access to user's settings on
     Diaspora* and provides interface for downloading user's stuff.
     """

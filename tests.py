@@ -56,14 +56,6 @@ post_text = '#diaspy test no. {0}'.format(test_count)
 ####        TEST SUITE CODE        ####
 #######################################
 class ConnectionTest(unittest.TestCase):
-    def testLoginWithoutUsername(self):
-        connection = diaspy.connection.Connection(pod=__pod__)
-        self.assertRaises(diaspy.errors.LoginError, connection.login, password='foo')
-
-    def testLoginWithoutPassword(self):
-        connection = diaspy.connection.Connection(pod=__pod__)
-        self.assertRaises(diaspy.errors.LoginError, connection.login, username='user')
-
     def testGettingUserInfo(self):
         info = test_connection.getUserInfo()
         self.assertEqual(dict, type(info))
@@ -231,9 +223,31 @@ class NotificationsTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
+    profile = diaspy.settings.Profile(test_connection)
+    settings = diaspy.settings.Account(test_connection)
+
+    def testGettingName(self):
+        self.assertEqual(testconf.user_names_tuple, self.profile.getName())
+
+    def testGettingLocation(self):
+        self.assertEqual(testconf.user_location_string, self.profile.getLocation())
+
+    def testGettingGender(self):
+        self.assertEqual(testconf.user_gender_string, self.profile.getGender())
+
+    def testGettingBirthDate(self):
+        self.assertEqual(testconf.user_date_of_birth, self.profile.getBirthDate(named_month=False))
+        self.assertEqual(testconf.user_date_of_birth_named, self.profile.getBirthDate(named_month=True))
+
+    def testGettingInfoIfProfileIsSearchable(self):
+        self.assertEqual(testconf.user_is_searchable, self.profile.isSearchable())
+
+    def testGettingInfoIfProfileIsNSFW(self):
+        self.assertEqual(testconf.user_is_nsfw, self.profile.isNSFW())
+
     def testGettingLanguages(self):
-        settings = diaspy.settings.Settings(test_connection)
-        self.assertIn(('English', 'en'), settings.getLanguages())
+        self.assertIn(('English', 'en'), self.settings.getLanguages())
+
 
 if __name__ == '__main__': 
     print('Hello World!')

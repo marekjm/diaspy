@@ -18,6 +18,12 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 *docstrings* -> *docs/* -> *manual/*
 
+----
+
+#### Known issues
+
+* __bug__:  `diaspy` has problems/can't connect to pods using SNI (this is an issue with requests/urllib3/python),
+
 
 ----
 
@@ -37,9 +43,19 @@ And the test suite was updated. Yay!
 **`0.4.1-rc.2` (2013-09-06):**
 
 * __new__:  `diaspy.search.Search.tags()` method for getting tag suggestions,
+* __new__:  `diaspy.settings.Profile.getName()` method,
+* __new__:  `diaspy.settings.Profile.getBio()` method,
+* __new__:  `diaspy.settings.Profile.getLocation()` method,
+* __new__:  `diaspy.settings.Profile.getLocation()` method,
+* __new__:  `diaspy.settings.Profile.getGender()` method,
+* __new__:  `diaspy.settings.Profile.getBirthDate()` method,
+* __new__:  `diaspy.settings.Profile.isSearchable()` method,
+* __new__:  `diaspy.settings.Profile.isNSFW()` method,
 
 * __upd__:  `remeber_me` parameter in `diaspy.connection.Connection.login()`,
 * __upd__:  you must supply `username` and `password` parameters on init of `diaspy.connection.Connection`,
+* __upd__:  you must update your testconf.py (new fields are required for settings tests),
+* __upd__:  `diaspy.settings.Settings` renamed to `diaspy.settings.Account`,
 
 * __rem__:  `username` and `password` parameters removed from `diaspy.connection.Connection.login()`
             must be supplied on init,

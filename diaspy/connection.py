@@ -5,9 +5,9 @@
 """
 
 
+import json
 import re
 import requests
-import json
 import warnings
 
 from diaspy import errors
@@ -184,7 +184,6 @@ class Connection():
         if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
         if userdata is None: raise errors.DiaspyError('cannot find user data')
         userdata = userdata.group(1)
-        warnings.warn(userdata)
         return json.loads(userdata)
 
     def _fetchtoken(self):
@@ -193,7 +192,6 @@ class Connection():
         :returns: token string
         """
         request = self.get('stream')
-        if DEBUG: print('_fetchtoken(): status code:', request.status_code)
         token = self._token_regex.search(request.text).group(1)
         self._token = token
         return token
