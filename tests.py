@@ -246,7 +246,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(testconf.user_is_nsfw, self.profile.isNSFW())
 
     def testGettingTags(self):
-        self.assertEqual(sorted(testconf.user_tags), sorted(profile.getTags()))
+        self.assertEqual(sorted(testconf.user_tags), sorted(self.profile.getTags()))
 
     def testGettingLanguages(self):
         self.assertIn(('English', 'en'), self.account.getLanguages())

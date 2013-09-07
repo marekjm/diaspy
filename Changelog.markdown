@@ -46,11 +46,12 @@ And the test suite was updated. Yay!
 * __new__:  `diaspy.settings.Profile.getName()` method,
 * __new__:  `diaspy.settings.Profile.getBio()` method,
 * __new__:  `diaspy.settings.Profile.getLocation()` method,
-* __new__:  `diaspy.settings.Profile.getLocation()` method,
+* __new__:  `diaspy.settings.Profile.getTags()` method,
 * __new__:  `diaspy.settings.Profile.getGender()` method,
 * __new__:  `diaspy.settings.Profile.getBirthDate()` method,
 * __new__:  `diaspy.settings.Profile.isSearchable()` method,
 * __new__:  `diaspy.settings.Profile.isNSFW()` method,
+* __new__:  `provider_display_name` parameter in `diaspy.streams.Stream.post()` (thanks @svbergerem),
 
 * __upd__:  `remeber_me` parameter in `diaspy.connection.Connection.login()`,
 * __upd__:  you must supply `username` and `password` parameters on init of `diaspy.connection.Connection`,
