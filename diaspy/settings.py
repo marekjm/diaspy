@@ -41,34 +41,67 @@ class Profile():
                      'profile[date][month]': '',
                      'profile[date][day]': '',
                      }
+        self._html = self._fetchhtml()
+        self._loaded = False
+
+    def _fetchhtml(self):
+        """Fetches html that will be used to extract data.
+        """
+        return self._connection.get('profile/edit').text
+
+    def load(self):
+        """Loads profile data into self.data dictionary.
+        **Notice:** Not all keys are loaded yet.
+        """
+        self.data['profile[first_name]'], self.data['profile[last_name]'] = self.getName()
+        self.data['profile[bio]'] = self.getBio()
+        self.data['profile[location]'] = self.getLocation()
+        self.data['profile[gender]'] = self.getGender()
+        year, month, day = self.getBirthDate(named_month=False)
+        self.data['profile[date][]'] = year
+        self.data['profile[date][]'] = month
+        self.data['profile[date][]'] = day
+        self._loaded = True
+
+    def update(self):
+        """Updates profile information.
+        """
+        if not self._loaded: raise errors.DiaspyError('profile was not loaded')
+        data['authenticity_token'] = repr(self._connection)
+        request = self._connection.post('profile', data=json.dumps(data), allow_redirects=False)
+        return request.status_code
 
     def getName(self):
         """Returns two-tuple: (first, last) name.
         """
-        html = self._connection.get('profile/edit').text
-        first = self.firstname_regexp.search(html).group(1)
-        last = self.lastname_regexp.search(html).group(1)
+        first = self.firstname_regexp.search(self._html).group(1)
+        last = self.lastname_regexp.search(self._html).group(1)
         return (first, last)
+
+    def getTags(self):
+        """Returns tags user had selected when describing him/her-self.
+        """
+        guid = self._connection.getUserInfo()['guid']
+        html = self._connection.get('people/{0}'.format(guid)).text
+        description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
+        return [tag.lower() for tag in re.findall(description_regexp, html)]
 
     def getBio(self):
         """Returns user bio.
         """
-        html = self._connection.get('profile/edit').text
-        bio = self.bio_regexp.search(html).group(1)
+        bio = self.bio_regexp.search(self._html).group(1)
         return bio
 
     def getLocation(self):
         """Returns location string.
         """
-        html = self._connection.get('profile/edit').text
-        location = self.location_regexp.search(html).group(1)
+        location = self.location_regexp.search(self._html).group(1)
         return location
 
     def getGender(self):
         """Returns location string.
         """
-        html = self._connection.get('profile/edit').text
-        gender = self.gender_regexp.search(html).group(1)
+        gender = self.gender_regexp.search(self._html).group(1)
         return gender
 
     def getBirthDate(self, named_month=False):
@@ -77,11 +110,10 @@ class Profile():
         :param named_month: if True, return name of the month instead of integer
         :type named_month: bool
         """
-        html = self._connection.get('profile/edit').text
-        year = self.birth_year_regexp.search(html)
+        year = self.birth_year_regexp.search(self._html)
         if year is None: year = -1
         else: year = int(year.group(1))
-        month = self.birth_month_regexp.search(html)
+        month = self.birth_month_regexp.search(self._html)
         if month is None:
             if named_month: month = ''
             else: month = -1
@@ -90,7 +122,7 @@ class Profile():
                 month = month.group(2)
             else:
                 month = int(month.group(1))
-        day = self.birth_day_regexp.search(html)
+        day = self.birth_day_regexp.search(self._html)
         if day is None: day = -1
         else: day = int(day.group(1))
         return (year, month, day)
@@ -98,8 +130,7 @@ class Profile():
     def isSearchable(self):
         """Returns True if profile is searchable.
         """
-        html = self._connection.get('profile/edit').text
-        searchable = self.is_searchable_regexp.search(html)
+        searchable = self.is_searchable_regexp.search(self._html)
         # this is because value="true" in every case so we just
         # check if the field is "checked"
         if searchable is None: searchable = False  # if it isn't - the regexp just won't match
@@ -109,21 +140,10 @@ class Profile():
     def isNSFW(self):
         """Returns True if profile is marked as NSFW.
         """
-        html = self._connection.get('profile/edit').text
-        nsfw = self.is_nsfw_regexp.search(html)
+        nsfw = self.is_nsfw_regexp.search(self._html)
         if nsfw is None: nsfw = False
         else: nsfw = True
         return nsfw
-
-    def setName(self, first='', last=''):
-        """Set first name.
-        """
-        data = self.data
-        data['profile[first_name]'] = first
-        data['profile[last_name]'] = last
-        data['authenticity_token'] = repr(self._connection)
-        request = self._connection.post('profile', data=data, allow_redirects=False)
-        return request.status_code
 
 
 class Account():

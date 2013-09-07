@@ -224,7 +224,7 @@ class NotificationsTests(unittest.TestCase):
 
 class SettingsTests(unittest.TestCase):
     profile = diaspy.settings.Profile(test_connection)
-    settings = diaspy.settings.Account(test_connection)
+    account = diaspy.settings.Account(test_connection)
 
     def testGettingName(self):
         self.assertEqual(testconf.user_names_tuple, self.profile.getName())
@@ -245,8 +245,11 @@ class SettingsTests(unittest.TestCase):
     def testGettingInfoIfProfileIsNSFW(self):
         self.assertEqual(testconf.user_is_nsfw, self.profile.isNSFW())
 
+    def testGettingTags(self):
+        self.assertEqual(sorted(testconf.user_tags), sorted(profile.getTags()))
+
     def testGettingLanguages(self):
-        self.assertIn(('English', 'en'), self.settings.getLanguages())
+        self.assertIn(('English', 'en'), self.account.getLanguages())
 
 
 if __name__ == '__main__': 

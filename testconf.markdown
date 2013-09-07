@@ -17,26 +17,28 @@ Template file:
 
 
     # Your login details
-    __pod__ = 'https://pod.orkz.net'
-    __username__ = 'marekjm'
-    __passwd__ = 'mAreKJmonDiASporA'
+    __pod__ = 'https://pod.example.com'
+    __username__ = 'user'
+    __passwd__ = 'password'
 
 
     # D* identifiers
-    diaspora_id = 'marekjm@pod.orkz.net'
-    guid = 'fd4ac447f2d267fa'
+    diaspora_id = 'user@pod.example.com'
+    guid = 'abcdef01234678'
 
 
     # Details of your account
-    diaspora_name = 'Marek Marecki'
-    user_names_tuple = ('Marek', 'Marecki')
-    user_location_string = 'Poland'
-    user_gender_string = 'Dude'
-    user_date_of_birth = (1995, 3, 22)
+    diaspora_name = 'Foo Bar'
+    user_names_tuple = ('Foo', 'Bar')
+    user_location_string = 'Nowhere'
+    user_gender_string = 'Gender'
+    user_date_of_birth = (2013, 9, 7)
     # remember about language you've set!
-    user_date_of_birth_named = (1995, 'March', 22)
+    user_date_of_birth_named = (2013, 'September', 7)
     user_is_searchable = True
     user_is_nsfw = False
+    # five tags you use to describe yourself (all in lowercase)
+    user_tags = ['movies', 'kittens', 'travel', 'teacher', 'newyork']
 
 
     # both names are created
