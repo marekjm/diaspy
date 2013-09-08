@@ -11,148 +11,12 @@ import warnings
 from diaspy import errors, streams
 
 
-class Profile():
-    """Provides profile editing methods.
-    """
-    firstname_regexp = re.compile('<input id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
-    lastname_regexp = re.compile('<input id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
-    bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
-    location_regexp = re.compile('<input id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-    gender_regexp = re.compile('<input id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-    birth_year_regexp = re.compile('<option selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
-    birth_month_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">(.*?)</option>')
-    birth_day_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
-    is_searchable_regexp = re.compile('<input checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
-    is_nsfw_regexp = re.compile('<input checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
-
-    def __init__(self, connection):
-        self._connection = connection
-        self.data = {'utf-8': '✓',
-                     '_method': 'put',
-                     'profile[first_name]': '',
-                     'profile[last_name]': '',
-                     'profile[tag_string]': '',
-                     'tags': '',
-                     'file': '',
-                     'profile[bio]': '',
-                     'profile[location]': '',
-                     'profile[gender]': '',
-                     'profile[date][year]': '',
-                     'profile[date][month]': '',
-                     'profile[date][day]': '',
-                     }
-        self._html = self._fetchhtml()
-        self._loaded = False
-
-    def _fetchhtml(self):
-        """Fetches html that will be used to extract data.
-        """
-        return self._connection.get('profile/edit').text
-
-    def load(self):
-        """Loads profile data into self.data dictionary.
-        **Notice:** Not all keys are loaded yet.
-        """
-        self.data['profile[first_name]'], self.data['profile[last_name]'] = self.getName()
-        self.data['profile[bio]'] = self.getBio()
-        self.data['profile[location]'] = self.getLocation()
-        self.data['profile[gender]'] = self.getGender()
-        year, month, day = self.getBirthDate(named_month=False)
-        self.data['profile[date][]'] = year
-        self.data['profile[date][]'] = month
-        self.data['profile[date][]'] = day
-        self._loaded = True
-
-    def update(self):
-        """Updates profile information.
-        """
-        if not self._loaded: raise errors.DiaspyError('profile was not loaded')
-        data['authenticity_token'] = repr(self._connection)
-        request = self._connection.post('profile', data=json.dumps(data), allow_redirects=False)
-        return request.status_code
-
-    def getName(self):
-        """Returns two-tuple: (first, last) name.
-        """
-        first = self.firstname_regexp.search(self._html).group(1)
-        last = self.lastname_regexp.search(self._html).group(1)
-        return (first, last)
-
-    def getTags(self):
-        """Returns tags user had selected when describing him/her-self.
-        """
-        guid = self._connection.getUserInfo()['guid']
-        html = self._connection.get('people/{0}'.format(guid)).text
-        description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
-        return [tag.lower() for tag in re.findall(description_regexp, html)]
-
-    def getBio(self):
-        """Returns user bio.
-        """
-        bio = self.bio_regexp.search(self._html).group(1)
-        return bio
-
-    def getLocation(self):
-        """Returns location string.
-        """
-        location = self.location_regexp.search(self._html).group(1)
-        return location
-
-    def getGender(self):
-        """Returns location string.
-        """
-        gender = self.gender_regexp.search(self._html).group(1)
-        return gender
-
-    def getBirthDate(self, named_month=False):
-        """Returns three-tuple: (year, month, day).
-
-        :param named_month: if True, return name of the month instead of integer
-        :type named_month: bool
-        """
-        year = self.birth_year_regexp.search(self._html)
-        if year is None: year = -1
-        else: year = int(year.group(1))
-        month = self.birth_month_regexp.search(self._html)
-        if month is None:
-            if named_month: month = ''
-            else: month = -1
-        else:
-            if named_month:
-                month = month.group(2)
-            else:
-                month = int(month.group(1))
-        day = self.birth_day_regexp.search(self._html)
-        if day is None: day = -1
-        else: day = int(day.group(1))
-        return (year, month, day)
-
-    def isSearchable(self):
-        """Returns True if profile is searchable.
-        """
-        searchable = self.is_searchable_regexp.search(self._html)
-        # this is because value="true" in every case so we just
-        # check if the field is "checked"
-        if searchable is None: searchable = False  # if it isn't - the regexp just won't match
-        else: searchable = True
-        return searchable
-
-    def isNSFW(self):
-        """Returns True if profile is marked as NSFW.
-        """
-        nsfw = self.is_nsfw_regexp.search(self._html)
-        if nsfw is None: nsfw = False
-        else: nsfw = True
-        return nsfw
-
-
 class Account():
-    """This object is used to get access to user's settings on
-    Diaspora* and provides interface for downloading user's stuff.
+    """Provides interface to account settings.
     """
     def __init__(self, connection):
         self._connection = connection
-    
+
     def downloadxml(self):
         """Returns downloaded XML.
         """
@@ -243,3 +107,203 @@ class Account():
             identifier = identifier[:identifier.find('"')]
             languages.append((name, identifier))
         return languages
+
+
+class Privacy():
+    """Provides interface to provacy settings.
+    """
+    def __init__(self, connection):
+        self._connection = connection
+
+
+class Profile():
+    """Provides interface to profile settigns.
+
+    WARNING:
+
+        Because of the way update requests for profile are created every field must be sent.
+        The `load()` method is used to load all information into the dictionary.
+        Setters can then be used to adjust the data.
+        Finally, `update()` can be called to send data back to pod.
+    """
+    firstname_regexp = re.compile('<input id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
+    lastname_regexp = re.compile('<input id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
+    bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
+    location_regexp = re.compile('<input id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    gender_regexp = re.compile('<input id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    birth_year_regexp = re.compile('<option selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
+    birth_month_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">(.*?)</option>')
+    birth_day_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
+    is_searchable_regexp = re.compile('<input checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
+    is_nsfw_regexp = re.compile('<input checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
+
+    def __init__(self, connection):
+        self._connection = connection
+        self.data = {'utf-8': '✓',
+                     '_method': 'put',
+                     'profile[first_name]': '',
+                     'profile[last_name]': '',
+                     'profile[tag_string]': '',
+                     'tags': '',
+                     'file': '',
+                     'profile[bio]': '',
+                     'profile[location]': '',
+                     'profile[gender]': '',
+                     'profile[date][year]': '',
+                     'profile[date][month]': '',
+                     'profile[date][day]': '',
+                     }
+        self._html = self._fetchhtml()
+        self._loaded = False
+
+    def _fetchhtml(self):
+        """Fetches html that will be used to extract data.
+        """
+        return self._connection.get('profile/edit').text
+
+    def getName(self):
+        """Returns two-tuple: (first, last) name.
+        """
+        first = self.firstname_regexp.search(self._html).group(1)
+        last = self.lastname_regexp.search(self._html).group(1)
+        return (first, last)
+
+    def getTags(self):
+        """Returns tags user had selected when describing him/her-self.
+        """
+        guid = self._connection.getUserInfo()['guid']
+        html = self._connection.get('people/{0}'.format(guid)).text
+        description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
+        return [tag.lower() for tag in re.findall(description_regexp, html)]
+
+    def getBio(self):
+        """Returns user bio.
+        """
+        bio = self.bio_regexp.search(self._html).group(1)
+        return bio
+
+    def getLocation(self):
+        """Returns location string.
+        """
+        location = self.location_regexp.search(self._html).group(1)
+        return location
+
+    def getGender(self):
+        """Returns location string.
+        """
+        gender = self.gender_regexp.search(self._html).group(1)
+        return gender
+
+    def getBirthDate(self, named_month=False):
+        """Returns three-tuple: (year, month, day).
+
+        :param named_month: if True, return name of the month instead of integer
+        :type named_month: bool
+        """
+        year = self.birth_year_regexp.search(self._html)
+        if year is None: year = -1
+        else: year = int(year.group(1))
+        month = self.birth_month_regexp.search(self._html)
+        if month is None:
+            if named_month: month = ''
+            else: month = -1
+        else:
+            if named_month:
+                month = month.group(2)
+            else:
+                month = int(month.group(1))
+        day = self.birth_day_regexp.search(self._html)
+        if day is None: day = -1
+        else: day = int(day.group(1))
+        return (year, month, day)
+
+    def isSearchable(self):
+        """Returns True if profile is searchable.
+        """
+        searchable = self.is_searchable_regexp.search(self._html)
+        # this is because value="true" in every case so we just
+        # check if the field is "checked"
+        if searchable is None: searchable = False  # if it isn't - the regexp just won't match
+        else: searchable = True
+        return searchable
+
+    def isNSFW(self):
+        """Returns True if profile is marked as NSFW.
+        """
+        nsfw = self.is_nsfw_regexp.search(self._html)
+        if nsfw is None: nsfw = False
+        else: nsfw = True
+        return nsfw
+
+    def setName(self, first, last):
+        """Set first and last name.
+        """
+        self.data['profile[first_name]'] = first
+        self.data['profile[last_name]'] = last
+
+    def setTags(self, tags):
+        """Sets tags that describe the user.
+        """
+        self.data['tags'] = ', '.join(['#{}'.format(tag) for tag in tags])
+
+    def setBio(self, bio):
+        """Set bio of a user.
+        """
+        self.data['profile[bio]'] = bio
+
+    def setLocation(self, location):
+        """Set location of a user.
+        """
+        self.data['profile[location]'] = location
+
+    def setGender(self, gender):
+        """Set gender of a user.
+        """
+        self.data['profile[gender]'] = gender
+
+    def setBirthDate(self, year, month, day):
+        """Set birth date of a user.
+        """
+        self.data['profile[date][year]'] = year
+        self.data['profile[date][month]'] = month
+        self.data['profile[date][day]'] = day
+
+    def setSearchable(self, searchable):
+        """Set user's searchable status.
+        """
+        self.data['profile[searchable]'] = json.dumps(searchable)
+
+    def setNSFW(self, nsfw):
+        """Set user NSFW status.
+        """
+        self.data['profile[nsfw]'] = json.dumps(nsfw)
+
+    def load(self):
+        """Loads profile data into self.data dictionary.
+        **Notice:** Not all keys are loaded yet.
+        """
+        self.setName(*self.getName())
+        self.setBio(self.getBio())
+        self.setLocation(self.getLocation())
+        self.setGender(self.getGender())
+        self.setBirthDate(*self.getBirthDate(named_month=False))
+        self.setSearchable(self.isSearchable())
+        self.setNSFW(self.isNSFW())
+        self.setTags(self.getTags())
+        self._loaded = True
+
+    def update(self):
+        """Updates profile information.
+        """
+        if not self._loaded: raise errors.DiaspyError('profile was not loaded')
+        self.data['authenticity_token'] = repr(self._connection)
+        print(self.data)
+        request = self._connection.post('profile', data=self.data, allow_redirects=False)
+        return request.status_code
+
+
+class Services():
+    """Provides interface to services settings.
+    """
+    def __init__(self, connection):
+        self._connection = connection

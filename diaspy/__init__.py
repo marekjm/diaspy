@@ -8,4 +8,4 @@ import diaspy.notifications as notifications
 import diaspy.settings as settings
 
 
-__version__ = '0.4.1-rc.2'
+__version__ = '0.4.1-rc.3'

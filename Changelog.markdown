@@ -40,6 +40,21 @@ pods running on older versions.
 
 And the test suite was updated. Yay!
 
+
+**`0.4.1-rc.3` (2013-09-08):**
+
+* __new__:  `diaspy.settings.Profile.load()` method for loading profile information,
+* __new__:  `diaspy.settings.Profile.update()` method for updating profile information,
+* __new__:  `diaspy.settings.Profile.setName()` method,
+* __new__:  `diaspy.settings.Profile.setBio()` method,
+* __new__:  `diaspy.settings.Profile.setLocation()` method,
+* __new__:  `diaspy.settings.Profile.setTags()` method,
+* __new__:  `diaspy.settings.Profile.setGender()` method,
+* __new__:  `diaspy.settings.Profile.setBirthDate()` method,
+* __new__:  `diaspy.settings.Profile.setSearchable()` method,
+* __new__:  `diaspy.settings.Profile.setNSFW()` method,
+
+
 **`0.4.1-rc.2` (2013-09-06):**
 
 * __new__:  `diaspy.search.Search.tags()` method for getting tag suggestions,
@@ -53,10 +68,12 @@ And the test suite was updated. Yay!
 * __new__:  `diaspy.settings.Profile.isNSFW()` method,
 * __new__:  `provider_display_name` parameter in `diaspy.streams.Stream.post()` (thanks @svbergerem),
 
+
 * __upd__:  `remeber_me` parameter in `diaspy.connection.Connection.login()`,
 * __upd__:  you must supply `username` and `password` parameters on init of `diaspy.connection.Connection`,
 * __upd__:  you must update your testconf.py (new fields are required for settings tests),
 * __upd__:  `diaspy.settings.Settings` renamed to `diaspy.settings.Account`,
+
 
 * __rem__:  `username` and `password` parameters removed from `diaspy.connection.Connection.login()`
             must be supplied on init,
@@ -77,6 +94,7 @@ And the test suite was updated. Yay!
 * __new__:  `getSessionToken()` method in `diaspy.connection.Connection` returns string from `_diaspora_session` cookie,
 * __new__:  `direct` parameter in `diaspy.connection.Connection().get()` allowing to disable pod expansion,
 
+
 * __upd__:  if `Post()` is created with fetched comments, data will also be fetched as a dependency,
 * __upd__:  `id` argument type is now `int` (`diaspy.models.Post.__init__()`),
 * __upd__:  `Search().lookup_user()` renamed to `Search().lookupUser()`,
@@ -86,8 +104,8 @@ And the test suite was updated. Yay!
 * __upd__:  `diaspy.connection.Connection.podswitch()` gained two new positional arguments: `username` and `password`,
 * __upd__:  `aspect_id` renamed to `id` in `diaspy.streams.Aspects().remove()`,
 
-* __fix__:  fixed some bugs in regular expressions used by `diaspy` internals
-            (html tag removal, so you get nicer notifications),
+
+* __fix__:  fixed some bugs in regular expressions used by `diaspy` internals (html tag removal, so you get nicer notifications),
 * __fix__:  fixed authentication issues,
 
 
@@ -100,25 +118,30 @@ Also, this release if first to officially released fork version.
 
 * __dep__:  `diaspy.client` is officially deprecated (will be removed in `0.4.1`),
 
+
 * __upd__:  `diaspy.conversations` renamed to `diaspy.messages`,
 * __udp__:  `diaspy.conversations.Conversation` moved to `diaspy.models`,
+
 
 * __new__:  `diaspy.messages.Mailbox()` object representing diaspora\* mailbox,
 
 ----
 
-Version `0.3.2` (2013-08-20):
+#### Version `0.3.2` (2013-08-20):
 
 * __upd__:  `diaspy.connection.getUserData()` raises `DiaspyError` when it cannot find user data,
+
 
 * __rem__:  `diaspy.client.Client` must be explicitly imported,
 
 ----
 
-Version `0.3.1` (2013-07-12):
+#### Version `0.3.1` (2013-07-12):
 
 * __upd__:  `diaspy.people.sephandle()` raises `InvalidHandleError` instead of `UserError`
 * __upd__:  `models.Post()._fetch()` renamed to `_fetchdata()` (because of new `_fetchcomments()` method)
+
+
 * __new__:  `models.Comment()` object: wrapper for comments, not to be created manually
 * __new__:  `comments` parameter in `models.Post`: defines whether to fetch post's commets
 * __new__:  `connection.Connection` has new parameter in `__init__()`: it's `schema`
@@ -137,7 +160,7 @@ When it comes to posts, we are now able to fetch comments.
 
 ----
 
-Version `0.3.0` (2013-07-07):
+#### Version `0.3.0` (2013-07-07):
 
 First edition of Changelog for `diaspy`. 
 Developers should update their code as version `0.3.0` may not be fully 
@@ -148,4 +171,4 @@ theory, not worry about this update.
 Version `0.3.0` introduces few new features, fixes several bugs and brings a bit of 
 redesign and refactoring od `diaspy`'s code.
 
-----
+&nbsp;
