@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import diaspy.connection as connection
 import diaspy.models as models
 import diaspy.streams as streams
@@ -8,4 +10,4 @@ import diaspy.notifications as notifications
 import diaspy.settings as settings
 
 
-__version__ = '0.4.1-rc.3'
+__version__ = '0.4.1'

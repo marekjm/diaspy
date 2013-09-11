@@ -30,6 +30,7 @@ Template file:
     # Details of your account
     diaspora_name = 'Foo Bar'
     user_names_tuple = ('Foo', 'Bar')
+    user_email = 'email@example.com'
     user_location_string = 'Nowhere'
     user_gender_string = 'Gender'
     user_date_of_birth = (2013, 9, 7)

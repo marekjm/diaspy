@@ -14,6 +14,8 @@ from diaspy import errors, streams
 class Account():
     """Provides interface to account settings.
     """
+    email_regexp = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value="(.+?)"')
+
     def __init__(self, connection):
         self._connection = connection
 
@@ -55,7 +57,9 @@ class Account():
             else: nsfw = ''
             if post['photos']:
                 for n, photo in enumerate(post['photos']):
-                    name = '{0}_{1}{2}.{3}'.format(post['guid'], photo['guid'], nsfw, photo['sizes'][size].split('.')[-1])
+                    # photo format -- .jpg, .png etc.
+                    ext = photo['sizes'][size].split('.')[-1]
+                    name = '{0}_{1}{2}.{3}'.format(post['guid'], photo['guid'], nsfw, ext)
                     filename = os.path.join(path, name)
                     try:
                         urllib.request.urlretrieve(url=photo['sizes'][size], filename=filename)
@@ -71,15 +75,16 @@ class Account():
         """
         data = {'_method': 'put', 'utf8': '✓', 'user[email]': email, 'authenticity_token': repr(self._connection)}
         request = self._connection.post('user', data=data, allow_redirects=False)
+        if request.status_code != 302:
+            raise errors.SettingsError('setting email failed: {0}'.format(request.status_code))
 
     def getEmail(self):
         """Returns currently used email.
         """
         data = self._connection.get('user/edit')
-        email = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value=".+?"').search(data.text)
+        email = self.email_regexp.search(data.text)
         if email is None: raise errors.DiaspyError('cannot fetch email')
-        email = email.group(0)[:-1]
-        email = email[email.rfind('"')+1:]
+        email = email.group(1)
         return email
 
     def setLanguage(self, lang):
@@ -126,16 +131,16 @@ class Profile():
         Setters can then be used to adjust the data.
         Finally, `update()` can be called to send data back to pod.
     """
-    firstname_regexp = re.compile('<input id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
-    lastname_regexp = re.compile('<input id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
+    firstname_regexp = re.compile('id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
+    lastname_regexp = re.compile('id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
     bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
-    location_regexp = re.compile('<input id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-    gender_regexp = re.compile('<input id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-    birth_year_regexp = re.compile('<option selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
-    birth_month_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">(.*?)</option>')
-    birth_day_regexp = re.compile('<option selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
-    is_searchable_regexp = re.compile('<input checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
-    is_nsfw_regexp = re.compile('<input checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
+    location_regexp = re.compile('id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    gender_regexp = re.compile('id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+    birth_year_regexp = re.compile('selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
+    birth_month_regexp = re.compile('selected="selected" value="([0-9]{1,2})">(.*?)</option>')
+    birth_day_regexp = re.compile('selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
+    is_searchable_regexp = re.compile('checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
+    is_nsfw_regexp = re.compile('checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
 
     def __init__(self, connection):
         self._connection = connection

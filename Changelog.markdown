@@ -41,6 +41,12 @@ pods running on older versions.
 And the test suite was updated. Yay!
 
 
+* __new__:  `diaspy.errors.SettingsError`,
+
+
+* __upd__:  `diaspy.settings.Account.setEmail()` can now raise `SettingsError` when request fails,
+
+
 **`0.4.1-rc.3` (2013-09-08):**
 
 * __new__:  `diaspy.settings.Profile.load()` method for loading profile information,

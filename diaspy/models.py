@@ -253,7 +253,7 @@ class Conversation():
                                         headers={'accept': 'application/json'})
         if request.status_code != 200:
             raise errors.ConversationError('{0}: Answer could not be posted.'
-                            .format(request.status_code))
+                                           .format(request.status_code))
         return request.json()
 
     def delete(self):
@@ -263,13 +263,13 @@ class Conversation():
         data = {'authenticity_token': repr(self._connection)}
 
         request = self._connection.delete('conversations/{0}/visibility/'
-                                    .format(self.id),
-                                    data=data,
-                                    headers={'accept': 'application/json'})
+                                          .format(self.id),
+                                          data=data,
+                                          headers={'accept': 'application/json'})
 
         if request.status_code != 404:
             raise errors.ConversationError('{0}: Conversation could not be deleted.'
-                            .format(request.status_code))
+                                           .format(request.status_code))
 
     def get_subject(self):
         """Returns the subject of this conversation
@@ -279,7 +279,7 @@ class Conversation():
 
 class Comment():
     """Represents comment on post.
-    
+
     Does not require Connection() object. Note that you should not manually
     create `Comment()` objects -- they are designed to be created automatically
     by `Post()` objects.
@@ -398,12 +398,12 @@ class Post():
         data = {'authenticity_token': repr(self._connection)}
 
         request = self._connection.post('posts/{0}/likes'.format(self.id),
-                                  data=data,
-                                  headers={'accept': 'application/json'})
+                                        data=data,
+                                        headers={'accept': 'application/json'})
 
         if request.status_code != 201:
             raise errors.PostError('{0}: Post could not be liked.'
-                            .format(request.status_code))
+                                   .format(request.status_code))
         return request.json()
 
     def reshare(self):
@@ -413,8 +413,8 @@ class Post():
                 'authenticity_token': repr(self._connection)}
 
         request = self._connection.post('reshares',
-                                  data=data,
-                                  headers={'accept': 'application/json'})
+                                        data=data,
+                                        headers={'accept': 'application/json'})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be reshared'.format(request.status_code))
         return request.json()
@@ -428,8 +428,8 @@ class Post():
         data = {'text': text,
                 'authenticity_token': repr(self._connection)}
         request = self._connection.post('posts/{0}/comments'.format(self.id),
-                                  data=data,
-                                  headers={'accept': 'application/json'})
+                                        data=data,
+                                        headers={'accept': 'application/json'})
 
         if request.status_code != 201:
             raise Exception('{0}: Comment could not be posted.'
@@ -441,8 +441,8 @@ class Post():
         """
         data = {'authenticity_token': repr(self._connection)}
         request = self._connection.delete('posts/{0}'.format(self.id),
-                                    data=data,
-                                    headers={'accept': 'application/json'})
+                                          data=data,
+                                          headers={'accept': 'application/json'})
         if request.status_code != 204:
             raise errors.PostError('{0}: Post could not be deleted'.format(request.status_code))
 
@@ -454,28 +454,23 @@ class Post():
         """
         data = {'authenticity_token': repr(self._connection)}
         request = self._connection.delete('posts/{0}/comments/{1}'
-                                    .format(self.id,
-                                            comment_id),
-                                    data=data,
-                                    headers={'accept': 'application/json'})
+                                          .format(self.id, comment_id),
+                                          data=data,
+                                          headers={'accept': 'application/json'})
 
         if request.status_code != 204:
             raise errors.PostError('{0}: Comment could not be deleted'
-                            .format(request.status_code))
+                                   .format(request.status_code))
 
     def delete_like(self):
         """This function removes a like from a post
         """
         data = {'authenticity_token': self._connection.get_token()}
-
-        request = self._connection.delete('posts/{0}/likes/{1}'
-                                    .format(self.id,
-                                            self.data['interactions']
-                                                     ['likes'][0]['id']),
-                                    data=data)
+        url = 'posts/{0}/likes/{1}'.format(self.id, self.data['interactions']['likes'][0]['id'])
+        request = self._connection.delete(url, data=data)
         if request.status_code != 204:
             raise errors.PostError('{0}: Like could not be removed.'
-                            .format(request.status_code))
+                                   .format(request.status_code))
 
     def author(self, key='name'):
         """Returns author of the post.

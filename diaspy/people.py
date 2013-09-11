@@ -40,8 +40,6 @@ class User():
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
         self.stream = []
-        self.handle = handle
-        self.guid = guid
         self.data = {
             'guid': guid,
             'handle': handle,
@@ -62,21 +60,21 @@ class User():
         """Fetch user posts or data.
         """
         if fetch == 'posts':
-            if self.handle and not self.guid: self.fetchhandle()
+            if self['handle'] and not self['guid']: self.fetchhandle()
             else: self.fetchguid()
-        elif fetch == 'data' and self.handle:
+        elif fetch == 'data' and self['handle']:
             self.fetchprofile()
 
     def _finalize_data(self, data):
         """Adjustments are needed to have similar results returned
-        by search feature and fetchguid/handle().
+        by search feature and fetchguid()/fetchhandle().
         """
-        names = [   ('id', 'id'),
-                    ('guid', 'guid'),
-                    ('name', 'name'),
-                    ('avatar', 'avatar'),
-                    ('handle', 'diaspora_id'),
-                    ]
+        names = [('id', 'id'),
+                 ('guid', 'guid'),
+                 ('name', 'name'),
+                 ('avatar', 'avatar'),
+                 ('handle', 'diaspora_id'),
+                 ]
         final = {}
         for f, d in names:
             final[f] = data[d]
@@ -90,7 +88,7 @@ class User():
         :type request: request
         """
         if request.status_code != 200: raise Exception('wrong error code: {0}'.format(request.status_code))
-        else: request = request.json()
+        request = request.json()
         if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
         self.data = self._finalize_data(request[0]['author'])
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
@@ -98,15 +96,15 @@ class User():
     def fetchhandle(self, protocol='https'):
         """Fetch user data and posts using Diaspora handle.
         """
-        pod, user = sephandle(self.handle)
+        pod, user = sephandle(self['handle'])
         request = self._connection.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user), direct=True)
         self._postproc(request)
 
     def fetchguid(self):
         """Fetch user data and posts using guid.
         """
-        if self.guid:
-            request = self._connection.get('people/{0}.json'.format(self.guid))
+        if self['guid']:
+            request = self._connection.get('people/{0}.json'.format(self['guid']))
             self._postproc(request)
         else:
             raise errors.UserError('GUID not set')
@@ -114,7 +112,7 @@ class User():
     def fetchprofile(self):
         """Fetches user data.
         """
-        data = search.Search(self._connection).user(self.handle)[0]
+        data = search.Search(self._connection).user(self['handle'])[0]
         self.data = data
 
 
@@ -167,5 +165,4 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        contacts = [User(self._connection, guid=user['guid'], handle=user['handle'], fetch=None, id=user['id']) for user in request.json()]
-        return contacts
+        return [User(self._connection, guid=user['guid'], handle=user['handle'], fetch=None) for user in request.json()]

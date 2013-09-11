@@ -251,6 +251,9 @@ class SettingsTests(unittest.TestCase):
     def testGettingLanguages(self):
         self.assertIn(('English', 'en'), self.account.getLanguages())
 
+    def testGettingEmail(self):
+        self.assertEqual(testconf.user_email, self.account.getEmail())
+
 
 if __name__ == '__main__': 
     print('Hello World!')

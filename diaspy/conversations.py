@@ -27,6 +27,6 @@ class Mailbox():
         request = self._connection.get('conversations.json')
 
         if request.status_code != 200:
-            raise errors.DiaspyError('wrong status code: {0}'.format(r.status_code))
+            raise errors.DiaspyError('wrong status code: {0}'.format(request.status_code))
         mailbox = request.json()
         self._mailbox = [models.Conversation(self._connection, c['conversation']['id']) for c in mailbox]
