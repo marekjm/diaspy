@@ -45,6 +45,8 @@ And the test suite was updated. Yay!
 
 
 * __upd__:  `diaspy.settings.Account.setEmail()` can now raise `SettingsError` when request fails,
+* __upd__:  `diaspy.settings.Account.getEmail()` will now return empty string instead of raising an exception if cannot fetch mail,
+* __upd__:  improved language fetching in `diaspy.settings.Account.getLanguages()`,
 
 
 **`0.4.1-rc.3` (2013-09-08):**

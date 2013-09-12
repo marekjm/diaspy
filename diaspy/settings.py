@@ -15,6 +15,7 @@ class Account():
     """Provides interface to account settings.
     """
     email_regexp = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value="(.+?)"')
+    language_option_regexp = re.compile('<option value="([-_a-z]+)">(.*?)</option>')
 
     def __init__(self, connection):
         self._connection = connection
@@ -83,8 +84,8 @@ class Account():
         """
         data = self._connection.get('user/edit')
         email = self.email_regexp.search(data.text)
-        if email is None: raise errors.DiaspyError('cannot fetch email')
-        email = email.group(1)
+        if email is None: email = ''
+        else: email = email.group(1)
         return email
 
     def setLanguage(self, lang):
@@ -94,24 +95,15 @@ class Account():
         """
         data = {'_method': 'put', 'utf8': '✓', 'user[language]': lang, 'authenticity_token': repr(self._connection)}
         request = self._connection.post('user', data=data, allow_redirects=False)
-        return request.status_code
+        if request.status_code != 302:
+            raise errors.SettingsError('setting language failed: {0}'.format(request.status_code))
 
     def getLanguages(self):
         """Returns a list of tuples containing ('Language name', 'identifier').
         One of the Black Magic(tm) methods.
         """
-        selection_start = '<select id="user_language" name="user[language]">'
-        selection_end = '</select>'
-        languages = []
         request = self._connection.get('user/edit')
-        data = request.text[request.text.find(selection_start)+len(selection_start):]
-        data = data[:data.find(selection_end)].split('\n')
-        for item in data:
-            name = item[item.find('>')+1:item.rfind('<')]
-            identifier = item[item.find('"')+1:]
-            identifier = identifier[:identifier.find('"')]
-            languages.append((name, identifier))
-        return languages
+        return self.language_option_regexp.findall(request.text)
 
 
 class Privacy():
