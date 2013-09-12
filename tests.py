@@ -249,7 +249,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(sorted(testconf.user_tags), sorted(self.profile.getTags()))
 
     def testGettingLanguages(self):
-        self.assertIn(('English', 'en'), self.account.getLanguages())
+        self.assertIn(('en', 'English'), self.account.getLanguages())
 
     def testGettingEmail(self):
         self.assertEqual(testconf.user_email, self.account.getEmail())
