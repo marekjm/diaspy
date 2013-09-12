@@ -27,7 +27,7 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
-#### Version `0.4.1` (2013-09-):
+#### Version `0.4.1` (2013-09-12):
 
 Login and authentication procedure backend received major changes in this version.
 There are no longer `username` and `password` variables in `Connection` object.
@@ -41,12 +41,15 @@ pods running on older versions.
 And the test suite was updated. Yay!
 
 
-* __new__:  `diaspy.errors.SettingsError`,
+* __new__:  `diaspy.errors.SettingsError`.
 
 
 * __upd__:  `diaspy.settings.Account.setEmail()` can now raise `SettingsError` when request fails,
 * __upd__:  `diaspy.settings.Account.getEmail()` will now return empty string instead of raising an exception if cannot fetch mail,
-* __upd__:  improved language fetching in `diaspy.settings.Account.getLanguages()`,
+* __upd__:  improved language fetching in `diaspy.settings.Account.getLanguages()`.
+
+
+* __rem__:  `diaspy/client.py` is removed,
 
 
 **`0.4.1-rc.3` (2013-09-08):**
