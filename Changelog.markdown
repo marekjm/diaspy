@@ -27,6 +27,13 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.4.1` (2013-09-):
+
+* __new__:  `diaspy.people.User._fetchstream()` method,
+
+
+----
+
 #### Version `0.4.1` (2013-09-12):
 
 Login and authentication procedure backend received major changes in this version.

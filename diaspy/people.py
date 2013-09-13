@@ -56,6 +56,9 @@ class User():
     def __repr__(self):
         return '{0} ({1})'.format(self['diaspora_name'], self['guid'])
 
+    def _fetchstream(self):
+        self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
+
     def _fetch(self, fetch):
         """Fetch user posts or data.
         """
@@ -91,7 +94,6 @@ class User():
         request = request.json()
         if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
         self.data = self._finalize_data(request[0]['author'])
-        self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
 
     def fetchhandle(self, protocol='https'):
         """Fetch user data and posts using Diaspora handle.
@@ -99,6 +101,7 @@ class User():
         pod, user = sephandle(self['handle'])
         request = self._connection.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user), direct=True)
         self._postproc(request)
+        self._fetchstream()
 
     def fetchguid(self):
         """Fetch user data and posts using guid.
@@ -106,6 +109,7 @@ class User():
         if self['guid']:
             request = self._connection.get('people/{0}.json'.format(self['guid']))
             self._postproc(request)
+            self._fetchstream()
         else:
             raise errors.UserError('GUID not set')
 
