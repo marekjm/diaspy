@@ -31,6 +31,10 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 * __new__:  `diaspy.people.User._fetchstream()` method,
 
+* __upd__:  `diaspy.connection.Connection.login()` modifies connection object in-place **and** returns it (this allows more fluent API),
+* __upd__:  `diaspy.connection.Connection.login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
+* __upd__:  `diaspy.connection.Connection._login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
+
 
 ----
 

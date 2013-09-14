@@ -147,7 +147,6 @@ class Connection():
                             allow_redirects=False)
         if request.status_code != 302:
             raise errors.LoginError('{0}: login failed'.format(request.status_code))
-        return request.status_code
 
     def login(self, remember_me=1):
         """This function is used to log in to a pod.
@@ -158,7 +157,7 @@ class Connection():
         self._login_data['user[remember_me]'] = remember_me
         status = self._login()
         self._login_data = {}
-        return status
+        return self
 
     def logout(self):
         """Logs out from a pod.
