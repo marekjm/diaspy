@@ -27,13 +27,21 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
-#### Version `0.4.1` (2013-09-):
+#### Version `0.4.2` (2013-09-):
+
+This version has some small incompatibilities with `0.4.1` so read Changelog carefully.
 
 * __new__:  `diaspy.people.User._fetchstream()` method,
+* __new__:  `diaspy.people.Me()` object representing current user,
+* __rem__:  `diaspy.people.Me.getInfo()` (moved from `diaspy.connection.Connection.getUserInfo()`),
+
 
 * __upd__:  `diaspy.connection.Connection.login()` modifies connection object in-place **and** returns it (this allows more fluent API),
 * __upd__:  `diaspy.connection.Connection.login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
 * __upd__:  `diaspy.connection.Connection._login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
+
+
+* __rem__:  `diaspy.connection.Connection.getUserInfo()` moved to `diaspy.people.Me.getInfo()`,
 
 
 ----

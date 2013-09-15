@@ -20,8 +20,6 @@ class Connection():
     """Object representing connection with the pod.
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
-    _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
-    _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
 
     def __init__(self, pod, username, password, schema='https'):
         """
@@ -172,18 +170,6 @@ class Connection():
         self.pod = pod
         self._setlogin(username, password)
         self._login()
-
-    def getUserInfo(self, fetch=False):
-        """This function returns the current user's attributes.
-
-        :returns: dict -- json formatted user info.
-        """
-        request = self.get('bookmarklet')
-        userdata = self._userinfo_regex.search(request.text)
-        if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
-        if userdata is None: raise errors.DiaspyError('cannot find user data')
-        userdata = userdata.group(1)
-        return json.loads(userdata)
 
     def _fetchtoken(self):
         """This method tries to get token string needed for authentication on D*.

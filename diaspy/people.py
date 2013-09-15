@@ -120,6 +120,29 @@ class User():
         self.data = data
 
 
+class Me():
+    """Object represetnting current user.
+    """
+    _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
+    _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
+
+    def __init__(self, connection):
+        self._connection = connection
+
+    def getInfo(self, fetch=False):
+        """This function returns the current user's attributes.
+
+        :returns: dict -- json formatted user info.
+        """
+        request = self._connection.get('bookmarklet')
+        userdata = self._userinfo_regex.search(request.text)
+        if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
+        if userdata is None: raise errors.DiaspyError('cannot find user data')
+        userdata = userdata.group(1)
+        return json.loads(userdata)
+
+
+
 class Contacts():
     """This class represents user's list of contacts.
     """
