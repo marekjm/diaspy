@@ -156,19 +156,19 @@ class Notification():
     def __init__(self, connection, data):
         self._connection = connection
         self.type = list(data.keys())[0]
-        self.data = data[self.type]
-        self.id = self.data['id']
-        self.unread = self.data['unread']
+        self._data = data[self.type]
+        self.id = self._data['id']
+        self.unread = self._data['unread']
 
     def __getitem__(self, key):
         """Returns a key from notification data.
         """
-        return self.data[key]
+        return self._data[key]
 
     def __str__(self):
         """Returns notification note.
         """
-        string = re.sub(self._htmltag_regexp, '', self.data['note_html'])
+        string = re.sub(self._htmltag_regexp, '', self._data['note_html'])
         string = string.strip().split('\n')[0]
         while '  ' in string: string = string.replace('  ', ' ')
         return string
@@ -182,7 +182,7 @@ class Notification():
         """Returns id of post about which the notification is informing OR:
         If the id is None it means that it's about user so .who() is called.
         """
-        about = self._aboutid_regexp.search(self.data['note_html'])
+        about = self._aboutid_regexp.search(self._data['note_html'])
         if about is None: about = self.who()
         else: about = int(about.group(0)[7:])
         return about
@@ -190,12 +190,12 @@ class Notification():
     def who(self):
         """Returns list of guids of the users who caused you to get the notification.
         """
-        return [who[8:24] for who in self._who_regexp.findall(self.data['note_html'])]
+        return [who[8:24] for who in self._who_regexp.findall(self._data['note_html'])]
 
     def when(self):
         """Returns UTC time as found in note_html.
         """
-        return self._when_regexp.search(self.data['note_html']).group(0)
+        return self._when_regexp.search(self._data['note_html']).group(0)
 
     def mark(self, unread=False):
         """Marks notification to read/unread.
@@ -208,7 +208,7 @@ class Notification():
         headers = {'x-csrf-token': repr(self._connection)}
         params = {'set_unread': json.dumps(unread)}
         self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
-        self.data['unread'] = unread
+        self._data['unread'] = unread
 
 
 class Conversation():
@@ -226,7 +226,7 @@ class Conversation():
         """
         self._connection = connection
         self.id = id
-        self.data = {}
+        self._data = {}
         if fetch: self._fetch()
 
     def _fetch(self):
@@ -234,7 +234,7 @@ class Conversation():
         """
         request = self._connection.get('conversations/{}.json'.format(self.id))
         if request.status_code == 200:
-            self.data = request.json()['conversation']
+            self._data = request.json()['conversation']
         else:
             raise errors.ConversationError('cannot download conversation data: {0}'.format(request.status_code))
 
@@ -274,7 +274,7 @@ class Conversation():
     def get_subject(self):
         """Returns the subject of this conversation
         """
-        return self.data['subject']
+        return self._data['subject']
 
 
 class Comment():
@@ -285,12 +285,12 @@ class Comment():
     by `Post()` objects.
     """
     def __init__(self, data):
-        self.data = data
+        self._data = data
 
     def __str__(self):
         """Returns comment's text.
         """
-        return self.data['text']
+        return self._data['text']
 
     def __repr__(self):
         """Returns comments text and author.
@@ -301,12 +301,12 @@ class Comment():
     def when(self):
         """Returns time when the comment had been created.
         """
-        return self.data['created_at']
+        return self._data['created_at']
 
     def author(self, key='name'):
         """Returns author of the comment.
         """
-        return self.data['author'][key]
+        return self._data['author'][key]
 
 
 class Post():
@@ -328,34 +328,34 @@ class Post():
         :param comments: defines whether to fetch post's comments or not (if True also data will be fetched)
         :type comments: bool
         """
-        if not (guid or id): raise TypeError('guid and/or id missing')
+        if not (guid or id): raise TypeError('neither guid nor id was provided')
         self._connection = connection
         self.id = id
         self.guid = guid
-        self.data = {}
+        self._data = {}
         self.comments = []
         if fetch: self._fetchdata()
         if comments:
-            if not self.data: self._fetchdata()
+            if not self._data: self._fetchdata()
             self._fetchcomments()
 
     def __repr__(self):
         """Returns string containing more information then str().
         """
-        return '{0} ({1}): {2}'.format(self.data['author']['name'], self.data['author']['guid'], self.data['text'])
+        return '{0} ({1}): {2}'.format(self._data['author']['name'], self.data['author']['guid'], self.data['text'])
 
     def __str__(self):
         """Returns text of a post.
         """
-        return self.data['text']
+        return self._data['text']
 
     def __getitem__(self, key):
-        return self.data[key]
+        return self._data[key]
 
     def __dict__(self):
         """Returns dictionary of posts data.
         """
-        return self.data
+        return self._data
 
     def _fetchdata(self):
         """This function retrieves data of the post.
@@ -368,7 +368,7 @@ class Post():
         if request.status_code != 200:
             raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, id))
         else:
-            self.data = request.json()
+            self._data = request.json()
         return self['guid']
 
     def _fetchcomments(self):
@@ -409,7 +409,7 @@ class Post():
     def reshare(self):
         """This function reshares a post
         """
-        data = {'root_guid': self.data['guid'],
+        data = {'root_guid': self._data['guid'],
                 'authenticity_token': repr(self._connection)}
 
         request = self._connection.post('reshares',
@@ -465,8 +465,8 @@ class Post():
     def delete_like(self):
         """This function removes a like from a post
         """
-        data = {'authenticity_token': self._connection.get_token()}
-        url = 'posts/{0}/likes/{1}'.format(self.id, self.data['interactions']['likes'][0]['id'])
+        data = {'authenticity_token': repr(self._connection)}
+        url = 'posts/{0}/likes/{1}'.format(self.id, self._data['interactions']['likes'][0]['id'])
         request = self._connection.delete(url, data=data)
         if request.status_code != 204:
             raise errors.PostError('{0}: Like could not be removed.'
@@ -476,4 +476,4 @@ class Post():
         """Returns author of the post.
         :param key: all keys available in data['author']
         """
-        return self.data['author'][key]
+        return self._data['author'][key]

@@ -33,15 +33,21 @@ This version has some small incompatibilities with `0.4.1` so read Changelog car
 
 * __new__:  `diaspy.people.User._fetchstream()` method,
 * __new__:  `diaspy.people.Me()` object representing current user,
-* __rem__:  `diaspy.people.Me.getInfo()` (moved from `diaspy.connection.Connection.getUserInfo()`),
+* __new__:  `**kwargs` added to `diaspy.streams.Generic.json()` methdo to give developers control over the creation of JSON,
 
 
 * __upd__:  `diaspy.connection.Connection.login()` modifies connection object in-place **and** returns it (this allows more fluent API),
 * __upd__:  `diaspy.connection.Connection.login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
 * __upd__:  `diaspy.connection.Connection._login()` no longer returns status code (if login was unsuccessful it'll raise an exception),
+* __upd__:  better error message in `diaspy.models.Post().__init__()`,
+* __upd__:  `data` variable in `diaspy.models.Post()` renamed to `_data` to indicate that it's considered private,
 
 
 * __rem__:  `diaspy.connection.Connection.getUserInfo()` moved to `diaspy.people.Me.getInfo()`,
+* __rem__:  `diaspy.people.Me.getInfo()` (moved from `diaspy.connection.Connection.getUserInfo()`),
+
+
+* __dep__:  `max_time` parameter in `diaspy.streams.*.more()` method is deprecated,
 
 
 ----

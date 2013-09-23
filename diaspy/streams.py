@@ -63,7 +63,7 @@ class Generic():
         request = self._connection.get(self._location, params=params, headers={'cookie': ''})
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
-        return [Post(self._connection, post['id']) for post in request.json()]
+        return [Post(self._connection, guid=post['guid']) for post in request.json()]
 
     def _expand(self, new_stream):
         """Appends older posts to stream.
@@ -191,7 +191,7 @@ class Generic():
         """
         return [p for p in self._stream]
 
-    def json(self, comments=False):
+    def json(self, comments=False, **kwargs):
         """Returns JSON encoded string containing stream's data.
 
         :param comments: to include comments or not to include 'em, that is the question this param holds answer to
@@ -204,8 +204,8 @@ class Generic():
                 comments = [c.data for c in post.comments]
                 post['interactions']['comments'] = comments
                 stream[i] = post
-        stream = [post.data for post in stream]
-        return json.dumps(stream)
+        stream = [post._data for post in stream]
+        return json.dumps(stream, **kwargs)
 
 
 class Outer(Generic):
