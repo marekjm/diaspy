@@ -107,17 +107,20 @@ class Generic():
         self._stream = stream
 
     def update(self):
-        """Updates stream.
+        """Updates stream with new posts.
         """
         self._update(self._obtain())
 
     def fill(self):
         """Fills the stream with posts.
+
+        **Notice:** this will create entirely new list of posts.
+        If you want to preseve posts already present in stream use update().
         """
         self._stream = self._obtain()
 
     def more(self, max_time=0, backtime=84600):
-        """Tries to download more (older ones) Posts from Stream.
+        """Tries to download more (older posts) posts from Stream.
 
         :param backtime: how many seconds substract each time (defaults to one day)
         :type backtime: int
@@ -136,9 +139,14 @@ class Generic():
         run.
 
         Default backtime is one day. But sometimes user might not have any activity for longer
-        period (on the beginning I posted once a month or so).
+        period (in the beginning of my D* activity I was posting once a month or so).
         The role of retry is to hadle such situations by trying to go further back in time.
         If a post is found the counter is restored.
+
+        Default retry is 42. If you don't know why go to the nearest library (or to the nearest
+        Piratebay mirror) and grab a copy of "A Hitchhiker's Guide to the Galaxy" and read the
+        book to find out. This will also increase your level of geekiness and you'll have a
+        great time reading the book.
 
         :param backtime: how many seconds to substract each time
         :type backtime: int
