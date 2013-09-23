@@ -17,19 +17,21 @@ class Generic():
     """
     _location = 'stream.json'
 
-    def __init__(self, connection, location=''):
+    def __init__(self, connection, location='', fetch=True):
         """
         :param connection: Connection() object
         :type connection: diaspy.connection.Connection
         :param location: location of json (optional)
         :type location: str
+        :param fetch: will call .fill() if true
+        :type fetch: bool
         """
         self._connection = connection
         if location: self._location = location
         self._stream = []
         #   since epoch
         self.max_time = int(time.mktime(time.gmtime()))
-        self.fill()
+        if fetch: self.fill()
 
     def __contains__(self, post):
         """Returns True if stream contains given post.
@@ -176,9 +178,11 @@ class Generic():
                     # going one loop higher
                     break
                 oldstream = self.copy()
-                # if it was not a success substract one day, keep calm and
-                # try going further rback in time...
+                # if it was not a success substract one backtime, keep calm and
+                # try going further back in time...
                 n -= 1
+            # check the comment below
+            # no commented code should be present in good software
             #if len(oldstream) == len(self): break
         return len(self)
 
@@ -352,9 +356,12 @@ class Aspects(Generic):
         Status code 422 is accepted because it is returned by D* when
         you try to add aspect already present on your aspect list.
 
+        :param aspect_name: name of aspect to create
+        :param visible: whether the contacts in this aspect are visible to each other or not
+
         :returns: Aspect() object of just created aspect
         """
-        data = {'authenticity_token': self._connection.get_token(),
+        data = {'authenticity_token': repr(self._connection),
                 'aspect[name]': aspect_name,
                 'aspect[contacts_visible]': visible}
 
@@ -380,7 +387,7 @@ class Aspects(Generic):
         """
         if id == -1 and name: id = self.getAspectID(name)
         data = {'_method': 'delete',
-                'authenticity_token': self._connection.get_token()}
+                'authenticity_token': repr(self._connection)}
         request = self._connection.post('aspects/{0}'.format(id), data=data)
         if request.status_code not in [200, 302, 500]:
             raise Exception('wrong status code: {0}: cannot remove aspect'.format(request.status_code))
@@ -433,10 +440,10 @@ class FollowedTags(Generic):
         :returns: int (response code)
         """
         data = {'name': tag_name,
-                'authenticity_token': self._connection.get_token(),
+                'authenticity_token': repr(self._connection),
                 }
         headers = {'content-type': 'application/json',
-                   'x-csrf-token': self._connection.get_token(),
+                   'x-csrf-token': repr(self._connection),
                    'accept': 'application/json'
                    }
 
