@@ -119,6 +119,13 @@ class User():
         data = search.Search(self._connection).user(self['handle'])[0]
         self.data = data
 
+    def getHCard(self):
+        """Returns XML string containing user HCard.
+        """
+        request = self._connection.get('hcard/users/{0}'.format(self['guid']))
+        if request.status_code != 200: raise errors.UserError('could not fetch hcard for user: {0}'.format(self['guid']))
+        return request.text
+
 
 class Me():
     """Object represetnting current user.
@@ -129,7 +136,7 @@ class Me():
     def __init__(self, connection):
         self._connection = connection
 
-    def getInfo(self, fetch=False):
+    def getInfo(self):
         """This function returns the current user's attributes.
 
         :returns: dict -- json formatted user info.
@@ -140,7 +147,6 @@ class Me():
         if userdata is None: raise errors.DiaspyError('cannot find user data')
         userdata = userdata.group(1)
         return json.loads(userdata)
-
 
 
 class Contacts():

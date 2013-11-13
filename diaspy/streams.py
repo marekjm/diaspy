@@ -60,7 +60,7 @@ class Generic():
         if max_time:
             params['max_time'] = max_time
             params['_'] = int(time.time() * 1000)
-        request = self._connection.get(self._location, params=params, headers={'cookie': ''})
+        request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         return [Post(self._connection, guid=post['guid']) for post in request.json()]
@@ -100,8 +100,8 @@ class Generic():
         for post in self._stream:
             deleted = False
             try:
+                # error will tell us that the post has been deleted
                 post.update()
-                stream.append(post)
             except Exception:
                 deleted = True
             finally:
@@ -263,11 +263,13 @@ class Stream(Generic):
         post = Post(self._connection, request.json()['id'])
         return post
 
-    def _photoupload(self, filename):
+    def _photoupload(self, filename, aspects=[]):
         """Uploads picture to the pod.
 
         :param filename: path to picture file
         :type filename: str
+        :param aspect_ids: list of ids of aspects to which you want to upload this photo
+        :type aspect_ids: list of integers
 
         :returns: id of the photo being uploaded
         """
@@ -279,7 +281,7 @@ class Stream(Generic):
         params['photo[pending]'] = 'true'
         params['set_profile_image'] = ''
         params['qqfile'] = filename
-        aspects = self._connection.getUserInfo()['aspects']
+        if not aspects: aspects = self._connection.getUserData()['aspects']
         for i, aspect in enumerate(aspects):
             params['photo[aspect_ids][{0}]'.format(i)] = aspect['id']
 
@@ -312,7 +314,7 @@ class Activity(Stream):
         """Deletes post from users activity.
         `post` can be either post id or Post()
         object which will be identified and deleted.
-        After deleting post the stream will be filled.
+        After deleting post the stream will be purged.
 
         :param post: post identifier
         :type post: str, diaspy.models.Post
@@ -320,7 +322,7 @@ class Activity(Stream):
         if type(post) == str: self._delid(post)
         elif type(post) == Post: post.delete()
         else: raise TypeError('this method accepts str or Post types: {0} given')
-        self.fill()
+        self.purge()
 
 
 class Aspects(Generic):
@@ -342,13 +344,18 @@ class Aspects(Generic):
         :returns: int
         """
         id = -1
-        aspects = self._connection.getUserInfo()['aspects']
+        aspects = self._connection.getUserData()['aspects']
         for aspect in aspects:
             if aspect['name'] == aspect_name: id = aspect['id']
         return id
 
-    def filterByIDs(self, ids):
-        self._location += '?{0}'.format(','.join(ids))
+    def filter(self, ids):
+        """Filters posts by given aspect ids.
+
+        :parameter ids: list of apsect ids
+        :type ids: list of integers
+        """
+        self._location = 'aspects.json' + '?{0}'.format(','.join(ids))
         self.fill()
 
     def add(self, aspect_name, visible=0):
@@ -419,6 +426,11 @@ class FollowedTags(Generic):
     """
     _location = 'followed_tags.json'
 
+    def get(self):
+        """Returns list of followed tags.
+        """
+        return []
+
     def remove(self, tag_id):
         """Stop following a tag.
 
@@ -457,7 +469,7 @@ class FollowedTags(Generic):
 class Tag(Generic):
     """This stream contains all posts containing a tag.
     """
-    def __init__(self, connection, tag):
+    def __init__(self, connection, tag, fetch=True):
         """
         :param connection: Connection() object
         :type connection: diaspy.connection.Connection
@@ -466,4 +478,4 @@ class Tag(Generic):
         """
         self._connection = connection
         self._location = 'tags/{0}.json'.format(tag)
-        self.fill()
+        if fetch: self.fill()

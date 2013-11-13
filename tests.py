@@ -10,7 +10,6 @@ import requests
 import warnings
 #   actual diaspy code
 import diaspy
-from diaspy import client as dclient
 
 
 ####    SETUP STUFF
@@ -46,7 +45,7 @@ diaspy.streams.Aspects(test_connection).add(testconf.test_aspect_name_fake)
 testconf.test_aspect_id = diaspy.streams.Aspects(test_connection).add(testconf.test_aspect_name).id
 print('OK')
 
-print([i['name'] for i in test_connection.getUserInfo()['aspects']])
+print([i['name'] for i in test_connection.getUserData()['aspects']])
 
 
 post_text = '#diaspy test no. {0}'.format(test_count)
@@ -57,7 +56,7 @@ post_text = '#diaspy test no. {0}'.format(test_count)
 #######################################
 class ConnectionTest(unittest.TestCase):
     def testGettingUserInfo(self):
-        info = test_connection.getUserInfo()
+        info = test_connection.getUserData()
         self.assertEqual(dict, type(info))
 
 
@@ -77,12 +76,12 @@ class AspectsTests(unittest.TestCase):
 
     def testAspectsRemoveById(self):
         aspects = diaspy.streams.Aspects(test_connection)
-        for i in test_connection.getUserInfo()['aspects']:
+        for i in test_connection.getUserData()['aspects']:
             if i['name'] == testconf.test_aspect_name:
                 print(i['id'], end=' ')
                 aspects.remove(id=i['id'])
                 break
-        names = [i['name'] for i in test_connection.getUserInfo()['aspects']]
+        names = [i['name'] for i in test_connection.getUserData()['aspects']]
         print(names)
         self.assertNotIn(testconf.test_aspect_name, names)
 
@@ -90,7 +89,7 @@ class AspectsTests(unittest.TestCase):
         aspects = diaspy.streams.Aspects(test_connection)
         print(testconf.test_aspect_name_fake, end=' ')
         aspects.remove(name=testconf.test_aspect_name_fake)
-        names = [i['name'] for i in test_connection.getUserInfo()['aspects']]
+        names = [i['name'] for i in test_connection.getUserData()['aspects']]
         print(names)
         self.assertNotIn(testconf.test_aspect_name_fake, names)
 
@@ -260,4 +259,4 @@ if __name__ == '__main__':
     print('It\'s testing time!')
     n = unittest.main()
     print(n)
-    print('It was testing time!')
+    print('Good! All tests passed!')

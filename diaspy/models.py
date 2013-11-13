@@ -33,7 +33,7 @@ class Aspect():
         """Finds name for aspect.
         """
         name = None
-        aspects = self._connection.getUserInfo()['aspects']
+        aspects = self._connection.getUserData()['aspects']
         for a in aspects:
             if a['id'] == self.id:
                 name = a['name']
@@ -44,7 +44,7 @@ class Aspect():
         """Finds id for aspect.
         """
         id = None
-        aspects = self._connection.getUserInfo()['aspects']
+        aspects = self._connection.getUserData()['aspects']
         for a in aspects:
             if a['name'] == self.name:
                 id = a['id']
@@ -342,7 +342,7 @@ class Post():
     def __repr__(self):
         """Returns string containing more information then str().
         """
-        return '{0} ({1}): {2}'.format(self._data['author']['name'], self.data['author']['guid'], self.data['text'])
+        return '{0} ({1}): {2}'.format(self._data['author']['name'], self._data['author']['guid'], self._data['text'])
 
     def __str__(self):
         """Returns text of a post.
@@ -373,9 +373,10 @@ class Post():
 
     def _fetchcomments(self):
         """Retreives comments for this post.
+        Retrieving comments via GUID will result in 404 error.
+        DIASPORA* does not supply comments through /posts/:guid/ endpoint.
         """
-        if self.id: id = self.id
-        if self.guid: id = self.guid
+        id = self._data['id']
         if self['interactions']['comments_count']:
             request = self._connection.get('posts/{0}/comments.json'.format(id))
             if request.status_code != 200:

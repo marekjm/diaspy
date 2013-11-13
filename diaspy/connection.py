@@ -20,6 +20,9 @@ class Connection():
     """Object representing connection with the pod.
     """
     _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+    _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
+    # this is for older version of D*
+    _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
 
     def __init__(self, pod, username, password, schema='https'):
         """
@@ -205,3 +208,13 @@ class Connection():
         """Returns session token string (_diaspora_session).
         """
         return self._diaspora_session
+
+    def getUserData(self):
+        """Returns user data.
+        """
+        request = self.get('bookmarklet')
+        userdata = self._userinfo_regex.search(request.text)
+        if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
+        if userdata is None: raise errors.DiaspyError('cannot find user data')
+        userdata = userdata.group(1)
+        return json.loads(userdata)

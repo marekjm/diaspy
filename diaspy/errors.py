@@ -1,5 +1,25 @@
 #!/usr/bin/env python3
 
+"""This module contains custom exceptions that are raised by diaspy.
+These are not described by DIASPORA* protocol as exceptions that should be
+raised by API implementations but are specific to this particular implementation.
+
+If your program should catch all exceptions raised by diaspy and
+does not need to handle them specifically you can use following code:
+
+    # this line imports all errors
+    from diaspy.errors import *
+
+    try:
+        # your code...
+    except DiaspyError as e:
+        # your error handling code...
+    finally:
+        # closing code...
+"""
+
+import warnings
+
 
 class DiaspyError(Exception):
     """Base exception for all errors
@@ -16,7 +36,7 @@ class LoginError(DiaspyError):
     pass
 
 
-class TokenError(Exception):
+class TokenError(DiaspyError):
     pass
 
 
@@ -94,6 +114,7 @@ def react(r, message='', accepted=[200, 201, 202, 203, 204, 205, 206], exception
     :param exception: preferred exception to raise
     :type exception: valid exception type (default: DiaspyError)
     """
+    warnings.warn(DeprecationWarning)
     if r in accepted: e = None
     else: e = DiaspyError
 
@@ -111,5 +132,6 @@ def throw(e, message=''):
     :param message: message for exception
     :type message: str
     """
+    warnings.warn(DeprecationWarning)
     if e is None: pass
     else: raise e(message)

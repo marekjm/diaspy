@@ -168,7 +168,7 @@ class Profile():
     def getTags(self):
         """Returns tags user had selected when describing him/her-self.
         """
-        guid = self._connection.getUserInfo()['guid']
+        guid = self._connection.getUserData()['guid']
         html = self._connection.get('people/{0}'.format(guid)).text
         description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
         return [tag.lower() for tag in re.findall(description_regexp, html)]
