@@ -12,6 +12,9 @@ testconf.py
 TEST_COUNT
 sketch.py
 
+# Private stuff
+private.*
+
 *.py[cod]
 
 # C extensions
