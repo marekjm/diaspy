@@ -7,8 +7,9 @@ diaspy
    connection
    models
    streams
-   conversations
+   notifications
    people
+   settings
    search
+   conversations
    errors
-   client

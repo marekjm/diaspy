@@ -1,4 +1,4 @@
-#### Unofficial Python interface for Diaspora\* social network
+## Unofficial Python interface for Diaspora\* social network
 
 `diaspy` is a set of modules which form an Python interface to the API of
 Disapora\* social network. 
@@ -17,6 +17,25 @@ parts of the Diaspora\* API.
 
 ----
 
+### Dependencies
+
+List of software `diaspy` requires to run.
+Versions used by maintainer are the ones available in stock Arch x86\_64 repositories.
+
+**`python`**
+
+Version: 3.3.3
+[Website](https://www.python.org/)
+
+
+**`python-requests`**
+
+Version: 2.1.0
+[Website](http://docs.python-requests.org/en/latest/)
+
+
+----
+
 #### Quick intro
 
 #### 1. Posting text to your stream
@@ -31,6 +50,7 @@ You only need two objects to do this: `Stream()` and `Connection()`.
     >>> stream = diaspy.streams.Stream(c)
     >>> stream.post('Your first post')
 
+----
 
 #### 2. Reference implementation
 

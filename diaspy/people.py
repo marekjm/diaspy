@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import json
 import re
 from diaspy.streams import Outer
 from diaspy.models import Aspect
