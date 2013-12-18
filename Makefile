@@ -7,7 +7,7 @@ test:
 	python3 -m unittest --verbose --catch --failfast tests.py
 
 test-python2:
-	python2 -m unittest --verbose --catch --failfast tests.py
+	python2 -m unittest --verbose --catch --failfast tests
 
 clean:
 	rm -rv ./{diaspy/,}__pycache__/

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
+
 import unittest
 
 #   failure to import any of the modules below indicates failed tests

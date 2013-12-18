@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """This module provides access to user's settings on Diaspora*.
 """
 
