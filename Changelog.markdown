@@ -27,7 +27,7 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
-#### Version `0.4.2` (2013-09-):
+#### Version `0.4.2` (2013-12-19):
 
 This version has some small incompatibilities with `0.4.1` so read Changelog carefully.
 
@@ -51,6 +51,8 @@ This version has some small incompatibilities with `0.4.1` so read Changelog car
 
 
 * __dep__:  `max_time` parameter in `diaspy.streams.*.more()` method is deprecated,
+
+* __fix__:  this release should fix the bug which prevented diaspy from working with some pods (e.g. diasp.eu and joindiaspora.com),
 
 
 ----
