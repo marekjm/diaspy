@@ -10,6 +10,7 @@ test-python2:
 	python2 -m unittest --verbose --catch --failfast tests
 
 clean:
+	rm -v ./{diaspy/,}*.pyc
 	rm -rv ./{diaspy/,}__pycache__/
 
 install:

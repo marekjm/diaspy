@@ -142,7 +142,7 @@ class Me():
     def getInfo(self):
         """This function returns the current user's attributes.
 
-        :returns: dict -- json formatted user info.
+        :returns: dict
         """
         request = self._connection.get('bookmarklet')
         userdata = self._userinfo_regex.search(request.text)
