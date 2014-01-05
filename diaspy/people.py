@@ -2,6 +2,8 @@
 
 import json
 import re
+import warnings
+
 from diaspy.streams import Outer
 from diaspy.models import Aspect
 from diaspy import errors
@@ -57,7 +59,7 @@ class User():
         return self['guid']
 
     def __repr__(self):
-        return '{0} ({1})'.format(self['diaspora_name'], self['guid'])
+        return '{0} ({1})'.format(self['name'], self['guid'])
 
     def _fetchstream(self):
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
@@ -119,8 +121,11 @@ class User():
     def fetchprofile(self):
         """Fetches user data.
         """
-        data = search.Search(self._connection).user(self['handle'])[0]
-        self.data = data
+        data = search.Search(self._connection).user(self['handle'])
+        if not data:
+            warnings.warn('user with handle "{0}" has not been found on pod "{1}"'.format(self['handle'], self._connection.pod))
+        else:
+            self.data = data[0]
 
     def getHCard(self):
         """Returns XML string containing user HCard.
