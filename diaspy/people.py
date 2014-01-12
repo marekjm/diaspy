@@ -59,7 +59,7 @@ class User():
         return self['guid']
 
     def __repr__(self):
-        return '{0} ({1})'.format(self['name'], self['guid'])
+        return '{0} ({1})'.format(self['handle'], self['guid'])
 
     def _fetchstream(self):
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
@@ -123,7 +123,7 @@ class User():
         """
         data = search.Search(self._connection).user(self['handle'])
         if not data:
-            warnings.warn('user with handle "{0}" has not been found on pod "{1}"'.format(self['handle'], self._connection.pod))
+            raise errors.UserError('user with handle "{0}" has not been found on pod "{1}"'.format(self['handle'], self._connection.pod))
         else:
             self.data = data[0]
 
