@@ -138,7 +138,7 @@ class Aspect():
         data = {'authenticity_token': repr(self._connection),
                 'aspect_id': self.id,
                 'person_id': user_id}
-        request = self.connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
+        request = self._connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
 
         if request.status_code != 200:
             raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))

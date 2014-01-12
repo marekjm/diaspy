@@ -57,7 +57,7 @@ class User():
         return self['guid']
 
     def __repr__(self):
-        return '{0} ({1})'.format(self['diaspora_name'], self['guid'])
+        return '{0} ({1})'.format(self['handle'], self['guid'])
 
     def _fetchstream(self):
         self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
@@ -119,8 +119,13 @@ class User():
     def fetchprofile(self):
         """Fetches user data.
         """
-        data = search.Search(self._connection).user(self['handle'])[0]
-        self.data = data
+        result = search.Search(self._connection).user(self['handle'])
+        
+        # Check if there were any results at all
+        if len(result) < 1:
+            raise errors.UserError('could not fetch profile of user: {0}'.format(self['handle']))
+        
+        self.data = result[0]
 
     def getHCard(self):
         """Returns XML string containing user HCard.
