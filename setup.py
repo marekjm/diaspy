@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 setup(name='diaspy',
-      version='0.4.2',
+      version='0.4.3',
       author='Marek Marecki',
       author_email='hi@ozro.pw',
       url='https://github.com/marekjm/diaspy',
