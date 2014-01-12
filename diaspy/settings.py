@@ -17,7 +17,7 @@ class Account():
     """Provides interface to account settings.
     """
     email_regexp = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value="(.+?)"')
-    language_option_regexp = re.compile('<option value="([-_a-z]+)">(.*?)</option>')
+    language_option_regexp = re.compile('<option value="([_a-zA-Z-]+)"(?: selected="selected")?>(.*?)</option>')
 
     def __init__(self, connection):
         self._connection = connection
@@ -136,7 +136,7 @@ class Profile():
     is_searchable_regexp = re.compile('checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
     is_nsfw_regexp = re.compile('checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
 
-    def __init__(self, connection):
+    def __init__(self, connection, no_load=False):
         self._connection = connection
         self.data = {'utf-8': '✓',
                      '_method': 'put',
@@ -154,6 +154,7 @@ class Profile():
                      }
         self._html = self._fetchhtml()
         self._loaded = False
+        if not no_load: self.load()
 
     def _fetchhtml(self):
         """Fetches html that will be used to extract data.

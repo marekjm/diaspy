@@ -27,6 +27,16 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.4.3`:
+
+* __new__:  `people.User().fetchprofile()` will issue a warning when user cannot be found on current pod,
+* __new__:  `settings.Profile` is now loaded during initialization (can be switched off),
+
+* __fix__:  fixed a bug in `__repr__()` method in `people.User()` object,
+
+
+----
+
 #### Version `0.4.2` (2013-12-19):
 
 This version has some small incompatibilities with `0.4.1` so read Changelog carefully.

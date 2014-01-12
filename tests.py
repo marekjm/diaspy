@@ -180,6 +180,11 @@ class UserTests(unittest.TestCase):
         self.assertIn('avatar', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
+    def testReprMethod(self):
+        user = diaspy.people.User(test_connection, guid=testconf.guid)
+        repr(user)
+        print(user)
+
 
 class ContactsTest(unittest.TestCase):
     def testGetOnlySharing(self):

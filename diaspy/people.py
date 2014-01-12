@@ -2,6 +2,8 @@
 
 import json
 import re
+import warnings
+
 from diaspy.streams import Outer
 from diaspy.models import Aspect
 from diaspy import errors
@@ -119,13 +121,11 @@ class User():
     def fetchprofile(self):
         """Fetches user data.
         """
-        result = search.Search(self._connection).user(self['handle'])
-        
-        # Check if there were any results at all
-        if len(result) < 1:
-            raise errors.UserError('could not fetch profile of user: {0}'.format(self['handle']))
-        
-        self.data = result[0]
+        data = search.Search(self._connection).user(self['handle'])
+        if not data:
+            raise errors.UserError('user with handle "{0}" has not been found on pod "{1}"'.format(self['handle'], self._connection.pod))
+        else:
+            self.data = data[0]
 
     def getHCard(self):
         """Returns XML string containing user HCard.
