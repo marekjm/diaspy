@@ -58,7 +58,7 @@ Second, iterating directly over the stream contents:
 
 ##### Posting data to stream
 
-This is described in [`posting`](./posting.mdown) document in this manual.
+This is described in [`posting`](./posting.markdown) document in this manual.
 
 
 ----
