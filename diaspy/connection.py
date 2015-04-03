@@ -20,9 +20,10 @@ DEBUG = True
 class Connection():
     """Object representing connection with the pod.
     """
-    _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+    _token_regex = re.compile(r'name="csrf-token"\s+content="(.*?)"')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
     # this is for older version of D*
+    _token_regex_2 = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
     _verify_SSL = True
 
@@ -182,7 +183,10 @@ class Connection():
         :returns: token string
         """
         request = self.get('stream')
-        token = self._token_regex.search(request.text).group(1)
+        token = self._token_regex.search(request.text)
+        if token is None: self._token_regex_2.search(request.text)
+        if token is not None: token = token.group(1)
+        else: raise errors.TokenError('could not find valid CSRF token')
         self._token = token
         return token
 
