@@ -89,7 +89,7 @@ class SettingsError(DiaspyError):
 
 
 def react(r, message='', accepted=[200, 201, 202, 203, 204, 205, 206], exception=DiaspyError):
-    """This method tries to decides how to react
+    """This method tries to decide how to react
     to a response code passed to it. If it's an
     error code it will raise an exception (it will
     call `throw()` method.

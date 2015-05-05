@@ -20,10 +20,12 @@ DEBUG = True
 class Connection():
     """Object representing connection with the pod.
     """
-    _token_regex = re.compile(r'content="(.*?)"\s+name="csrf-token')
+    _token_regex = re.compile(r'name="csrf-token"\s+content="(.*?)"')
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
     # this is for older version of D*
+    _token_regex_2 = re.compile(r'content="(.*?)"\s+name="csrf-token')
     _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
+    _verify_SSL = True
 
     def __init__(self, pod, username, password, schema='https'):
         """
@@ -87,7 +89,7 @@ class Connection():
         """
         if not direct: url = '{0}/{1}'.format(self.pod, string)
         else: url = string
-        return self._session.get(url, params=params, headers=headers, **kwargs)
+        return self._session.get(url, params=params, headers=headers, verify=self._verify_SSL, **kwargs)
 
     def post(self, string, data, headers={}, params={}, **kwargs):
         """This method posts data to session.
@@ -105,7 +107,7 @@ class Connection():
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self._session.post(string, data, headers=headers, params=params, **kwargs)
+        request = self._session.post(string, data, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
         return request
 
     def put(self, string, data=None, headers={}, params={}, **kwargs):
@@ -113,7 +115,7 @@ class Connection():
         """
         string = '{0}/{1}'.format(self.pod, string)
         if data is not None: request = self._session.put(string, data, headers=headers, params=params, **kwargs)
-        else: request = self._session.put(string, headers=headers, params=params, **kwargs)
+        else: request = self._session.put(string, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
         return request
 
     def delete(self, string, data, headers={}, **kwargs):
@@ -181,7 +183,10 @@ class Connection():
         :returns: token string
         """
         request = self.get('stream')
-        token = self._token_regex.search(request.text).group(1)
+        token = self._token_regex.search(request.text)
+        if token is None: self._token_regex_2.search(request.text)
+        if token is not None: token = token.group(1)
+        else: raise errors.TokenError('could not find valid CSRF token')
         self._token = token
         return token
 
@@ -219,3 +224,8 @@ class Connection():
         if userdata is None: raise errors.DiaspyError('cannot find user data')
         userdata = userdata.group(1)
         return json.loads(userdata)
+
+    def set_verify_SSL(self, verify):
+        """Sets whether there should be an error if a SSL-Certificate could not be verified.
+        """
+        self._verify_SSL = verify
