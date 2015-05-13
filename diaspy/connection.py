@@ -184,7 +184,7 @@ class Connection():
         """
         request = self.get('stream')
         token = self._token_regex.search(request.text)
-        if token is None: self._token_regex_2.search(request.text)
+        if token is None: token = self._token_regex_2.search(request.text)
         if token is not None: token = token.group(1)
         else: raise errors.TokenError('could not find valid CSRF token')
         self._token = token
