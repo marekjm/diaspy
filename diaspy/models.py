@@ -195,7 +195,7 @@ class Notification():
     def when(self):
         """Returns UTC time as found in note_html.
         """
-        return self._when_regexp.search(self._data['note_html']).group(0)
+        return self._data['created_at']
 
     def mark(self, unread=False):
         """Marks notification to read/unread.
