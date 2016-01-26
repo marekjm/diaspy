@@ -1,5 +1,7 @@
 ## Unofficial Python interface for Diaspora\* social network
 
+[![Diaspy on PyPI](https://badge.fury.io/py/diaspy-api.png)](https://pypi.python.org/pypi/diaspy-api)
+
 `diaspy` is a set of modules which form an Python interface to the API of
 Disapora\* social network. 
 
