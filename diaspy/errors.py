@@ -39,6 +39,9 @@ class LoginError(DiaspyError):
 class TokenError(DiaspyError):
     pass
 
+class CSRFProtectionKickedIn(TokenError):
+    pass
+
 
 class DataError(DiaspyError):
     pass

@@ -80,18 +80,19 @@ class Aspect():
         users_in_aspect = self._defineusers(ajax, personids)
         return self._getguids(users_in_aspect, usernames)
 
-    def addUser(self, user_id):
+    def addUser(self, user):
         """Add user to current aspect.
 
         :param user_id: user to add to aspect
         :type user_id: int
         :returns: JSON from request
         """
-        data = {'authenticity_token': repr(self._connection),
-                'aspect_id': self.id,
-                'person_id': user_id}
+        data = {
+            'aspect_id': self.id,
+            'person_id': user.id(),
+        }
 
-        request = self._connection.post('aspect_memberships.json', data=data)
+        request = self._connection.tokenFrom('contacts').post('aspect_memberships', data=data)
 
         if request.status_code == 400:
             raise errors.AspectError('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
@@ -99,7 +100,20 @@ class Aspect():
             raise errors.AspectError('user not found from this pod: {0}'.format(request.status_code))
         elif request.status_code != 200:
             raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
-        return request.json()
+
+        response = None
+        try:
+            response = request.json()
+        except json.decoder.JSONDecodeError:
+            # FIXME For some (?) reason removing users from aspects works, but
+            # adding them is a no-go and Diaspora* kicks us out with CSRF errors.
+            # Weird.
+            pass
+
+        if response is None:
+            raise errors.CSRFProtectionKickedIn()
+
+        return response
 
     def removeUser(self, user):
         """Remove user from current aspect.
