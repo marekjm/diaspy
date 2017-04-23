@@ -97,16 +97,7 @@ class User():
         """Adjustments are needed to have similar results returned
         by search feature and fetchguid()/fetchhandle().
         """
-        names = [('id', 'id'),
-                 ('guid', 'guid'),
-                 ('name', 'name'),
-                 ('avatar', 'avatar'),
-                 ('handle', 'diaspora_id'),
-                 ]
-        final = {}
-        for f, d in names:
-            final[f] = data[d]
-        return final
+        return data
 
     def _postproc(self, request):
         """Makes necessary modifications to user data and
@@ -116,9 +107,8 @@ class User():
         :type request: request
         """
         if request.status_code != 200: raise Exception('wrong error code: {0}'.format(request.status_code))
-        request = request.json()
-        if not len(request): raise errors.UserError('cannot extract user data: no posts to analyze')
-        self.data = self._finalize_data(request[0]['author'])
+        data = request.json()
+        self.data = self._finalize_data(data)
 
     def fetchhandle(self, protocol='https'):
         """Fetch user data and posts using Diaspora handle.
