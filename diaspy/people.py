@@ -81,6 +81,12 @@ class User():
     def __repr__(self):
         return '{0} ({1})'.format(self['handle'], self['guid'])
 
+    def handle(self):
+        return self.data.get('diaspora_id', 'Unknown handle')
+
+    def guid(self):
+        return self.data.get('guid', '<guid missing>')
+
     def _fetchstream(self):
         self.stream = Outer(self._connection, guid=self['guid'])
 
