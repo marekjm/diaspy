@@ -143,6 +143,9 @@ class User():
         else:
             self.data = data[0]
 
+    def aspectMemberships(self):
+        return self.data.get('contact', {}).get('aspect_memberships', [])
+
     def getHCard(self):
         """Returns XML string containing user HCard.
         """
