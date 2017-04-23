@@ -148,7 +148,7 @@ class Notification():
 
     def __init__(self, connection, data):
         self._connection = connection
-        self.type = list(data.keys())[0]
+        self.type = data['type']
         self._data = data[self.type]
         self.id = self._data['id']
         self.unread = self._data['unread']

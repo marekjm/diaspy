@@ -15,6 +15,7 @@ class Notifications():
     """
     def __init__(self, connection):
         self._connection = connection
+        self._data = {}
         self._notifications = self.get()
 
     def __iter__(self):
@@ -47,4 +48,6 @@ class Notifications():
             raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
 
         notifications = request.json()
-        return [Notification(self._connection, n) for n in notifications]
+        self._data['unread_count'] = notifications['unread_count']
+        self._data['unread_count_by_type'] = notifications['unread_count_by_type']
+        return [Notification(self._connection, n) for n in notifications.get('notification_list', [])]
