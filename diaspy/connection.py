@@ -43,6 +43,7 @@ class Connection():
         self._token = ''
         self._diaspora_session = ''
         self._cookies = self._fetchcookies()
+        self._fetch_token_from = 'stream'
         try:
             #self._setlogin(username, password)
             self._login_data = {'user[username]': username,
@@ -90,6 +91,18 @@ class Connection():
         if not direct: url = '{0}/{1}'.format(self.pod, string)
         else: url = string
         return self._session.get(url, params=params, headers=headers, verify=self._verify_SSL, **kwargs)
+
+    def tokenFrom(self, location):
+        """Sets location for the *next* fetch of CSRF token.
+        Intended to be used for oneliners like this one:
+
+            connection.tokenFrom('somewhere').delete(...)
+
+        where the token comes from "somewhere" instead of the
+        default stream page.
+        """
+        self._fetch_token_from = location
+        return self
 
     def post(self, string, data, headers={}, params={}, **kwargs):
         """This method posts data to session.
@@ -184,12 +197,13 @@ class Connection():
 
         :returns: token string
         """
-        request = self.get('stream')
+        request = self.get(self._fetch_token_from)
         token = self._token_regex.search(request.text)
         if token is None: token = self._token_regex_2.search(request.text)
         if token is not None: token = token.group(1)
         else: raise errors.TokenError('could not find valid CSRF token')
         self._token = token
+        self._fetch_token_from = 'stream'
         return token
 
     def get_token(self, fetch=True):
