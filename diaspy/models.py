@@ -129,19 +129,26 @@ class Aspect():
             raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
         return request.json()
 
-    def removeUser(self, user_id):
+    def removeUser(self, user):
         """Remove user from current aspect.
 
         :param user_id: user to remove from aspect
         :type user: int
         """
-        data = {'authenticity_token': repr(self._connection),
-                'aspect_id': self.id,
-                'person_id': user_id}
-        request = self._connection.delete('aspect_memberships/{0}.json'.format(self.id), data=data)
+        membership_id = None
+        for each in user.aspectMemberships():
+            print(self.id, each)
+            if each.get('aspect', {}).get('id') == self.id:
+                membership_id = each.get('id')
+
+        if membership_id is None:
+            raise errors.UserIsNotMemberOfAspect(user, self)
+
+        request = self._connection.delete('aspect_memberships/{0}'.format(membership_id))
 
         if request.status_code != 200:
             raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))
+
         return request.json()
 
 

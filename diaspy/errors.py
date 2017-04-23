@@ -81,6 +81,9 @@ class AspectError(DiaspyError):
     """
     pass
 
+class UserIsNotMemberOfAspect(AspectError):
+    pass
+
 
 class PostError(DiaspyError):
     """Exception raised when something related to posts goes wrong.
