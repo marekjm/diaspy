@@ -129,7 +129,9 @@ class Connection():
         :type headers: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
-        request = self._session.delete(string, data=data, headers=headers, **kwargs)
+        if 'X-CSRF-Token' not in headers:
+            headers['X-CSRF-Token'] = self.get_token()
+        request = self._session.delete(string, data=data, headers=headers, verify=self._verify_SSL, **kwargs)
         return request
 
     def _setlogin(self, username, password):
