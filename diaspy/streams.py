@@ -221,6 +221,10 @@ class Outer(Generic):
     """Object used by diaspy.models.User to represent
     stream of other user.
     """
+    def __init__(self, connection, guid, fetch=True):
+        location = 'people/{}/stream.json'.format(guid)
+        super().__init__(connection, location, fetch)
+
     def _obtain(self, max_time=0):
         """Obtains stream from pod.
         """

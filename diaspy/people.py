@@ -82,7 +82,7 @@ class User():
         return '{0} ({1})'.format(self['handle'], self['guid'])
 
     def _fetchstream(self):
-        self.stream = Outer(self._connection, location='people/{0}.json'.format(self['guid']))
+        self.stream = Outer(self._connection, guid=self['guid'])
 
     def _fetch(self, fetch):
         """Fetch user posts or data.
