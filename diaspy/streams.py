@@ -53,8 +53,10 @@ class Generic():
         """
         return len(self._stream)
 
-    def _obtain(self, max_time=0):
+    def _obtain(self, max_time=0, suppress=True):
         """Obtains stream from pod.
+
+        suppress:bool - suppress post-fetching errors (e.g. 404)
         """
         params = {}
         if max_time:
@@ -63,7 +65,14 @@ class Generic():
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
-        return [Post(self._connection, guid=post['guid']) for post in request.json()]
+        posts = []
+        for post in request.json():
+            try:
+                posts.append(Post(self._connection, guid=post['guid']))
+            except errors.PostError:
+                if not suppress:
+                    raise
+        return posts
 
     def _expand(self, new_stream):
         """Appends older posts to stream.
