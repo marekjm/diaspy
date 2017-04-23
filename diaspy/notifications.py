@@ -24,6 +24,11 @@ class Notifications():
     def __getitem__(self, n):
         return self._notifications[n]
 
+    def _finalise(self, notifications):
+        self._data['unread_count'] = notifications['unread_count']
+        self._data['unread_count_by_type'] = notifications['unread_count_by_type']
+        return [Notification(self._connection, n) for n in notifications.get('notification_list', [])]
+
     def last(self):
         """Returns list of most recent notifications.
         """
@@ -34,7 +39,7 @@ class Notifications():
 
         if request.status_code != 200:
             raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
-        return [Notification(self._connection, n) for n in request.json()]
+        return self._finalise(request.json())
 
     def get(self, per_page=5, page=1):
         """Returns list of notifications.
@@ -46,8 +51,4 @@ class Notifications():
 
         if request.status_code != 200:
             raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
-
-        notifications = request.json()
-        self._data['unread_count'] = notifications['unread_count']
-        self._data['unread_count_by_type'] = notifications['unread_count_by_type']
-        return [Notification(self._connection, n) for n in notifications.get('notification_list', [])]
+        return self._finalise(request.json())
