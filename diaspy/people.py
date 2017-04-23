@@ -42,6 +42,26 @@ class User():
     optional parameters. GUID takes precedence over handle when fetching
     user stream. When fetching user data, handle is required.
     """
+    @classmethod
+    def parse(cls, connection, data):
+        person = data.get('person')
+        if person is None:
+            raise errors.KeyMissingFromFetchedData('person', data)
+
+        guid = person.get('guid')
+        if guid is None:
+            raise errors.KeyMissingFromFetchedData('guid', person)
+
+        handle = person.get('diaspora_id')
+        if handle is None:
+            raise errors.KeyMissingFromFetchedData('diaspora_id', person)
+
+        person_id = person.get('id')
+        if person_id is None:
+            raise errors.KeyMissingFromFetchedData('id', person)
+
+        return User(connection, guid, handle, id)
+
     def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
         self._connection = connection
         self.stream = []
@@ -206,4 +226,4 @@ class Contacts():
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        return [User(self._connection, guid=user['guid'], handle=user['handle'], fetch=None) for user in request.json()]
+        return [User.parse(self._connection, each) for each in request.json()]

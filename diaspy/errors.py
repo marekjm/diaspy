@@ -40,6 +40,18 @@ class TokenError(DiaspyError):
     pass
 
 
+class DataError(DiaspyError):
+    pass
+
+
+class InvalidDataError(DataError):
+    pass
+
+
+class KeyMissingFromFetchedData(InvalidDataError):
+    pass
+
+
 class UserError(DiaspyError):
     """Exception raised when something related to users goes wrong.
     """
