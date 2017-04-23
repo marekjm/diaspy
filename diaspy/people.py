@@ -87,6 +87,9 @@ class User():
     def guid(self):
         return self.data.get('guid', '<guid missing>')
 
+    def id(self):
+        return self.data['id']
+
     def _fetchstream(self):
         self.stream = Outer(self._connection, guid=self['guid'])
 
