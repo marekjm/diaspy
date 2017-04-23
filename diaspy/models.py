@@ -19,37 +19,9 @@ class Aspect():
     parameters.
     If both are missing, an exception will be raised.
     """
-    def __init__(self, connection, id=None, name=None):
+    def __init__(self, connection, id, name=None):
         self._connection = connection
         self.id, self.name = id, name
-        if id and not name:
-            self.name = self._findname()
-        elif name and not id:
-            self.id = self._findid()
-        elif not id and not name:
-            raise Exception('Aspect must be initialized with either an id or name')
-
-    def _findname(self):
-        """Finds name for aspect.
-        """
-        name = None
-        aspects = self._connection.getUserData()['aspects']
-        for a in aspects:
-            if a['id'] == self.id:
-                name = a['name']
-                break
-        return name
-
-    def _findid(self):
-        """Finds id for aspect.
-        """
-        id = None
-        aspects = self._connection.getUserData()['aspects']
-        for a in aspects:
-            if a['name'] == self.name:
-                id = a['id']
-                break
-        return id
 
     def _getajax(self):
         """Returns HTML returned when editing aspects via web UI.
