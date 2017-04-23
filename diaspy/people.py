@@ -76,10 +76,10 @@ class User():
         return self.data[key]
 
     def __str__(self):
-        return self['guid']
+        return self.data.get('guid', '<guid missing>')
 
     def __repr__(self):
-        return '{0} ({1})'.format(self['handle'], self['guid'])
+        return '{0} ({1})'.format(self.handle(), self.guid())
 
     def handle(self):
         return self.data.get('diaspora_id', 'Unknown handle')
