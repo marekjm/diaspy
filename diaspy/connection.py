@@ -118,7 +118,7 @@ class Connection():
         else: request = self._session.put(string, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
         return request
 
-    def delete(self, string, data, headers={}, **kwargs):
+    def delete(self, string, data = None, headers={}, **kwargs):
         """This method lets you send delete request to session.
         Performs additional checks if needed.
 
