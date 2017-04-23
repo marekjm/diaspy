@@ -120,6 +120,8 @@ class Connection():
         :type params: dict
         """
         string = '{0}/{1}'.format(self.pod, string)
+        if 'X-CSRF-Token' not in headers:
+            headers['X-CSRF-Token'] = self.get_token()
         request = self._session.post(string, data, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
         return request
 
@@ -127,6 +129,8 @@ class Connection():
         """This method PUTs to session.
         """
         string = '{0}/{1}'.format(self.pod, string)
+        if 'X-CSRF-Token' not in headers:
+            headers['X-CSRF-Token'] = self.get_token()
         if data is not None: request = self._session.put(string, data, headers=headers, params=params, **kwargs)
         else: request = self._session.put(string, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
         return request
