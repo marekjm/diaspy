@@ -24,7 +24,7 @@ class Connection():
     _userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
     # this is for older version of D*
     _token_regex_2 = re.compile(r'content="(.*?)"\s+name="csrf-token')
-    _userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
+    _userinfo_regex_2 = re.compile(r'gon.user=({.*?});gon.')
     _verify_SSL = True
 
     def __init__(self, pod, username, password, schema='https'):
