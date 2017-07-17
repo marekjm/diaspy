@@ -130,7 +130,7 @@ class Generic():
         """
         self._stream = self._obtain()
 
-    def more(self, max_time=0, backtime=84600):
+    def more(self, max_time=0, backtime=86400):
         """Tries to download more (older posts) posts from Stream.
 
         :param backtime: how many seconds substract each time (defaults to one day)
@@ -143,7 +143,7 @@ class Generic():
         new_stream = self._obtain(max_time=max_time)
         self._expand(new_stream)
 
-    def full(self, backtime=84600, retry=42, callback=None):
+    def full(self, backtime=86400, retry=42, callback=None):
         """Fetches full stream - containing all posts.
         WARNING: this is a **VERY** long running function.
         Use callback parameter to access information about the stream during its
