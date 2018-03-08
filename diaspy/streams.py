@@ -68,7 +68,7 @@ class Generic():
         posts = []
         for post in request.json():
             try:
-                posts.append(Post(self._connection, guid=post['guid']))
+                posts.append(Post(self._connection, id=post['id'], guid=post['guid']))
             except errors.PostError:
                 if not suppress:
                     raise
@@ -77,24 +77,24 @@ class Generic():
     def _expand(self, new_stream):
         """Appends older posts to stream.
         """
-        ids = [post.id for post in self._stream]
+        guids = [post.guid for post in self._stream]
         stream = self._stream
         for post in new_stream:
-            if post.id not in ids:
+            if post.guid not in guids:
                 stream.append(post)
-                ids.append(post.id)
+                guids.append(post.guid)
         self._stream = stream
 
     def _update(self, new_stream):
         """Updates stream with new posts.
         """
-        ids = [post.id for post in self._stream]
+        guids = [post.guid for post in self._stream]
 
         stream = self._stream
         for i in range(len(new_stream)):
-            if new_stream[-i].id not in ids:
+            if new_stream[-i].guid not in guids:
                 stream = [new_stream[-i]] + stream
-                ids.append(new_stream[-i].id)
+                guids.append(new_stream[-i].guid)
         self._stream = stream
 
     def clear(self):
