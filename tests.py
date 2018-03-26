@@ -65,7 +65,7 @@ class ConnectionTest(unittest.TestCase):
 class MessagesTests(unittest.TestCase):
     def testGettingMailbox(self):
         mailbox = diaspy.messages.Mailbox(test_connection)
-        if mailbox: 
+        if mailbox:
             for i in range(len(mailbox)):
                 self.assertEqual(diaspy.models.Conversation, type(mailbox[i]))
 
@@ -121,7 +121,7 @@ class StreamTest(unittest.TestCase):
         stream = diaspy.streams.Stream(test_connection)
         post = stream.post(post_text)
         self.assertEqual(diaspy.models.Post, type(post))
-    
+
     def testPostingImage(self):
         stream = diaspy.streams.Stream(test_connection)
         try:
@@ -171,7 +171,7 @@ class UserTests(unittest.TestCase):
         self.assertIn('id', user.data)
         self.assertIn('avatar', user.data)
         self.assertEqual(type(user.stream), diaspy.streams.Outer)
- 
+
     def testGettingUserByGUID(self):
         user = diaspy.people.User(test_connection, guid=testconf.guid)
         self.assertEqual(testconf.diaspora_id, user['handle'])
@@ -261,7 +261,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(testconf.user_email, self.account.getEmail())
 
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     print('Hello World!')
     print('It\'s testing time!')
     n = unittest.main()
