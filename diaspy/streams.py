@@ -273,7 +273,9 @@ class Stream(Generic):
                                                  'x-csrf-token': repr(self._connection)})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(request.status_code))
-        post = Post(self._connection, request.json()['id'])
+        data = request.json()
+        post = Post(self._connection, data['guid'])
+        post.data(data)
         return post
 
     def _photoupload(self, filename, aspects=[]):
