@@ -295,10 +295,14 @@ class Post():
         return self._data['text']
 
     def __getitem__(self, key):
+        """FIXME This is deprecated, use diaspy.models.Post.data() instead to access
+        data of Post objects.
+        """
         return self._data[key]
 
     def __dict__(self):
         """Returns dictionary of posts data.
+        FIXME This is deprecated, use diaspy.models.Post.data() instead.
         """
         return self._data
 
@@ -331,9 +335,25 @@ class Post():
 
     def update(self):
         """Updates post data.
+        FIXME This is deprecated.
         """
+        print('diaspy.models.Post.update() is deprecated. Use diaspy.models.Post.update() instead.')
         self._fetchdata()
         self._fetchcomments()
+
+    def fetch(self, comments = False):
+        """Fetches post data.
+        Use this function instead of diaspy.models.Post.update().
+        """
+        self._fetchdata()
+        if comments:
+            self._fetchcomments()
+        return self
+
+    def data(self, data = None):
+        if data is not None:
+            self._data = data
+        return self._data
 
     def like(self):
         """This function likes a post.
