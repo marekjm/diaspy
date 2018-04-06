@@ -127,13 +127,13 @@ class User():
         self._postproc(request)
         self._fetchstream()
 
-    def fetchguid(self):
-        """Fetch user data and posts using guid.
+    def fetchguid(self, fetch_stream=True):
+        """Fetch user data and posts (if fetch_stream is True) using guid.
         """
         if self['guid']:
             request = self._connection.get('people/{0}.json'.format(self['guid']))
             self._postproc(request)
-            self._fetchstream()
+            if fetch_stream: self._fetchstream()
         else:
             raise errors.UserError('GUID not set')
 
