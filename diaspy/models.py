@@ -93,7 +93,7 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
-    _who_regexp = re.compile(r'/people/[0-9a-f]+" class=\'hovercardable')
+    _who_regexp = re.compile(r'/people/[0-9a-f]+["\']{1} class=["\']{1}hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
     _aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
     _htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
