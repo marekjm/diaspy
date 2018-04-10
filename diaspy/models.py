@@ -93,7 +93,7 @@ class Aspect():
 class Notification():
     """This class represents single notification.
     """
-    _who_regexp = re.compile(r'/people/[0-9a-f]+["\']{1} class=["\']{1}hovercardable')
+    _who_regexp = re.compile(r'/people/([0-9a-f]+)["\']{1} class=["\']{1}hovercardable')
     _when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
     _aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
     _htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
@@ -135,7 +135,7 @@ class Notification():
     def who(self):
         """Returns list of guids of the users who caused you to get the notification.
         """
-        return [who[8:24] for who in self._who_regexp.findall(self._data['note_html'])]
+        return [who for who in self._who_regexp.findall(self._data['note_html'])]
 
     def when(self):
         """Returns UTC time as found in note_html.
