@@ -32,19 +32,30 @@ class Aspect():
             self._cached = request.json()
         return self._cached
 
-    def addUser(self, user):
+    def addUser(self, user_id):
         """Add user to current aspect.
 
         :param user_id: user to add to aspect
         :type user_id: int
         :returns: JSON from request
+        
+        --> POST /aspect_memberships HTTP/1.1
+        --> Accept: application/json, text/javascript, */*; q=0.01
+        --> Content-Type: application/json; charset=UTF-8
+
+        --> {"aspect_id":123,"person_id":123}
+        
+        <-- HTTP/1.1 200 OK
         """
         data = {
-            'aspect_id': self.id,
-            'person_id': user.id(),
-        }
+                'aspect_id': self.id,
+                'person_id': user_id
+                }
+        headers = {'content-type': 'application/json',
+                   'accept': 'application/json'
+                   }
 
-        request = self._connection.tokenFrom('contacts').post('aspect_memberships', data=data)
+        request = self._connection.tokenFrom('contacts').post('aspect_memberships', data=json.dumps(data), headers=headers)
 
         if request.status_code == 400:
             raise errors.AspectError('duplicate record, user already exists in aspect: {0}'.format(request.status_code))
@@ -57,6 +68,8 @@ class Aspect():
         try:
             response = request.json()
         except json.decoder.JSONDecodeError:
+            """ Should be OK now, but I'll leave this commentary here 
+            at first to see if anything comes up """
             # FIXME For some (?) reason removing users from aspects works, but
             # adding them is a no-go and Diaspora* kicks us out with CSRF errors.
             # Weird.
@@ -70,21 +83,25 @@ class Aspect():
     def removeUser(self, user):
         """Remove user from current aspect.
 
-        :param user_id: user to remove from aspect
-        :type user: int
+        :param user: user to remove from aspect
+        :type user: diaspy.people.User object
         """
         membership_id = None
         for each in user.aspectMemberships():
             print(self.id, each)
             if each.get('aspect', {}).get('id') == self.id:
                 membership_id = each.get('id')
+                break # no need to continue
 
         if membership_id is None:
             raise errors.UserIsNotMemberOfAspect(user, self)
 
         request = self._connection.delete('aspect_memberships/{0}'.format(membership_id))
 
-        if request.status_code != 200:
+        if request.status_code == 404:
+            raise errors.AspectError('cannot remove user from aspect, probably tried too fast after adding: {0}'.format(request.status_code))
+
+        elif request.status_code != 200:
             raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))
 
         return request.json()
