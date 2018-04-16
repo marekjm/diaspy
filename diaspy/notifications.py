@@ -49,8 +49,8 @@ class Notifications():
         for n in new_notifications:
             if n.id not in ids:
                 if n.unread:
-                    data[n.type].unread_count +=1
-                    data[n.type].unread_count_by_type +=1
+                    data['unread_count'] +=1
+					data['unread_count_by_type'][n.type] +=1
                 notifications.append(n)
                 ids.append(n.id)
         self._notifications = notifications
