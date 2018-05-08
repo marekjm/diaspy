@@ -235,6 +235,9 @@ class Connection():
         """
         return self._diaspora_session
 
+    def userdata(self):
+        return self._userdata
+
     def getUserData(self):
         """Returns user data.
         """
@@ -243,7 +246,8 @@ class Connection():
         if userdata is None: userdata = self._userinfo_regex_2.search(request.text)
         if userdata is None: raise errors.DiaspyError('cannot find user data')
         userdata = userdata.group(1)
-        return json.loads(userdata)
+        self._userdata = json.loads(userdata)
+        return self._userdata
 
     def set_verify_SSL(self, verify):
         """Sets whether there should be an error if a SSL-Certificate could not be verified.

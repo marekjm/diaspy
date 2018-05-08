@@ -11,6 +11,29 @@ import time
 from diaspy.models import Post, Aspect
 from diaspy import errors
 
+"""
+Remember created_at is in UTC so I found two options to 
+convert/parse it to UTC timestamp: dateutil or pytz (found some 
+more but those libs aren't in default repo of main distro's)
+
+We need this to get a UTC timestamp from the latest loaded post in the 
+stream, so we can use it for the more() function.
+"""
+try:
+    import dateutil.parser
+    def parse_utc_timestamp(date_str):
+        return round(dateutil.parser.parse(date_str).timestamp())
+
+except ImportError:
+    try:
+        from datetime import datetime
+        from pytz import timezone
+        def parse_utc_timestamp(date_str):
+            return round(datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone('UTC')).timestamp())
+
+    except ImportError:
+        print("Please install either python-dateutil or python-pytz")
+        exit # TODO raise exception
 
 class Generic():
     """Object representing generic stream.
@@ -28,6 +51,7 @@ class Generic():
         """
         self._connection = connection
         if location: self._location = location
+        self.latest = None
         self._stream = []
         #   since epoch
         self.max_time = int(time.mktime(time.gmtime()))
@@ -60,18 +84,29 @@ class Generic():
         """
         params = {}
         if max_time:
+            if self.latest == None:
+                self.latest = int(time.mktime(time.gmtime()) * 1000)
+                self.latest -= max_time
+            else: self.latest += 1
             params['max_time'] = max_time
-            params['_'] = int(time.time() * 1000)
+            params['_'] = self.latest
+            print("Diaspy _obtain.params: {}".format(params))
         request = self._connection.get(self._location, params=params)
         if request.status_code != 200:
             raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
         posts = []
+        latest_time = None # Used to get the created_at from the latest posts we received.
         for post in request.json():
             try:
-                posts.append(Post(self._connection, id=post['id'], guid=post['guid']))
+                comments = False
+                if post['interactions']['comments_count'] > 3: comments = True
+                posts.append(Post(self._connection, id=post['id'], guid=post['guid'], fetch=False, comments=comments, post_data=post))
+                if post['created_at']: latest_time = post['created_at']
             except errors.PostError:
                 if not suppress:
                     raise
+        if latest_time:
+            self.max_time = parse_utc_timestamp( latest_time )
         return posts
 
     def _expand(self, new_stream):
@@ -133,12 +168,16 @@ class Generic():
     def more(self, max_time=0, backtime=86400):
         """Tries to download more (older posts) posts from Stream.
 
+        TODO backtime isn't used anymore.
+        Diaspora reference: https://github.com/diaspora/diaspora/blob/26a9e50ef935628c800f9a21d345057556fa5c31/app/helpers/stream_helper.rb#L48
+
         :param backtime: how many seconds substract each time (defaults to one day)
         :type backtime: int
         :param max_time: seconds since epoch (optional, diaspy'll figure everything on its own)
         :type max_time: int
         """
-        if not max_time: max_time = self.max_time - backtime
+
+        if not max_time: max_time = self.max_time
         self.max_time = max_time
         new_stream = self._obtain(max_time=max_time)
         self._expand(new_stream)
@@ -225,17 +264,6 @@ class Outer(Generic):
         location = 'people/{}/stream.json'.format(guid)
         super().__init__(connection, location, fetch)
 
-    def _obtain(self, max_time=0):
-        """Obtains stream from pod.
-        """
-        params = {}
-        if max_time: params['max_time'] = max_time
-        request = self._connection.get(self._location, params=params)
-        if request.status_code != 200:
-            raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
-        return [Post(self._connection, post['id']) for post in request.json()]
-
-
 class Stream(Generic):
     """The main stream containing the combined posts of the
     followed users and tags and the community spotlights posts
@@ -243,20 +271,33 @@ class Stream(Generic):
     """
     location = 'stream.json'
 
-    def post(self, text='', aspect_ids='public', photos=None, photo='', provider_display_name=''):
+    def post(self, text='', aspect_ids='public', photos=None, photo='', poll_question=None, poll_answers=None, location_coords=None, provider_display_name=''):
         """This function sends a post to an aspect.
         If both `photo` and `photos` are specified `photos` takes precedence.
 
         :param text: Text to post.
         :type text: str
+
         :param aspect_ids: Aspect ids to send post to.
         :type aspect_ids: str
+
         :param photo: filename of photo to post
         :type photo: str
+
         :param photos: id of photo to post (obtained from _photoupload())
         :type photos: int
+
         :param provider_display_name: name of provider displayed under the post
         :type provider_display_name: str
+
+        :param poll_question: Question string
+        :type poll_question: str
+
+        :param poll_answers: Anwsers to the poll
+        :type poll_answers: list with strings
+
+        :param location_coords: TODO
+        :type location_coords: TODO
 
         :returns: diaspy.models.Post -- the Post which has been created
         """
@@ -265,6 +306,10 @@ class Stream(Generic):
         data['status_message'] = {'text': text, 'provider_display_name': provider_display_name}
         if photo: data['photos'] = self._photoupload(photo)
         if photos: data['photos'] = photos
+        if poll_question and poll_answers:
+            data['poll_question'] = poll_question
+            data['poll_answers'] = poll_answers
+        if location_coords: data['location_coords'] = location_coords
 
         request = self._connection.post('status_messages',
                                         data=json.dumps(data),
@@ -273,9 +318,8 @@ class Stream(Generic):
                                                  'x-csrf-token': repr(self._connection)})
         if request.status_code != 201:
             raise Exception('{0}: Post could not be posted.'.format(request.status_code))
-        data = request.json()
-        post = Post(self._connection, data['guid'])
-        post.data(data)
+        post_json = request.json()
+        post = Post(self._connection, id=post_json['id'], guid=post_json['guid'], post_data=post_json)
         return post
 
     def _photoupload(self, filename, aspects=[]):
@@ -370,8 +414,8 @@ class Aspects(Generic):
         :parameter ids: list of apsect ids
         :type ids: list of integers
         """
-        self._location = 'aspects.json' + '?{0}'.format(','.join(ids))
-        self.fill()
+        self._location = 'aspects.json?a_ids[]=' + '{}'.format('&a_ids[]='.join(ids))
+        self.fill() # this will create entirely new list of posts.
 
     def add(self, aspect_name, visible=0):
         """This function adds a new aspect.

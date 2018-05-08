@@ -11,7 +11,6 @@ import re
 
 from diaspy import errors
 
-
 class Aspect():
     """This class represents an aspect.
 
@@ -32,19 +31,36 @@ class Aspect():
             self._cached = request.json()
         return self._cached
 
+    def removeAspect(self):
+        """
+        --> POST /aspects/{id} HTTP/1.1
+        --> _method=delete&authenticity_token={token}
+
+        <-- HTTP/1.1 302 Found
+
+        TODO: status_codes
+
+        Removes whole aspect.
+        :returns: None
+        """
+        request = self._connection.tokenFrom('contacts').delete('aspects/{}'.format(self.id))
+
+        if request.status_code != 302:
+            raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
+
     def addUser(self, user_id):
         """Add user to current aspect.
 
         :param user_id: user to add to aspect
         :type user_id: int
         :returns: JSON from request
-        
+
         --> POST /aspect_memberships HTTP/1.1
         --> Accept: application/json, text/javascript, */*; q=0.01
         --> Content-Type: application/json; charset=UTF-8
 
         --> {"aspect_id":123,"person_id":123}
-        
+
         <-- HTTP/1.1 200 OK
         """
         data = {
@@ -78,6 +94,8 @@ class Aspect():
         if response is None:
             raise errors.CSRFProtectionKickedIn()
 
+        # Now you should fetchguid(fetch_stream=False) on User to update aspect membership_id's
+        # Or update it locally with the response
         return response
 
     def removeUser(self, user):
@@ -87,10 +105,12 @@ class Aspect():
         :type user: diaspy.people.User object
         """
         membership_id = None
+        to_remove = None
         for each in user.aspectMemberships():
             print(self.id, each)
             if each.get('aspect', {}).get('id') == self.id:
                 membership_id = each.get('id')
+                to_remove = each
                 break # no need to continue
 
         if membership_id is None:
@@ -104,6 +124,10 @@ class Aspect():
         elif request.status_code != 200:
             raise errors.AspectError('cannot remove user from aspect: {0}'.format(request.status_code))
 
+        if 'contact' in user.data: # User object
+            if to_remove: user.data['contact']['aspect_memberships'].remove( to_remove ) # remove local aspect membership_id
+        else: # User object from Contacts()
+            if to_remove: user.data['aspect_memberships'].remove( to_remove ) # remove local aspect membership_id
         return request.json()
 
 
@@ -248,6 +272,8 @@ class Comment():
     """
     def __init__(self, data):
         self._data = data
+        self.id = data['id']
+        self.guid = data['guid']
 
     def __str__(self):
         """Returns comment's text.
@@ -270,6 +296,46 @@ class Comment():
         """
         return self._data['author'][key]
 
+class Comments():
+    def __init__(self, comments=None):
+        self._comments = comments
+
+    def __iter__(self):
+        if self._comments:
+            for comment in self._comments:
+                yield comment
+
+    def __len__(self):
+        if self._comments:
+            return len(self._comments)
+
+    def __getitem__(self, index):
+        if self._comments:
+            return self._comments[index]
+
+    def __bool__(self):
+        if self._comments:
+            return True
+        return False
+
+    def ids(self):
+        return [c.id for c in self._comments]
+
+    def add(self, comment):
+        """ Expects comment object
+        TODO self._comments is None sometimes, have to look into it."""
+        if comment and self._comments:
+            self._comments.append(comment)
+
+    def set(self, comments):
+        """Sets comments wich already have a Comment obj"""
+        if comments:
+            self._comments = comments
+
+    def set_json(self, json_comments):
+        """Sets comments for this post from post data."""
+        if json_comments:
+            self._comments = [Comment(c) for c in json_comments]
 
 class Post():
     """This class represents a post.
@@ -277,7 +343,7 @@ class Post():
     .. note::
         Remember that you need to have access to the post.
     """
-    def __init__(self, connection, id=0, guid='', fetch=True, comments=True):
+    def __init__(self, connection, id=0, guid='', fetch=True, comments=True, post_data=None):
         """
         :param id: id of the post (GUID is recommended)
         :type id: int
@@ -289,17 +355,25 @@ class Post():
         :type fetch: bool
         :param comments: defines whether to fetch post's comments or not (if True also data will be fetched)
         :type comments: bool
+        :param post_data: contains post data so no need to fetch the post if this is set, until you want to update post data
+        :type: json
         """
         if not (guid or id): raise TypeError('neither guid nor id was provided')
         self._connection = connection
         self.id = id
         self.guid = guid
         self._data = {}
-        self.comments = []
+        self.comments = Comments()
+        if post_data:
+            self._data = post_data
+
         if fetch: self._fetchdata()
         if comments:
             if not self._data: self._fetchdata()
             self._fetchcomments()
+        else:
+            if not self._data: self._fetchdata()
+            self.comments.set_json( self['interactions']['comments'] )
 
     def __repr__(self):
         """Returns string containing more information then str().
@@ -333,7 +407,7 @@ class Post():
         request = self._connection.get('posts/{0}.json'.format(id))
         if request.status_code != 200:
             raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, id))
-        else:
+        elif request:
             self._data = request.json()
         return self['guid']
 
@@ -348,7 +422,7 @@ class Post():
             if request.status_code != 200:
                 raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, id))
             else:
-                self.comments = [Comment(c) for c in request.json()]
+                self.comments.set([Comment(c) for c in request.json()])
 
     def update(self):
         """Updates post data.
@@ -380,14 +454,18 @@ class Post():
         """
         data = {'authenticity_token': repr(self._connection)}
 
-        request = self._connection.post('posts/{0}/likes'.format(self.id),
+        request = self._connection.post('posts/{0}/likes'.format(self.id),    
                                         data=data,
                                         headers={'accept': 'application/json'})
 
         if request.status_code != 201:
             raise errors.PostError('{0}: Post could not be liked.'
                                    .format(request.status_code))
-        return request.json()
+
+        likes_json = request.json()
+        if likes_json:
+            self._data['interactions']['likes'] = [likes_json]
+        return likes_json
 
     def reshare(self):
         """This function reshares a post
@@ -417,7 +495,85 @@ class Post():
         if request.status_code != 201:
             raise Exception('{0}: Comment could not be posted.'
                             .format(request.status_code))
+        return Comment(request.json())
+
+    def vote_poll(self, poll_answer_id):
+        """This function votes on a post's poll
+
+        :param poll_answer_id: id to poll vote.
+        :type poll_answer_id: int
+        """
+        poll_id = self._data['poll']['poll_id']
+        data = {'poll_answer_id': poll_answer_id,
+                'poll_id': poll_id,
+                'post_id': self.id,
+                'authenticity_token': repr(self._connection)}
+        request = self._connection.post('posts/{0}/poll_participations'.format(self.id),
+                                        data=data,
+                                        headers={'accept': 'application/json'})
+        if request.status_code != 201:
+            raise Exception('{0}: Vote on poll failed.'
+                            .format(request.status_code))
         return request.json()
+
+    def hide(self):
+        """
+        ->    PUT /share_visibilities/42 HTTP/1.1
+              post_id=123
+        <-    HTTP/1.1 200 OK
+        """
+        headers = {'x-csrf-token': repr(self._connection)}
+        params = {'post_id': json.dumps(self.id)}
+        request = self._connection.put('share_visibilities/42', params=params, headers=headers)
+        if request.status_code != 200:
+            raise Exception('{0}: Failed to hide post.'
+                            .format(request.status_code))
+
+    def mute(self):
+        """
+        ->    POST /blocks HTTP/1.1
+            {"block":{"person_id":123}}
+        <-    HTTP/1.1 204 No Content 
+        """
+        headers = {'content-type':'application/json', 'x-csrf-token': repr(self._connection)}
+        data = json.dumps({ 'block': { 'person_id' : self._data['author']['id'] } })
+        request = self._connection.post('blocks', data=data, headers=headers)
+        if request.status_code != 204:
+            raise Exception('{0}: Failed to block person'
+                            .format(request.status_code))
+
+    def subscribe(self):
+        """
+        ->    POST /posts/123/participation HTTP/1.1
+        <-    HTTP/1.1 201 Created
+        """
+        headers = {'x-csrf-token': repr(self._connection)}
+        data = {}
+        request = self._connection.post('posts/{}/participation'
+                            .format( self.id ), data=data, headers=headers)
+        if request.status_code != 201:
+            raise Exception('{0}: Failed to subscribe to post'
+                            .format(request.status_code))
+
+    def unsubscribe(self):
+        """
+        ->    POST /posts/123/participation HTTP/1.1
+              _method=delete
+        <-    HTTP/1.1 200 OK
+        """
+        headers = {'x-csrf-token': repr(self._connection)}
+        data = { "_method": "delete" }
+        request = self._connection.post('posts/{}/participation'
+                            .format( self.id ), headers=headers, data=data)
+        if request.status_code != 200:
+            raise Exception('{0}: Failed to unsubscribe to post'
+                            .format(request.status_code))
+
+    def report(self):
+        """
+        TODO
+        """
+        pass
 
     def delete(self):
         """ This function deletes this post

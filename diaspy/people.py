@@ -3,6 +3,7 @@
 import json
 import re
 import warnings
+import time
 
 from diaspy.streams import Outer
 from diaspy.models import Aspect
@@ -60,9 +61,9 @@ class User():
         if person_id is None:
             raise errors.KeyMissingFromFetchedData('id', person)
 
-        return User(connection, guid, handle, id)
+        return User(connection, guid, handle, id, data=data)
 
-    def __init__(self, connection, guid='', handle='', fetch='posts', id=0):
+    def __init__(self, connection, guid='', handle='', fetch='posts', id=0, data=None):
         self._connection = connection
         self.stream = []
         self.data = {
@@ -70,7 +71,9 @@ class User():
             'handle': handle,
             'id': id,
         }
-        self._fetch(fetch)
+        self.photos = []
+        if data: self.data.update( data )
+        if fetch: self._fetch(fetch)
 
     def __getitem__(self, key):
         return self.data[key]
@@ -82,6 +85,7 @@ class User():
         return '{0} ({1})'.format(self.handle(), self.guid())
 
     def handle(self):
+        if 'handle' in self.data: return self['handle']
         return self.data.get('diaspora_id', 'Unknown handle')
 
     def guid(self):
@@ -97,7 +101,7 @@ class User():
         """Fetch user posts or data.
         """
         if fetch == 'posts':
-            if self['handle'] and not self['guid']: self.fetchhandle()
+            if self.handle() and not self['guid']: self.fetchhandle()
             else: self.fetchguid()
         elif fetch == 'data' and self['handle']:
             self.fetchprofile()
@@ -139,23 +143,89 @@ class User():
 
     def fetchprofile(self):
         """Fetches user data.
-        """
-        data = search.Search(self._connection).user(self['handle'])
+        """ 
+        data = search.Search(self._connection).user(self.handle())
         if not data:
-            raise errors.UserError('user with handle "{0}" has not been found on pod "{1}"'.format(self['handle'], self._connection.pod))
+            raise errors.UserError('user with handle "{0}" has not been found on pod "{1}"'.format(self.handle(), self._connection.pod))
         else:
-            self.data = data[0]
+            self.data.update( data[0] )
 
     def aspectMemberships(self):
-        return self.data.get('contact', {}).get('aspect_memberships', [])
+        if 'contact' in self.data:
+            return self.data.get('contact', {}).get('aspect_memberships', [])
+        else:
+            return self.data.get('aspect_memberships', [])
+
+    def getPhotos(self):
+        """
+        --> GET /people/{GUID}/photos.json HTTP/1.1
+
+        <-- HTTP/1.1 200 OK
+
+        {
+            "photos":[
+                {
+                    "id":{photo_id},
+                    "guid":"{photo_guid}",
+                    "created_at":"2018-03-08T23:48:31.000Z",
+                    "author":{
+                        "id":{author_id},
+                        "guid":"{author_guid}",
+                        "name":"{author_name}",
+                        "diaspora_id":"{diaspora_id}",
+                        "avatar":{"small":"{avatar_url_small}","medium":"{avatar_url_medium}","large":"{avatar_url_large}"}
+                    },
+                    "sizes":{
+                        "small":"{photo_url}",
+                        "medium":"{photo_url}",
+                        "large":"{photo_url}"
+                    },
+                    "dimensions":{"height":847,"width":998},
+                    "status_message":{
+                        "id":{post_id}
+                    }
+                },{ ..
+        }
+
+        if there are no photo's it returns:
+        {"photos":[]}
+        """
+
+        request = self._connection.get('/people/{0}/photos.json'.format(self['guid']))
+        if request.status_code != 200: raise errors.UserError('could not fetch photos for user: {0}'.format(self['guid']))
+
+        json = request.json()
+        if json: self.photos = json['photos']
+        return json['photos']
 
     def getHCard(self):
-        """Returns XML string containing user HCard.
-        """
-        request = self._connection.get('hcard/users/{0}'.format(self['guid']))
-        if request.status_code != 200: raise errors.UserError('could not fetch hcard for user: {0}'.format(self['guid']))
-        return request.text
+        """Returns json containing user HCard.
+        --> /people/{guid}/hovercard.json?_={timestamp}
 
+        <-- HTTP/2.0 200 OK
+        {
+            "id":123,
+            "guid":"1234567890abcdef",
+            "name":"test",
+            "diaspora_id":"batman@test.test",
+            "contact":false,
+            "profile":{
+                "avatar":"https://nicetesturl.url/image.jpg",
+                "tags":["tag1", "tag2", "tag3", "tag4", "tag5"]}
+        }
+        """
+        timestamp = int(time.mktime(time.gmtime()))
+        request = self._connection.get('/people/{0}/hovercard.json?_={}'.format(self['guid'], timestamp))
+        if request.status_code != 200: raise errors.UserError('could not fetch hcard for user: {0}'.format(self['guid']))
+        return request.json()
+
+    def deletePhoto(self, photo_id):
+        """
+        --> DELETE /photos/{PHOTO_ID} HTTP/1.1
+        <-- HTTP/1.1 204 No Content
+        """
+        request = self._connection.delete('/photos/{0}'.format(photo_id))
+        if request.status_code != 204: raise errors.UserError('could not delete photo_id: {0}'.format(photo_id))
 
 class Me():
     """Object represetnting current user.
@@ -182,30 +252,95 @@ class Me():
 class Contacts():
     """This class represents user's list of contacts.
     """
-    def __init__(self, connection):
+    def __init__(self, connection, fetch=False, set=''):
         self._connection = connection
+        self.contacts = None
+        if fetch: self.contacts = self.get(set)
+
+    def __getitem__(self, index):
+        return self.contacts[index]
+
+    def addAspect(self, name, visible=False):
+        """
+        --> POST /aspects HTTP/1.1
+        --> {"person_id":null,"name":"test","contacts_visible":false}
+
+        <-- HTTP/1.1 200 OK
+
+        Add new aspect.
+
+        TODO: status_code's
+
+        :param name: aspect name to add
+        :type name: str
+        :param visible: sets if contacts in aspect are visible for each and other
+        :type visible: bool
+        :returns: JSON from request
+        """
+        data = {
+            'person_id': None,
+            'name': name,
+            'contacts_visible': visible
+        }
+        headers={'content-type': 'application/json',
+                 'accept': 'application/json' }
+        request = self._connection.tokenFrom('contacts').post('aspects', headers=headers, data=json.dumps(data))
+
+        if request.status_code == 400:
+            raise errors.AspectError('duplicate record, aspect alreadt exists: {0}'.format(request.status_code))
+        elif request.status_code != 200:
+            raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
+
+        new_aspect = request.json()
+        self._connection.userdata()['aspects'].append( new_aspect )
+
+        return new_aspect
+
+    def deleteAspect(self, aspect_id):
+        """
+        --> POST /aspects/{ASPECT_ID} HTTP/1.1
+            _method=delete&authenticity_token={TOKEN}
+            Content-Type: application/x-www-form-urlencoded
+
+        <-- HTTP/1.1 302 Found
+            Content-Type: text/html; charset=utf-8
+        """
+        request = self._connection.tokenFrom('contacts').delete('aspects/{}'.format( aspect_id ))
+
+        if request.status_code != 200: # since we don't post but delete
+            raise errors.AspectError('wrong status code: {0}'.format(request.status_code))
 
     def add(self, user_id, aspect_ids):
         """Add user to aspects of given ids.
 
-        :param user_id: user guid
+        :param user_id: user id (not guid)
         :type user_id: str
         :param aspect_ids: list of aspect ids
         :type aspect_ids: list
         """
-        for aid in aspect_ids: Aspect(self._connection, aid).addUser(user_id)
+        # TODO update self.contacts
+        # Returns {"aspect_id":123,"person_id":123}
+        for aid in aspect_ids:
+            new_aspect_membership = Aspect(self._connection, aid).addUser(user_id)
+
+            # user.
+            if new_aspect_membership:
+                for user in self.contacts:
+                    if int(user.data['person_id']) == int(user_id):
+                        user.data['aspect_memberships'].append( new_aspect_membership )
+                        return new_aspect_membership
 
     def remove(self, user_id, aspect_ids):
         """Remove user from aspects of given ids.
 
-        :param user_id: user guid
+        :param user_id: user id
         :type user_id: str
         :param aspect_ids: list of aspect ids
         :type aspect_ids: list
         """
         for aid in aspect_ids: Aspect(self._connection, aid).removeUser(user_id)
 
-    def get(self, set=''):
+    def get(self, set='', page=0):
         """Returns list of user contacts.
         Contact is a User() who is in one or more of user's
         aspects.
@@ -219,13 +354,51 @@ class Contacts():
         If `set` is `only_sharing` it will return users who are only
         sharing with logged user and ARE NOT in his/hers aspects.
 
+        # On "All contacts" button diaspora
+        on the time of testing this I had 20 contacts and 10 that 
+        where only sharing with me. So 30 in total.
+
+        -->    GET /contacts?set=all HTTP/1.1
+            <-- HTTP/1.1 200 OK
+            returned 25 contacts (5 only sharing with me)
+
+        -->    GET /contacts.json?page=1&set=all&_=1524410225376 HTTP/1.1
+            <-- HTTP/1.1 200 OK
+            returned the same list as before.
+
+        --> GET /contacts.json?page=2&set=all&_=1524410225377 HTTP/1.1
+            <-- HTTP/1.1 200 OK
+            returned the other 5 that where only sharing with me.
+
+        --> GET /contacts.json?page=3&set=all&_=1524410225378 HTTP/1.1
+            <-- HTTP/1.1 200 OK
+            returned empty list.
+
+        It appears that /contacts?set=all returns a maximum of 25 
+        contacts.
+
+        So if /contacts?set=all returns 25 contacts then request next 
+        page until page returns a list with less then 25. I don't see a 
+        reason why we should request page=1 'cause the previous request 
+        will be the same. So begin with page=2 if /contacts?set=all 
+        returns 25.
+
         :param set: if passed could be 'all' or 'only_sharing'
         :type set: str
         """
         params = {}
-        if set: params['set'] = set
+        if set:
+            params['set'] = set
+            params['_'] = int(time.mktime(time.gmtime()))
+            if page: params['page'] = page
 
         request = self._connection.get('contacts.json', params=params)
         if request.status_code != 200:
             raise Exception('status code {0}: cannot get contacts'.format(request.status_code))
-        return [User.parse(self._connection, each) for each in request.json()]
+
+        json = request.json()
+        users = [User.parse(self._connection, each) for each in json]
+        if len(json) == 25:
+            if not page: page = 1
+            users += self.get(set=set, page=page+1)
+        return users

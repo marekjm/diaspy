@@ -105,6 +105,15 @@ class SettingsError(DiaspyError):
     """
     pass
 
+class SearchError(DiaspyError):
+    """Exception raised when something related to searching goes wrong.
+    """
+    pass
+
+class TagError(DiaspyError):
+    """Exception raised when something related to settings goes wrong.
+    """
+    pass
 
 def react(r, message='', accepted=[200, 201, 202, 203, 204, 205, 206], exception=DiaspyError):
     """This method tries to decide how to react
