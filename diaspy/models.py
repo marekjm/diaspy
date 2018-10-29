@@ -7,7 +7,15 @@ MUST NOT import anything.
 
 
 import json
-import re
+import copy
+
+BS4_SUPPORT=False
+try:
+	from bs4 import BeautifulSoup
+except ImportError:
+	import re
+	print("BeautifulSoup not found, falling back on regex.")
+else: BS4_SUPPORT=True
 
 from diaspy import errors
 
@@ -130,10 +138,10 @@ class Aspect():
 class Notification():
 	"""This class represents single notification.
 	"""
-	_who_regexp = re.compile(r'/people/([0-9a-f]+)["\']{1} class=["\']{1}hovercardable')
-	_when_regexp = re.compile(r'[0-9]{4,4}(-[0-9]{2,2}){2,2} [0-9]{2,2}(:[0-9]{2,2}){2,2} UTC')
-	_aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
-	_htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
+	if not BS4_SUPPORT:
+		_who_regexp = re.compile(r'/people/([0-9a-f]+)["\']{1} class=["\']{1}hovercardable')
+		_aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
+		_htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
 
 	def __init__(self, connection, data):
 		self._connection = connection
@@ -150,10 +158,17 @@ class Notification():
 	def __str__(self):
 		"""Returns notification note.
 		"""
-		string = re.sub(self._htmltag_regexp, '', self._data['note_html'])
-		string = string.strip().split('\n')[0]
-		while '  ' in string: string = string.replace('  ', ' ')
-		return string
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._data['note_html'], 'lxml')
+			media_body = soup.find('div', {"class": "media-body"})
+			div = media_body.find('div')
+			if div: div.decompose()
+			return media_body.getText().strip()
+		else:
+			string = re.sub(self._htmltag_regexp, '', self._data['note_html'])
+			string = string.strip().split('\n')[0]
+			while '  ' in string: string = string.replace('  ', ' ')
+			return string
 
 	def __repr__(self):
 		"""Returns notification note with more details.
@@ -164,15 +179,26 @@ class Notification():
 		"""Returns id of post about which the notification is informing OR:
 		If the id is None it means that it's about user so .who() is called.
 		"""
-		about = self._aboutid_regexp.search(self._data['note_html'])
-		if about is None: about = self.who()
-		else: about = int(about.group(0)[7:])
-		return about
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._data['note_html'], 'lxml')
+			id = soup.find('a', {"data-ref": True})
+			if id: return id['data-ref']
+			else: return self.who()[0]
+		else:
+			about = self._aboutid_regexp.search(self._data['note_html'])
+			if about is None: about = self.who()[0]
+			else: about = int(about.group(0)[7:])
+			return about
 
 	def who(self):
 		"""Returns list of guids of the users who caused you to get the notification.
 		"""
-		return [who for who in self._who_regexp.findall(self._data['note_html'])]
+		if BS4_SUPPORT: # Parse the HTML with BS4
+			soup = BeautifulSoup(self._data['note_html'], 'lxml')
+			hovercardable_soup = soup.findAll('a', {"class": "hovercardable"})
+			return list(set([soup['href'][8:] for soup in hovercardable_soup]))
+		else:
+			return list(set([who for who in self._who_regexp.findall(self._data['note_html'])]))
 
 	def when(self):
 		"""Returns UTC time as found in note_html.
@@ -199,6 +225,14 @@ class Conversation():
 	.. note::
 		Remember that you need to have access to the conversation.
 	"""
+	if not BS4_SUPPORT:
+		_message_stream_regexp = re.compile(r'<div class=["\']{1}stream["\']{1}>(.*?)<div class=["\']{1}stream-element new-message["\']{1}>', re.DOTALL)
+		_message_guid_regexp = re.compile(r'data-guid=["\']{1}([0-9]+)["\']{1}')
+		_message_created_at_regexp = re.compile(r'<time datetime=["\']{1}([0-9]{4}-[0-9]{2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}Z)["\']{1}')
+		_message_body_regexp = re.compile(r'<div class=["\']{1}message-content["\']{1}>\s+<p>(.*?)</p>\s+</div>', re.DOTALL)
+		_message_author_guid_regexp = re.compile(r'<a href=["\']{1}/people/([a-f0-9]+)["\']{1} class=["\']{1}img')
+		_message_author_name_regexp = re.compile(r'<img alt=["\']{1}(.*?)["\']{1}.*')
+		_message_author_avatar_regexp = re.compile(r'src=["\']{1}(.*?)["\']{1}')
 	def __init__(self, connection, id, fetch=True):
 		"""
 		:param conv_id: id of the post and not the guid!
@@ -209,7 +243,12 @@ class Conversation():
 		self._connection = connection
 		self.id = id
 		self._data = {}
+		self._messages = []
 		if fetch: self._fetch()
+
+	def __len__(self): return len(self._messages)
+	def __iter__(self): return iter(self._messages)
+	def __getitem__(self, n): return self._messages[n]
 
 	def _fetch(self):
 		"""Fetches JSON data representing conversation.
@@ -219,6 +258,102 @@ class Conversation():
 			self._data = request.json()['conversation']
 		else:
 			raise errors.ConversationError('cannot download conversation data: {0}'.format(request.status_code))
+
+	def _fetch_messages(self):
+		"""Fetches HTML data we will use to parse message data.
+		This is a workaround until Diaspora* has it's API plans implemented.
+		"""
+		request = self._connection.get('conversations/{}'.format(self.id))
+		if request.status_code == 200:
+			# Clear potential old messages
+			self._messages = []
+
+			message_template = {
+					'guid'			: None,
+					'created_at'	: None,
+					'body'			: None,
+					'author'		: {
+						'guid'			: None,
+						'diaspora_id'	: None, # TODO? Not able to get from this page.
+						'name'			: None,
+						'avatar'		: None
+					}
+			}
+
+			if BS4_SUPPORT: # Parse the HTML with BS4
+				soup = BeautifulSoup(request.content, 'lxml')
+				messages_soup = soup.findAll('div', {"class": "stream-element message"})
+				for message_soup in messages_soup:
+					message = copy.deepcopy(message_template)
+
+					# guid
+					if message_soup and message_soup.has_attr('data-guid'):
+						message['guid'] = message_soup['data-guid']
+
+					# created_at
+					time_soup = message_soup.find('time', {"class": "timeago"})
+					if time_soup and time_soup.has_attr('datetime'):
+						message['created_at'] = time_soup['datetime']
+
+					# body
+					body_soup = message_soup.find('div', {"class": "message-content"})
+					if body_soup: message['body'] = body_soup.get_text().strip()
+
+					# author
+					author_a_soup = message_soup.find('a', {"class": "img"})
+					if author_a_soup:
+						# author guid
+						message['author']['guid'] = author_a_soup['href'][8:]
+
+						# name and avatar
+						author_img_soup = author_a_soup.find('img', {"class": "avatar"})
+
+						if author_img_soup:
+							message['author']['name'] = author_img_soup['title']
+							message['author']['avatar'] = author_img_soup['src']
+
+					self._messages.append(message.copy())
+			else: # Regex fallback
+				messages_stream_html = self._message_stream_regexp.search(request.content.decode('utf-8'))
+				if messages_stream_html:
+					messages_html = messages_stream_html.group(1).split("<div class='stream-element message'")
+					for message_html in messages_html:
+						message = copy.deepcopy(message_template)
+
+						# Guid
+						guid = self._message_guid_regexp.search(message_html)
+						if guid: message['guid'] = guid.group(1)
+						else: continue
+
+						# Created at
+						created_at = self._message_created_at_regexp.search(message_html)
+						if created_at: message['created_at'] = created_at.group(1)
+
+						# Body
+						body = self._message_body_regexp.search(message_html)
+						if body: message['body'] = body.group(1)
+
+						# Author
+						author_guid = self._message_author_guid_regexp.search(message_html)
+						if author_guid: message['author']['guid'] = author_guid.group(1)
+
+						author_name = self._message_author_name_regexp.search(message_html)
+						if author_name:
+							message['author']['name'] = author_name.group(1)
+
+							author_avatar = self._message_author_avatar_regexp.search(author_name.group(0))
+							if author_avatar: message['author']['avatar'] = author_avatar.group(1)
+
+						self._messages.append(message.copy())
+		else:
+			raise errors.ConversationError('cannot download message data from conversation: {0}'.format(request.status_code))
+
+	def messages(self): return self._messages
+
+	def update_messages(self):
+		"""(Re-)fetches messages in this conversation.
+		"""
+		self._fetch_messages()
 
 	def answer(self, text):
 		"""Answer that conversation

@@ -111,7 +111,7 @@ class SearchError(DiaspyError):
 	pass
 
 class TagError(DiaspyError):
-	"""Exception raised when something related to settings goes wrong.
+	"""Exception raised when something related to a tag goes wrong.
 	"""
 	pass
 
