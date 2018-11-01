@@ -1,8 +1,7 @@
 #### `Stream()` object
 
 This object is used to represent user's stream on D\*. 
-It is returned by `Client()`'s method `get_stream()` and 
-is basically a list of posts. 
+It is basically a list of posts. 
 
 ----
 
@@ -15,21 +14,29 @@ this is required by `Stream()`'s constructor.
                                      username='foo',
                                      password='bar')
     c.login()
-    stream = diaspy.models.Stream(c)
+    stream = diaspy.streams.Stream(c)
 
-Now you have a stream filled with posts (if any can be found on user's stream).
+Now you have a stream filled with posts (if any can be found on user's
+stream).
+
+Other streams you can use are `Activity()`, `Aspects()`, `Commented()`,
+`Liked()`, `Mentions()`, `FollowedTags()` and `Tag()`.
+
+Example: `stream = diaspy.streams.Activity(c)`
 
 ----
 
 ##### `fill()`, `update()` and `more()`
 
-When you want to refresh stream call it's `fill()` method. It will overwrite old stream 
-contents.
+When you want to refresh stream call it's `fill()` method. It will 
+overwrite old stream contents.
 
-On the contrary, `update()` will get a new stream but will not overwrite old stream saved 
-in the object memory. It will append every new post to the old stream.
+On the contrary, `update()` will get a new stream but will not overwrite
+ old stream saved in the object memory. It will append every new post to
+ the old stream.
 
-`more()` complements `update()` it will fetch you older posts instead of newer ones.
+`more()` complements `update()` it will fetch you older posts instead of
+ newer ones.
 
 ----
 
@@ -40,8 +47,8 @@ Stream's length can be checked by calling `len()` on it.
     len(stream)
     10
 
-When you want to iterate over a stream (e.g. when you want to print first *n* posts on 
-the stream) you can do it in two ways.
+When you want to iterate over a stream (e.g. when you want to print 
+first *n* posts on the stream) you can do it in two ways.
 
 First, using `len()` and `range()` functions.
 
@@ -58,7 +65,8 @@ Second, iterating directly over the stream contents:
 
 ##### Posting data to stream
 
-This is described in [`posting`](./posting.markdown) document in this manual.
+This is described in [`posting`](./posting.markdown) document in this 
+manual.
 
 
 ----
@@ -71,7 +79,8 @@ This will remove all posts from visible stream.
 
 ##### `purge()`
 
-This will scan stream for nonexistent posts (eg. deleted) and remove them.
+This will scan stream for nonexistent posts (eg. deleted) and remove 
+them.
 
 ----
 

@@ -43,7 +43,8 @@ The object is subscriptable so you can do like this:
 
 Also `User` object contains a stream for this user.
 
-* `stream`, `diaspy.streams.Outer`, stream of the user (provides all methods of generic stream);
+* `stream`, `diaspy.streams.Outer`, stream of the user (provides all 
+methods of generic stream);
 
 ====
 
@@ -51,23 +52,55 @@ Also `User` object contains a stream for this user.
 #### `Contacts()` object
 
 This is object abstracting list of user's contacts. 
-It may be slightly confusing to use and reading just docs could be not enough. 
+It may be slightly confusing to use and reading just docs could be not 
+enough. 
 
-The only method of this object is `get()` and its only parameter is `set` which 
-is optional (defaults to empty string).  
-If called without specifying `set` `get()` will return list of users (`User` objects) 
-who are in your aspects.
+
+#### Methods
+
+##### `get()`
+
+The `set` parameter is optional (defaults to empty string).  
+If called without specifying `set` `get()` will return list of users 
+(`User` objects) who are in your aspects.
 
 Optional `set` parameter can be either `all` or `only_sharing`. 
-If passed as `only_sharing` it will return only users who are not in your aspects but who share 
-with you - which means that you are in their aspects.
-If passed as `all` it will return list of *all* your contacts - those who are in your aspects and 
-those who are not.
+If passed as `only_sharing` it will return only users who are not in 
+your aspects but who share with you - which means that you are in their 
+aspects. If passed as `all` it will return list of *all* your contacts -
+ those who are in your aspects and those who are not.
 
+To sum up: people *who you share with* are *in* your aspects. People 
+*who share with you* have you in their aspects. These two states can be 
+mixed.
 
-To sum up: people *who you share with* are *in* your aspects. People *who share with you* have you in 
-their aspects. These two states can be mixed.
+The `page` parameter expects a `int` as page number. By default the 
+`get()` method will only load page `1`. If the given page number doesn't
+ have any contacts it will return a empty `list`.
 
+##### `addAspect()`
+
+The `addAspect()` method only requires a name (`str`) for the new aspect
+ as a parameter. The second parameter wich is optional
+ (*default `False`*) sets if contacts in that aspect are visible to each
+ other, the parameter should be a `bool`.
+
+If succesfull it will return the `id` for the new aspect.
+
+##### `deleteAspect()`
+
+This deletes a aspect with given **aspect**  `id`. As parameter it 
+expects a aspect `id`.
+
+##### `add()`
+
+This adds the given **user** `id` to the given **aspect** `id`. First 
+parameter **aspect** `id`, second parameter **user** `id`.
+
+##### `remove()`
+
+This removes the given **user** `id` from the given **aspect** `id`. 
+First parameter **aspect** `id`, second parameter **user** `id`.
 
 ----
 
