@@ -6,9 +6,16 @@
 
 import json
 import os
-import re
 import urllib
 import warnings
+
+BS4_SUPPORT=False
+try:
+	from bs4 import BeautifulSoup
+except ImportError:
+	import re
+	print("[diaspy] BeautifulSoup not found, falling back on regex.")
+else: BS4_SUPPORT=True
 
 from diaspy import errors, streams
 
@@ -16,8 +23,9 @@ from diaspy import errors, streams
 class Account():
 	"""Provides interface to account settings.
 	"""
-	email_regexp = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value="(.+?)"')
-	language_option_regexp = re.compile('<option value="([_a-zA-Z-]+)"(?: selected="selected")?>(.*?)</option>')
+	if not BS4_SUPPORT:
+		email_regexp = re.compile('<input id="user_email" name="user\[email\]" size="30" type="text" value="(.+?)"')
+		language_option_regexp = re.compile('<option value="([_a-zA-Z-]+)"(?: selected="selected")?>(.*?)</option>')
 
 	def __init__(self, connection):
 		self._connection = connection
@@ -85,10 +93,17 @@ class Account():
 		"""Returns currently used email.
 		"""
 		data = self._connection.get('user/edit')
-		email = self.email_regexp.search(data.text)
-		if email is None: email = ''
-		else: email = email.group(1)
-		return email
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(data.text, 'lxml')
+			email = soup.find('input', {"id": "user_email"})
+			if email: email = email['value']
+			else: email = ''
+			return email
+		else:
+			email = self.email_regexp.search(data.text)
+			if email is None: email = ''
+			else: email = email.group(1)
+			return email
 
 	def setLanguage(self, lang):
 		"""Changes user's email.
@@ -105,7 +120,12 @@ class Account():
 		One of the Black Magic(tm) methods.
 		"""
 		request = self._connection.get('user/edit')
-		return self.language_option_regexp.findall(request.text)
+		if BS4_SUPPORT: # TODO
+			soup = BeautifulSoup(request.text, 'lxml')
+			language = soup.find('select', {"id": "user_language"})
+			return [(option.text, option['value']) for option in language.findAll('option')]
+		else:
+			return self.language_option_regexp.findall(request.text)
 
 
 class Privacy():
@@ -125,16 +145,17 @@ class Profile():
 		Setters can then be used to adjust the data.
 		Finally, `update()` can be called to send data back to pod.
 	"""
-	firstname_regexp = re.compile('id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
-	lastname_regexp = re.compile('id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
-	bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
-	location_regexp = re.compile('id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-	gender_regexp = re.compile('id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
-	birth_year_regexp = re.compile('selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
-	birth_month_regexp = re.compile('selected="selected" value="([0-9]{1,2})">(.*?)</option>')
-	birth_day_regexp = re.compile('selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
-	is_searchable_regexp = re.compile('checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
-	is_nsfw_regexp = re.compile('checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
+	if not BS4_SUPPORT:
+		firstname_regexp = re.compile('id="profile_first_name" name="profile\[first_name\]" type="text" value="(.*?)" />')
+		lastname_regexp = re.compile('id="profile_last_name" name="profile\[last_name\]" type="text" value="(.*?)" />')
+		bio_regexp = re.compile('<textarea id="profile_bio" name="profile\[bio\]" placeholder="Fill me out" rows="5">\n(.*?)</textarea>')
+		location_regexp = re.compile('id="profile_location" name="profile\[location\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+		gender_regexp = re.compile('id="profile_gender" name="profile\[gender\]" placeholder="Fill me out" type="text" value="(.*?)" />')
+		birth_year_regexp = re.compile('selected="selected" value="([0-9]{4,4})">[0-9]{4,4}</option>')
+		birth_month_regexp = re.compile('selected="selected" value="([0-9]{1,2})">(.*?)</option>')
+		birth_day_regexp = re.compile('selected="selected" value="([0-9]{1,2})">[0-9]{1,2}</option>')
+		is_searchable_regexp = re.compile('checked="checked" id="profile_searchable" name="profile\[searchable\]" type="checkbox" value="(.*?)" />')
+		is_nsfw_regexp = re.compile('checked="checked" id="profile_nsfw" name="profile\[nsfw\]" type="checkbox" value="(.*?)" />')
 
 	def __init__(self, connection, no_load=False):
 		self._connection = connection
@@ -164,35 +185,61 @@ class Profile():
 	def getName(self):
 		"""Returns two-tuple: (first, last) name.
 		"""
-		first = self.firstname_regexp.search(self._html).group(1)
-		last = self.lastname_regexp.search(self._html).group(1)
-		return (first, last)
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			first = soup.find('input', {"id": "profile_first_name"})
+			last = soup.find('input', {"id": "profile_last_name"})
+			return (first['value'], last['value'])
+		else:
+			first = self.firstname_regexp.search(self._html).group(1)
+			last = self.lastname_regexp.search(self._html).group(1)
+			return (first, last)
 
 	def getTags(self):
 		"""Returns tags user had selected when describing him/her-self.
 		"""
 		guid = self._connection.getUserData()['guid']
 		html = self._connection.get('people/{0}'.format(guid)).text
-		description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
-		return [tag.lower() for tag in re.findall(description_regexp, html)]
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(html, 'lxml')
+			tags = soup.find('meta', {"name": "keywords"})
+			return [tag.lower() for tag in tags['content'].split(", ")]
+		else:
+			description_regexp = re.compile('<a href="/tags/(.*?)" class="tag">#.*?</a>')
+			return [tag.lower() for tag in re.findall(description_regexp, html)]
 
 	def getBio(self):
 		"""Returns user bio.
 		"""
-		bio = self.bio_regexp.search(self._html).group(1)
-		return bio
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			bio = soup.find('textarea', {"id": "profile_bio"})
+			return bio.get_text()
+		else:
+			bio = self.bio_regexp.search(self._html).group(1)
+			return bio
 
 	def getLocation(self):
 		"""Returns location string.
 		"""
-		location = self.location_regexp.search(self._html).group(1)
-		return location
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			location = soup.find('input', {"id": "profile_location"})
+			return location['value']
+		else:
+			location = self.location_regexp.search(self._html).group(1)
+			return location
 
 	def getGender(self):
 		"""Returns location string.
 		"""
-		gender = self.gender_regexp.search(self._html).group(1)
-		return gender
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			gender = soup.find('input', {"id": "profile_gender"})
+			return gender['value']
+		else:
+			gender = self.gender_regexp.search(self._html).group(1)
+			return gender
 
 	def getBirthDate(self, named_month=False):
 		"""Returns three-tuple: (year, month, day).
@@ -200,40 +247,79 @@ class Profile():
 		:param named_month: if True, return name of the month instead of integer
 		:type named_month: bool
 		"""
-		year = self.birth_year_regexp.search(self._html)
-		if year is None: year = -1
-		else: year = int(year.group(1))
-		month = self.birth_month_regexp.search(self._html)
-		if month is None:
-			if named_month: month = ''
-			else: month = -1
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+
+			year = soup.find('select', {"id": "profile_date_year"})
+			year_option = year.find('option', selected=True)
+			if year_option is None: year_option = -1
+			else: year_option = int(year_option['value'])
+
+			month = soup.find('select', {"id": "profile_date_month"})
+			month_option = month.find('option', selected=True)
+			if month_option is None:
+				if named_month: month_option = ''
+				else: month_option = -1
+			elif named_month:
+				month_option = month_option.text
+			else: month_option = month_option['value']
+
+			day = soup.find('select', {"id": "profile_date_day"})
+			day_option = day.find('option', selected=True)
+			if day_option is None: day_option = -1
+			else: day_option = int(day_option['value'])
+			return (year_option, month_option, day_option)
 		else:
-			if named_month:
-				month = month.group(2)
+			year = self.birth_year_regexp.search(self._html)
+			if year is None: year = -1
+			else: year = int(year.group(1))
+			month = self.birth_month_regexp.search(self._html)
+			if month is None:
+				if named_month: month = ''
+				else: month = -1
 			else:
-				month = int(month.group(1))
-		day = self.birth_day_regexp.search(self._html)
-		if day is None: day = -1
-		else: day = int(day.group(1))
-		return (year, month, day)
+				if named_month:
+					month = month.group(2)
+				else:
+					month = int(month.group(1))
+			day = self.birth_day_regexp.search(self._html)
+			if day is None: day = -1
+			else: day = int(day.group(1))
+			return (year, month, day)
 
 	def isSearchable(self):
 		"""Returns True if profile is searchable.
 		"""
-		searchable = self.is_searchable_regexp.search(self._html)
-		# this is because value="true" in every case so we just
-		# check if the field is "checked"
-		if searchable is None: searchable = False  # if it isn't - the regexp just won't match
-		else: searchable = True
-		return searchable
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			searchable = soup.find('input', {"id": "profile_searchable"})
+			if (searchable.has_attr('checked') and
+					searchable['checked'] == 'checked'):
+				return True
+			else: return False
+		else:
+			searchable = self.is_searchable_regexp.search(self._html)
+			# this is because value="true" in every case so we just
+			# check if the field is "checked"
+			if searchable is None: searchable = False  # if it isn't - the regexp just won't match
+			else: searchable = True
+			return searchable
 
 	def isNSFW(self):
 		"""Returns True if profile is marked as NSFW.
 		"""
-		nsfw = self.is_nsfw_regexp.search(self._html)
-		if nsfw is None: nsfw = False
-		else: nsfw = True
-		return nsfw
+		if BS4_SUPPORT:
+			soup = BeautifulSoup(self._html, 'lxml')
+			nsfw = soup.find('input', {"id": "profile_nsfw"})
+			if (nsfw.has_attr('checked') and
+					nsfw['checked'] == 'checked'):
+				return True
+			else: return False
+		else:
+			nsfw = self.is_nsfw_regexp.search(self._html)
+			if nsfw is None: nsfw = False
+			else: nsfw = True
+			return nsfw
 
 	def setName(self, first, last):
 		"""Set first and last name.
