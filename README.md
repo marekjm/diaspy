@@ -35,6 +35,14 @@ Version: 3.3.3
 Version: 2.1.0
 [Website](http://docs.python-requests.org/en/latest/)
 
+**`python-dateutil`**
+
+Version: >= 2.2
+[Website](https://github.com/dateutil/dateutil)
+
+*Optional:* **`python-beautifulsoup4`**
+[Website](https://www.crummy.com/software/BeautifulSoup/)
+
 
 ----
 

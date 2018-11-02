@@ -297,7 +297,6 @@ class Profile():
 		"""
 		if not self._loaded: raise errors.DiaspyError('profile was not loaded')
 		self.data['authenticity_token'] = repr(self._connection)
-		print(self.data)
 		request = self._connection.post('profile', data=self.data, allow_redirects=False)
 		return request.status_code
 

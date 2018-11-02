@@ -72,7 +72,7 @@ If you liked this post you can call `delete_like()` to undo that.
 
 By default it returns the **author** `name`. As parameter you can give 
 another key like **`id`**,  **`guid`**,  **`diaspora_id`** or 
-**`avatar`**.
+**`avatar`**. *Note*: parameter is expected to be a `str`.
 
 ----
 

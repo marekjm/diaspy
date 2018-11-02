@@ -14,7 +14,7 @@ try:
 	from bs4 import BeautifulSoup
 except ImportError:
 	import re
-	print("BeautifulSoup not found, falling back on regex.")
+	print("[diaspy] BeautifulSoup not found, falling back on regex.")
 else: BS4_SUPPORT=True
 
 from diaspy import errors
@@ -111,7 +111,6 @@ class Aspect():
 		membership_id = None
 		to_remove = None
 		for each in user.aspectMemberships():
-			print(self.id, each)
 			if each.get('aspect', {}).get('id') == self.id:
 				membership_id = each.get('id')
 				to_remove = each
@@ -554,14 +553,6 @@ class Post():
 				raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, id))
 			else:
 				self.comments.set([Comment(c) for c in request.json()])
-
-	def update(self):
-		"""Updates post data.
-		FIXME This is deprecated.
-		"""
-		print('diaspy.models.Post.update() is deprecated. Use diaspy.models.Post.update() instead.')
-		self._fetchdata()
-		self._fetchcomments()
 
 	def fetch(self, comments = False):
 		"""Fetches post data.

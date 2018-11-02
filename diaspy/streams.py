@@ -12,28 +12,14 @@ from diaspy.models import Post, Aspect
 from diaspy import errors
 
 """
-Remember created_at is in UTC so I found two options to 
-convert/parse it to UTC timestamp: dateutil or pytz (found some 
-more but those libs aren't in default repo of main distro's)
+Remember created_at is in UTC
 
 We need this to get a UTC timestamp from the latest loaded post in the 
 stream, so we can use it for the more() function.
 """
-try:
-	import dateutil.parser
-	def parse_utc_timestamp(date_str):
-		return round(dateutil.parser.parse(date_str).timestamp())
-
-except ImportError:
-	try:
-		from datetime import datetime
-		from pytz import timezone
-		def parse_utc_timestamp(date_str):
-			return round(datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone('UTC')).timestamp())
-
-	except ImportError:
-		print("Please install either python-dateutil or python-pytz")
-		exit # TODO raise exception
+import dateutil.parser
+def parse_utc_timestamp(date_str):
+	return round(dateutil.parser.parse(date_str).timestamp())
 
 class Generic():
 	"""Object representing generic stream.
@@ -90,7 +76,6 @@ class Generic():
 			else: self.latest += 1
 			params['max_time'] = max_time
 			params['_'] = self.latest
-			print("Diaspy _obtain.params: {}".format(params))
 		request = self._connection.get(self._location, params=params)
 		if request.status_code != 200:
 			raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
@@ -213,13 +198,11 @@ class Generic():
 			self.more(backtime=backtime)
 			if len(oldstream) < len(self): continue
 			# but if no posts were found start retrying...
-			print('retrying... {0}'.format(retry))
+			print('[diaspy] retrying... {0}'.format(retry))
 			n = retry
 			while n > 0:
-				print('\t', n, self.max_time)
 				# try to get even more posts...
 				self.more(backtime=backtime)
-				print('\t', len(oldstream), len(self))
 				# check if it was a success...
 				if len(oldstream) < len(self):
 					# and if so restore normal order of execution by
