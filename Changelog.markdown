@@ -27,6 +27,77 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.6.0` (for now, may change)
+
+In this release some bugs due to Diaspora changes where adressed, it also 
+contains some new functionality. Also if `BeautifulSoup4` is installed it 
+will use it instead of the regex solution where possible. Also some manual 
+adjustments.
+
+IMPORTANT: `python-dateutil` is a requirement now.
+
+Note: In this version indentation changed from spaces to tabs.
+
+
+* __upd__:  `diaspy.people.User()`'s `fetchguid()` method can now be called with a parameter (`bool`), if set `False` it won't fetch the stream but only userdata, default it still does.,
+* __upd__:  `diaspy.people.User()` has new methods `getPhotos()` and `deletePhoto()`,
+* __upd__:  Aspect `id` is now removed from `diaspy.people.User()` object when removed,
+* __upd__:  `diaspy.people.Contacts()` it's `get()` method has the `page` parameter now,
+* __upd__:  It is now optional to automatic fetch contacts for `diaspy.people.Contacts()`, default it won't,
+* __upd__:  `diaspy.models.Notification()`'s `who()` method now return whole `guid`s instead of partial `guid`s,
+* __upd__:  Update `diaspy.models.Post()` it's interaction data after liked,
+* __upd__:  `diaspy.connection.Connection()`'s `getUserData()` method will now set the `Connection()` object it's `self._userdata`,
+* __upd__:  Posts obtained by `diaspy.streams.Generic()` are now fetched once instead of twice,
+
+
+* __fix__:  Streams seemed to miss posts on `more()` method, should be fixed now. Also a new dependency: `dateutil`,
+* __fix__:  Fixes `diaspy.streams.Generic()`'s `more()` and `update()` methods and adds `id` to posts,
+* __fix__:  `diaspy.streams.Aspect()` its `filter()` method,
+* __fix__:  `diaspy.models.Notification()`'s `who()` method it's regex pattern didn't always match, now it should,
+* __fix__:  `diaspy.models.Aspect()` its `addUser()` method did cause CSRF errors,
+* __fix__:  `diaspy.people.User()` its `getHCard()`,
+
+
+* __new__:  `diaspy.errors.SearchError()` and `diaspy.errors.TagError()`,
+* __new__:  `update()` and `more()` methods for `diaspy.notifications.Notifications`,
+* __new__:  `removeAspect()` method in `diaspy.models.Aspect()`,
+* __new__:  `diaspy.models.Comments()` class,
+* __new__:  `diaspy.models.Conversation()` has new methods `messages()` and `update_messages()`, it is also posible to call `len()` and iterate over the object,
+* __new__:  `diaspy.models.Post()`'s `comments` object is now a `Comments()` object instead of a `dict` (parsed json),
+* __new__:  `diaspy.models.Post()` has some new methods: `vote_poll()`, `hide()`, `mute()`, `subscribe()` and `unsubscribe()`,
+* __new__:  It is now possible to set `diaspy.people.User()` it's data manual by the `data` parameter,
+* __new__:  `diaspy.people.Contacts()` has new methods `add()` and `remove()` wich can add/remove a user to/from an aspect,
+* __new__:  Added BeautifulSoup4 (optional) support where possible instead of regex, kept regex as fallback,
+
+
+* __rem__:  `_obtain()` from `diaspy.streams.Outer()`, it was the same as `_obtain()` in `diaspy.streams.Generic()`,
+* __rem__:  `diaspy.models.Post()` its `update()` method since it is deprecated for a while now,
+* __rem__:  `backtime` parameter removed from `diaspy.streams.Generic.more()`.
+
+
+----
+
+
+#### Version `0.5.0.1`
+
+This is a hotfix release.
+Plain 0.5.0 lost compatibility with older versions of Diaspora* due to a trivial assignment-related bug.
+
+
+----
+
+#### Version `0.5.0`
+
+Release 0.5.0
+This release fixes a bug that arose with Diaspora* 0.5.0 update which
+changed the way how the CSRF tokens have been embedded in HTML code.
+This required minor fix to the CSRF-extracting regex.
+
+Not much besides. Fixed a typo or two.
+
+
+----
+
 #### Version `0.4.3`:
 
 * __new__:  `people.User().fetchprofile()` will issue a warning when user cannot be found on current pod,
