@@ -46,8 +46,6 @@ class Aspect():
 
 		<-- HTTP/1.1 302 Found
 
-		TODO: status_codes
-
 		Removes whole aspect.
 		:returns: None
 		"""
@@ -398,7 +396,8 @@ class Comment():
 
 	Does not require Connection() object. Note that you should not manually
 	create `Comment()` objects -- they are designed to be created automatically
-	by `Post()` objects.
+	by `Comments()` objects wich automatically will be created by `Post()` 
+	objects.
 	"""
 	def __init__(self, data):
 		self._data = data
@@ -427,40 +426,39 @@ class Comment():
 		return self._data['author'][key]
 
 class Comments():
-	def __init__(self, comments=None):
+	def __init__(self, comments=[]):
 		self._comments = comments
 
 	def __iter__(self):
-		if self._comments:
-			for comment in self._comments:
-				yield comment
+		for comment in self._comments: yield comment
 
 	def __len__(self):
-		if self._comments:
-			return len(self._comments)
+		return len(self._comments)
 
 	def __getitem__(self, index):
-		if self._comments:
-			return self._comments[index]
+		if self._comments: return self._comments[index]
 
 	def __bool__(self):
-		if self._comments:
-			return True
+		if self._comments: return True
 		return False
 
 	def ids(self):
 		return [c.id for c in self._comments]
 
 	def add(self, comment):
-		""" Expects comment object
-		TODO self._comments is None sometimes, have to look into it."""
-		if comment and self._comments:
-			self._comments.append(comment)
+		""" Expects Comment() object
+
+		:param comment: Comment() object to add.
+		:type comment: Comment() object."""
+		if comment and type(comment) == Comment: self._comments.append(comment)
 
 	def set(self, comments):
-		"""Sets comments wich already have a Comment obj"""
-		if comments:
-			self._comments = comments
+		"""Sets comments wich already have a Comment() obj
+
+		:param comments: list with Comment() objects to set.
+		:type comments: list.
+		"""
+		if comments: self._comments = comments
 
 	def set_json(self, json_comments):
 		"""Sets comments for this post from post data."""
