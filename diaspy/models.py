@@ -501,7 +501,7 @@ class Post():
 			self._fetchcomments()
 		else:
 			if not self._data: self._fetchdata()
-			self.comments.set_json( self['interactions']['comments'] )
+			self.comments.set_json( self.data()['interactions']['comments'] )
 
 	def __repr__(self):
 		"""Returns string containing more information then str().
@@ -525,15 +525,15 @@ class Post():
 			raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, id))
 		elif request:
 			self._data = request.json()
-		return self['guid']
+		return self.data()['guid']
 
 	def _fetchcomments(self):
 		"""Retreives comments for this post.
 		Retrieving comments via GUID will result in 404 error.
 		DIASPORA* does not supply comments through /posts/:guid/ endpoint.
 		"""
-		id = self._data['id']
-		if self['interactions']['comments_count']:
+		id = self.data()['id']
+		if self.data()['interactions']['comments_count']:
 			request = self._connection.get('posts/{0}/comments.json'.format(id))
 			if request.status_code != 200:
 				raise errors.PostError('{0}: could not fetch comments for post: {1}'.format(request.status_code, id))
