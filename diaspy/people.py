@@ -151,13 +151,20 @@ class User():
 			self.data.update( data[0] )
 
 	def aspectMemberships(self):
+		"""Returns a list with aspect memberships
+
+		:returns: list
+		"""
 		if 'contact' in self.data:
 			return self.data.get('contact', {}).get('aspect_memberships', [])
 		else:
 			return self.data.get('aspect_memberships', [])
 
 	def getPhotos(self):
-		"""
+		"""Gets and sets this User()'s photo data.
+
+		:returns: dict
+
 		--> GET /people/{GUID}/photos.json HTTP/1.1
 
 		<-- HTTP/1.1 200 OK
@@ -221,6 +228,9 @@ class User():
 
 	def deletePhoto(self, photo_id):
 		"""
+		:param photo_id: Photo ID to delete.
+		:type photo_id: int
+
 		--> DELETE /photos/{PHOTO_ID} HTTP/1.1
 		<-- HTTP/1.1 204 No Content
 		"""
@@ -261,21 +271,18 @@ class Contacts():
 		return self.contacts[index]
 
 	def addAspect(self, name, visible=False):
-		"""
-		--> POST /aspects HTTP/1.1
-		--> {"person_id":null,"name":"test","contacts_visible":false}
-
-		<-- HTTP/1.1 200 OK
-
-		Add new aspect.
-
-		TODO: status_code's
+		"""Add new aspect.
 
 		:param name: aspect name to add
 		:type name: str
 		:param visible: sets if contacts in aspect are visible for each and other
 		:type visible: bool
 		:returns: JSON from request
+
+		--> POST /aspects HTTP/1.1
+		--> {"person_id":null,"name":"test","contacts_visible":false}
+
+		<-- HTTP/1.1 200 OK
 		"""
 		data = {
 			'person_id': None,
@@ -297,7 +304,11 @@ class Contacts():
 		return new_aspect
 
 	def deleteAspect(self, aspect_id):
-		"""
+		"""Deletes a aspect with given ID.
+
+		:param aspect_id: Aspect ID to delete.
+		:type aspect_id: int
+
 		--> POST /aspects/{ASPECT_ID} HTTP/1.1
 			_method=delete&authenticity_token={TOKEN}
 			Content-Type: application/x-www-form-urlencoded
@@ -317,9 +328,9 @@ class Contacts():
 		:type user_id: str
 		:param aspect_ids: list of aspect ids
 		:type aspect_ids: list
+		:returns: dict
 		"""
 		# TODO update self.contacts
-		# Returns {"aspect_id":123,"person_id":123}
 		for aid in aspect_ids:
 			new_aspect_membership = Aspect(self._connection, aid).addUser(user_id)
 
@@ -385,6 +396,8 @@ class Contacts():
 
 		:param set: if passed could be 'all' or 'only_sharing'
 		:type set: str
+		:param page: page number to get, default 0.
+		:type page: int
 		"""
 		params = {}
 		if set:

@@ -120,7 +120,7 @@ class Account():
 		One of the Black Magic(tm) methods.
 		"""
 		request = self._connection.get('user/edit')
-		if BS4_SUPPORT: # TODO
+		if BS4_SUPPORT:
 			soup = BeautifulSoup(request.text, 'lxml')
 			language = soup.find('select', {"id": "user_language"})
 			return [(option.text, option['value']) for option in language.findAll('option')]

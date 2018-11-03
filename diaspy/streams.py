@@ -150,14 +150,9 @@ class Generic():
 		"""
 		self._stream = self._obtain()
 
-	def more(self, max_time=0, backtime=86400):
+	def more(self, max_time=0):
 		"""Tries to download more (older posts) posts from Stream.
 
-		TODO backtime isn't used anymore.
-		Diaspora reference: https://github.com/diaspora/diaspora/blob/26a9e50ef935628c800f9a21d345057556fa5c31/app/helpers/stream_helper.rb#L48
-
-		:param backtime: how many seconds substract each time (defaults to one day)
-		:type backtime: int
 		:param max_time: seconds since epoch (optional, diaspy'll figure everything on its own)
 		:type max_time: int
 		"""
