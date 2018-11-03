@@ -513,18 +513,6 @@ class Post():
 		"""
 		return self._data['text']
 
-	def __getitem__(self, key):
-		"""FIXME This is deprecated, use diaspy.models.Post.data() instead to access
-		data of Post objects.
-		"""
-		return self._data[key]
-
-	def __dict__(self):
-		"""Returns dictionary of posts data.
-		FIXME This is deprecated, use diaspy.models.Post.data() instead.
-		"""
-		return self._data
-
 	def _fetchdata(self):
 		"""This function retrieves data of the post.
 
@@ -554,7 +542,6 @@ class Post():
 
 	def fetch(self, comments = False):
 		"""Fetches post data.
-		Use this function instead of diaspy.models.Post.update().
 		"""
 		self._fetchdata()
 		if comments:
