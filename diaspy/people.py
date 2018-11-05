@@ -68,7 +68,7 @@ class User():
 		self.stream = []
 		self.data = {
 			'guid': guid,
-			'handle': handle,
+			'diaspora_id': handle,
 			'id': id,
 		}
 		self.photos = []
@@ -85,8 +85,7 @@ class User():
 		return '{0} ({1})'.format(self.handle(), self.guid())
 
 	def handle(self):
-		if 'handle' in self.data: return self['handle']
-		return self.data.get('diaspora_id', 'Unknown handle')
+		return self.data.get('diaspora_id', 'Unknown Diaspora ID')
 
 	def guid(self):
 		return self.data.get('guid', '<guid missing>')
@@ -103,7 +102,7 @@ class User():
 		if fetch == 'posts':
 			if self.handle() and not self['guid']: self.fetchhandle()
 			else: self.fetchguid()
-		elif fetch == 'data' and self['handle']:
+		elif fetch == 'data' and self['diaspora_id']:
 			self.fetchprofile()
 
 	def _finalize_data(self, data):
@@ -121,14 +120,12 @@ class User():
 		"""
 		if request.status_code != 200: raise Exception('wrong error code: {0}'.format(request.status_code))
 		data = request.json()
-		self.data = self._finalize_data(data)
+		self.data.update(self._finalize_data(data))
 
-	def fetchhandle(self, protocol='https'):
-		"""Fetch user data and posts using Diaspora handle.
+	def fetchhandle(self):
+		"""Fetch user data and posts using Diaspora ID (previously known as handle).
 		"""
-		pod, user = sephandle(self['handle'])
-		request = self._connection.get('{0}://{1}/u/{2}.json'.format(protocol, pod, user), direct=True)
-		self._postproc(request)
+		self.fetchprofile()
 		self._fetchstream()
 
 	def fetchguid(self, fetch_stream=True):

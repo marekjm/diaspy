@@ -123,7 +123,7 @@ class Account():
 		if BS4_SUPPORT:
 			soup = BeautifulSoup(request.text, 'lxml')
 			language = soup.find('select', {"id": "user_language"})
-			return [(option.text, option['value']) for option in language.findAll('option')]
+			return [(option['value'], option.text) for option in language.findAll('option')]
 		else:
 			return self.language_option_regexp.findall(request.text)
 
@@ -262,7 +262,7 @@ class Profile():
 				else: month_option = -1
 			elif named_month:
 				month_option = month_option.text
-			else: month_option = month_option['value']
+			else: month_option = int(month_option['value'])
 
 			day = soup.find('select', {"id": "profile_date_day"})
 			day_option = day.find('option', selected=True)

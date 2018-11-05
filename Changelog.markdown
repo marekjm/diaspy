@@ -48,6 +48,7 @@ Note: In this version indentation changed from spaces to tabs.
 * __upd__:  Update `diaspy.models.Post()` it's interaction data after liked,
 * __upd__:  `diaspy.connection.Connection()`'s `getUserData()` method will now set the `Connection()` object it's `self._userdata`,
 * __upd__:  Posts obtained by `diaspy.streams.Generic()` are now fetched once instead of twice,
+* __upd__:  `tests.py`,
 
 
 * __fix__:  Streams seemed to miss posts on `more()` method, should be fixed now. Also a new dependency: `dateutil`,
@@ -72,7 +73,8 @@ Note: In this version indentation changed from spaces to tabs.
 
 * __rem__:  `_obtain()` from `diaspy.streams.Outer()`, it was the same as `_obtain()` in `diaspy.streams.Generic()`,
 * __rem__:  `diaspy.models.Post()` its `update()` method since it is deprecated for a while now,
-* __rem__:  `backtime` parameter removed from `diaspy.streams.Generic.more()`.
+* __rem__:  `backtime` parameter removed from `diaspy.streams.Generic.more()`,
+* __rem__:  `protocol` parameter removed from `diaspy.people.User().fetchhandle()`.
 
 
 ----

@@ -166,7 +166,7 @@ class UserTests(unittest.TestCase):
 	def testGettingUserByHandlePosts(self):
 		user = diaspy.people.User(test_connection, handle=testconf.diaspora_id)
 		self.assertEqual(testconf.guid, user['guid'])
-		self.assertEqual(testconf.diaspora_id, user['handle'])
+		self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
 		self.assertEqual(testconf.diaspora_name, user['name'])
 		self.assertIn('id', user.data)
 		self.assertIn('avatar', user.data)
@@ -174,10 +174,10 @@ class UserTests(unittest.TestCase):
 
 	def testGettingUserByGUID(self):
 		user = diaspy.people.User(test_connection, guid=testconf.guid)
-		self.assertEqual(testconf.diaspora_id, user['handle'])
+		self.assertEqual(testconf.diaspora_id, user['diaspora_id'])
 		self.assertEqual(testconf.diaspora_name, user['name'])
 		self.assertIn('id', user.data)
-		self.assertIn('avatar', user.data)
+		self.assertIn('avatar', user.data['profile'])
 		self.assertEqual(type(user.stream), diaspy.streams.Outer)
 
 	def testReprMethod(self):
