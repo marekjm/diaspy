@@ -27,7 +27,7 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
-#### Version `0.6.0` (for now, may change)
+#### Version `0.6.0`
 
 In this release some bugs due to Diaspora changes where adressed, it also 
 contains some new functionality. Also if `BeautifulSoup4` is installed it 
@@ -69,6 +69,7 @@ Note: In this version indentation changed from spaces to tabs.
 * __new__:  It is now possible to set `diaspy.people.User()` it's data manual by the `data` parameter,
 * __new__:  `diaspy.people.Contacts()` has new methods `add()` and `remove()` wich can add/remove a user to/from an aspect,
 * __new__:  Added BeautifulSoup4 (optional) support where possible instead of regex, kept regex as fallback,
+* __new__:  `diaspy.connection.Connection().podswitch()` has now a optional param `login` with as default set to `True`, if `False` it will only set the data and does not call `login()`,
 
 
 * __rem__:  `_obtain()` from `diaspy.streams.Outer()`, it was the same as `_obtain()` in `diaspy.streams.Generic()`,
