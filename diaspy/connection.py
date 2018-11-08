@@ -42,27 +42,15 @@ class Connection():
 		self._userdata = {}
 		self._token = ''
 		self._diaspora_session = ''
-		self._cookies = self._fetchcookies()
 		self._fetch_token_from = 'stream'
-		try:
-			#self._setlogin(username, password)
-			self._login_data = {'user[username]': username,
-								'user[password]': password,
-								'authenticity_token': self._fetchtoken()}
-			success = True
+		try: self._setlogin(username, password)
 		except requests.exceptions.MissingSchema:
 			self.pod = '{0}://{1}'.format(schema, self.pod)
 			warnings.warn('schema was missing')
-			success = False
-		finally:
-			pass
-		try:
-			if not success:
-				self._login_data = {'user[username]': username,
-									'user[password]': password,
-									'authenticity_token': self._fetchtoken()}
-		except Exception as e:
-			raise errors.LoginError('cannot create login data (caused by: {0})'.format(e))
+			try: self._setlogin(username, password)
+			except Exception as e:
+				raise errors.LoginError('cannot create login data (caused by: {0})'.format(e))
+		self._cookies = self._fetchcookies()
 
 	def _fetchcookies(self):
 		request = self.get('stream')
@@ -189,12 +177,12 @@ class Connection():
 		self.get('users/sign_out')
 		self.token = ''
 
-	def podswitch(self, pod, username, password):
+	def podswitch(self, pod, username, password, login=True):
 		"""Switches pod from current to another one.
 		"""
 		self.pod = pod
 		self._setlogin(username, password)
-		self._login()
+		if login: self._login()
 
 	def _fetchtoken(self):
 		"""This method tries to get token string needed for authentication on D*.
