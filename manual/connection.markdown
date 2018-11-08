@@ -26,38 +26,10 @@ do so. Logging in with `Connection()` is done via `login()` method.
 
 **Example:**
 
-    connection = diaspy.connection.Connection(pod='https://pod.example.com')
-    connection.login('user', 'password')
-
-    OR
-
     connection = diaspy.connection.Connection(pod='https://pod.example.com',
                                               username='user',
                                               password='password')
     connection.login()
-
-
-In the example above two ways of logging in were shown. 
-In the first one only *pod* is passed to the object and 
-*username* and *password* were passed to `login()` method. 
-
-In the second one everything is passed directly to the object being 
-created and `login()` is called without any arguments. 
-
-Both ways are valid and will result in exactly the same connection. 
-But consider the following example:
-
-    connection = diaspy.connection.Connection(pod='https://pod.example.com',
-                                              username='user',
-                                              password='password')
-    connection.login(username='loser', password='passphrase')
-
-This code will result in connection with username `loser` and 
-password `passphrase` because data passed to `login()` overrides data 
-passed directly to object. 
-
-**Remember:** if you pass something to `login()` it will *override* 
-credentials set when the connection was created.
 
 ----
 
