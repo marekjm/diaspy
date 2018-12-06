@@ -63,6 +63,12 @@ class Generic():
 		"""
 		return len(self._stream)
 
+	def __bool__(self):
+		"""Returns True if stream os filled, False if not.
+		"""
+		if self._stream: return True
+		return False
+
 	def _obtain(self, max_time=0, suppress=True):
 		"""Obtains stream from pod.
 
@@ -78,14 +84,17 @@ class Generic():
 			params['_'] = self.latest
 		request = self._connection.get(self._location, params=params)
 		if request.status_code != 200:
-			raise errors.StreamError('wrong status code: {0}'.format(request.status_code))
+			raise errors.StreamError('wrong status code: {0}'
+									.format(request.status_code))
 		posts = []
 		latest_time = None # Used to get the created_at from the latest posts we received.
 		for post in request.json():
 			try:
 				comments = False
 				if post['interactions']['comments_count'] > 3: comments = True
-				posts.append(Post(self._connection, id=post['id'], guid=post['guid'], fetch=False, comments=comments, post_data=post))
+				posts.append(Post(self._connection, id=post['id'],
+							guid=post['guid'], fetch=False, comments=comments,
+							post_data=post))
 				if post['created_at']: latest_time = post['created_at']
 			except errors.PostError:
 				if not suppress:
@@ -249,7 +258,9 @@ class Stream(Generic):
 	"""
 	location = 'stream.json'
 
-	def post(self, text='', aspect_ids='public', photos=None, photo='', poll_question=None, poll_answers=None, location_coords=None, provider_display_name=''):
+	def post(self, text='', aspect_ids='public', photos=None, photo='',
+			poll_question=None, poll_answers=None, location_coords=None,
+			provider_display_name=''):
 		"""This function sends a post to an aspect.
 		If both `photo` and `photos` are specified `photos` takes precedence.
 
@@ -281,7 +292,8 @@ class Stream(Generic):
 		"""
 		data = {}
 		data['aspect_ids'] = aspect_ids
-		data['status_message'] = {'text': text, 'provider_display_name': provider_display_name}
+		data['status_message'] = ({'text': text,
+								'provider_display_name': provider_display_name})
 		if photo: data['photos'] = self._photoupload(photo)
 		if photos: data['photos'] = photos
 		if poll_question and poll_answers:
@@ -290,14 +302,16 @@ class Stream(Generic):
 		if location_coords: data['location_coords'] = location_coords
 
 		request = self._connection.post('status_messages',
-										data=json.dumps(data),
-										headers={'content-type': 'application/json',
-												 'accept': 'application/json',
-												 'x-csrf-token': repr(self._connection)})
+							data=json.dumps(data),
+							headers={'content-type': 'application/json',
+									 'accept': 'application/json',
+									 'x-csrf-token': repr(self._connection)})
 		if request.status_code != 201:
-			raise Exception('{0}: Post could not be posted.'.format(request.status_code))
+			raise Exception('{0}: Post could not be posted.'
+							.format(request.status_code))
 		post_json = request.json()
-		post = Post(self._connection, id=post_json['id'], guid=post_json['guid'], post_data=post_json)
+		post = Post(self._connection, id=post_json['id'],
+					guid=post_json['guid'], post_data=post_json)
 		return post
 
 	def _photoupload(self, filename, aspects=[]):
@@ -326,9 +340,11 @@ class Stream(Generic):
 				   'x-csrf-token': repr(self._connection),
 				   'x-file-name': filename}
 
-		request = self._connection.post('photos', data=image, params=params, headers=headers)
+		request = self._connection.post('photos', data=image, params=params,
+										headers=headers)
 		if request.status_code != 200:
-			raise errors.StreamError('photo cannot be uploaded: {0}'.format(request.status_code))
+			raise errors.StreamError('photo cannot be uploaded: {0}'
+									.format(request.status_code))
 		return request.json()['data']['photo']['id']
 
 
@@ -392,7 +408,8 @@ class Aspects(Generic):
 		:parameter ids: list of apsect ids
 		:type ids: list of integers
 		"""
-		self._location = 'aspects.json?a_ids[]=' + '{}'.format('&a_ids[]='.join(ids))
+		self._location = 'aspects.json?a_ids[]=' + '{}'.format(
+						'&a_ids[]='.join(str(id) for id in ids))
 		self.fill() # this will create entirely new list of posts.
 
 	def add(self, aspect_name, visible=0):
@@ -411,7 +428,8 @@ class Aspects(Generic):
 
 		request = self._connection.post('aspects', data=data)
 		if request.status_code not in [200, 422]:
-			raise Exception('wrong status code: {0}'.format(request.status_code))
+			raise Exception('wrong status code: {0}'
+							.format(request.status_code))
 
 		id = self.getAspectID(aspect_name)
 		return Aspect(self._connection, id)
@@ -434,7 +452,8 @@ class Aspects(Generic):
 				'authenticity_token': repr(self._connection)}
 		request = self._connection.post('aspects/{0}'.format(id), data=data)
 		if request.status_code not in [200, 302, 500]:
-			raise Exception('wrong status code: {0}: cannot remove aspect'.format(request.status_code))
+			raise Exception('wrong status code: {0}: cannot remove aspect'
+							.format(request.status_code))
 
 
 class Commented(Generic):
@@ -457,27 +476,34 @@ class Mentions(Generic):
 	_location = 'mentions.json'
 
 
+class Public(Generic):
+	"""Public stream.
+	"""
+	_location = 'public.json'
+
+
 class FollowedTags(Generic):
 	"""This stream contains all posts
 	containing tags the user is following.
 	"""
 	_location = 'followed_tags.json'
 
-	def get(self):
-		"""Returns list of followed tags.
-		"""
-		return []
-
 	def remove(self, tag_id):
 		"""Stop following a tag.
 
 		:param tag_id: tag id
 		:type tag_id: int
+
+		FIXME:
+			Deprecated, this function will be removed in next version.
+			Use diaspy.tagFollowings.TagFollowings[“tagName”].delete() instead.
 		"""
 		data = {'authenticity_token': self._connection.get_token()}
-		request = self._connection.delete('tag_followings/{0}'.format(tag_id), data=data)
+		request = self._connection.delete('tag_followings/{0}'
+											.format(tag_id), data=data)
 		if request.status_code != 404:
-			raise Exception('wrong status code: {0}'.format(request.status_code))
+			raise Exception('wrong status code: {0}'
+											.format(request.status_code))
 
 	def add(self, tag_name):
 		"""Follow new tag.
@@ -487,6 +513,10 @@ class FollowedTags(Generic):
 		:param tag_name: tag name
 		:type tag_name: str
 		:returns: int (response code)
+
+		FIXME:
+			Deprecated, this function will be removed in next version.
+			Use diaspy.tagFollowings.TagFollowings.follow() instead.
 		"""
 		data = {'name': tag_name,
 				'authenticity_token': repr(self._connection),
@@ -496,7 +526,8 @@ class FollowedTags(Generic):
 				   'accept': 'application/json'
 				   }
 
-		request = self._connection.post('tag_followings', data=json.dumps(data), headers=headers)
+		request = self._connection.post('tag_followings', data=json.dumps(data),
+										headers=headers)
 
 		if request.status_code not in [201, 403]:
 			raise Exception('wrong error code: {0}'.format(request.status_code))
@@ -513,6 +544,4 @@ class Tag(Generic):
 		:param tag: tag name
 		:type tag: str
 		"""
-		self._connection = connection
-		self._location = 'tags/{0}.json'.format(tag)
-		if fetch: self.fill()
+		super().__init__(connection, 'tags/{0}.json'.format(tag), fetch)

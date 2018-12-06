@@ -27,6 +27,31 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.6.1.dev` (not final changelog for this version, still in development)
+
+* __upd__:  `diaspy.models.Post.like()`, `diaspy.models.Post.delete_like()`, `diaspy.models.Post.reshare()` will now update data (count and likes/reshares) without doing another request.
+
+* __fix__:  `diaspy.models.Post.__init__()` checking on different fetch states was a mess.
+* __fix__:  `diaspy.streams.Asepcts.filter()` location fix.
+
+* __new__:  `diaspy.tagFollowings.TagFollowings()` which represents the tags followed by the user.
+* __new__:  `diaspy.models.FollowedTag()` which represents a tag followed by the user. It is used by `diaspy.tagFollowings.TagFollowings()`.
+* __new__:  It is now possible to give `**requestKwargs` to `diaspy.connection.Connection()` which will be used for every `request` unless directly overwritten by given the function you call different key-worded arguments.
+* __new__:  `diaspy.connection.Connection()` now does check if the `pod` you are connecting to has `Camo` enabled or not. Call `diaspy.connection.Connection.camo()` to receive `True` or `False`.
+* __new__:  `diaspy.models.Comment.authordata()` which will return all author data instead of `diaspy.models.Comment.author()` which will only return data for a certain key.
+* __new__:  `diaspy.streams.Public()`
+* __new__:  `diaspy.models.Post.fetchlikes()`.
+* __new__:  `diaspy.models.Post.fetchreshares()`
+
+* __rem__:  `diaspy.streams.FollowedTags.get()` since it wasn’t doing anything usefull.
+
+* __dep__:  `diaspy.streams.FollowedTags.remove()` Use `diaspy.tagFollowings.TagFollowings[“tagName”].delete()` instead.
+* __dep__:  `diaspy.streams.FollowedTags.add()` Use diaspy.tagFollowings.TagFollowings.follow() instead.
+
+
+----
+
+
 #### Version `0.6.0`
 
 In this release some bugs due to Diaspora changes where adressed, it also 
