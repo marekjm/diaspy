@@ -45,7 +45,9 @@ class Connection():
 		self._token = ''
 		self._diaspora_session = ''
 		self._fetch_token_from = 'stream'
-		self._requests_kwargs = requestsKwargs
+		self._requests_kwargs = {'verify':self._verify_SSL}
+		if requestsKwargs: self._requests_kwargs.update(requestsKwargs)
+
 		self._camo_enabled = False
 		try: self._setlogin(username, password)
 		except requests.exceptions.MissingSchema:
@@ -98,7 +100,7 @@ class Connection():
 		if not direct: url = '{0}/{1}'.format(self.pod, string)
 		else: url = string
 		if not kwargs: kwargs = self._requests_kwargs
-		return self._session.get(url, params=params, headers=headers, verify=self._verify_SSL, **kwargs)
+		return self._session.get(url, params=params, headers=headers, **kwargs)
 
 	def tokenFrom(self, location):
 		"""Sets location for the *next* fetch of CSRF token.
@@ -131,7 +133,7 @@ class Connection():
 		if 'X-CSRF-Token' not in headers:
 			headers['X-CSRF-Token'] = self.get_token()
 		if not kwargs: kwargs = self._requests_kwargs
-		request = self._session.post(string, data, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
+		request = self._session.post(string, data, headers=headers, params=params, **kwargs)
 		return request
 
 	def put(self, string, data=None, headers={}, params={}, **kwargs):
@@ -142,7 +144,7 @@ class Connection():
 			headers['X-CSRF-Token'] = self.get_token()
 		if not kwargs: kwargs = self._requests_kwargs
 		if data is not None: request = self._session.put(string, data, headers=headers, params=params, **kwargs)
-		else: request = self._session.put(string, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
+		else: request = self._session.put(string, headers=headers, params=params, **kwargs)
 		return request
 
 	def delete(self, string, data = None, headers={}, **kwargs):
@@ -159,7 +161,7 @@ class Connection():
 		if 'X-CSRF-Token' not in headers:
 			headers['X-CSRF-Token'] = self.get_token()
 		if not kwargs: kwargs = self._requests_kwargs
-		request = self._session.delete(string, data=data, headers=headers, verify=self._verify_SSL, **kwargs)
+		request = self._session.delete(string, data=data, headers=headers, **kwargs)
 		return request
 
 	def _checkCamo(self):
@@ -208,6 +210,9 @@ class Connection():
 		"""
 		self.get('users/sign_out')
 		self.token = ''
+		self._userdata = {}
+		self._diaspora_session = ''
+		self._camo_enabled = False
 
 	def podswitch(self, pod, username, password, login=True):
 		"""Switches pod from current to another one.
@@ -272,3 +277,4 @@ class Connection():
 		"""Sets whether there should be an error if a SSL-Certificate could not be verified.
 		"""
 		self._verify_SSL = verify
+		self._requests_kwargs.update({'verify':verify})

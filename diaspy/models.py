@@ -212,8 +212,11 @@ class Notification():
 		"""
 		headers = {'x-csrf-token': repr(self._connection)}
 		params = {'set_unread': json.dumps(unread)}
-		self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
+		response = self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
+		if response.status_code != 200:
+			raise errors.NotificationError('Cannot mark notification: {0}'.format(response.status_code))
 		self._data['unread'] = unread
+		self.unread = unread
 
 
 class Conversation():
@@ -450,6 +453,12 @@ class Comments():
 	def ids(self):
 		return [c.id for c in self._comments]
 
+	def delete(self, comment_id):
+		for index, comment in enumerate(self._comments):
+			if comment.id == comment_id:
+				self._comments.pop(index);
+				break;
+
 	def add(self, comment):
 		""" Expects Comment() object
 
@@ -633,7 +642,9 @@ class Post():
 		if request.status_code != 201:
 			raise Exception('{0}: Comment could not be posted.'
 							.format(request.status_code))
-		return Comment(request.json())
+		comment = Comment(request.json())
+		self.comments.add(comment);
+		return comment
 
 	def vote_poll(self, poll_answer_id):
 		"""This function votes on a post's poll
@@ -652,7 +663,16 @@ class Post():
 		if request.status_code != 201:
 			raise Exception('{0}: Vote on poll failed.'
 							.format(request.status_code))
-		return request.json()
+
+		data = request.json()
+		self._data["poll"]["participation_count"] += 1
+		self._data["poll_participation_answer_id"] = data["poll_participation"]["poll_answer_id"]
+		
+		for answer in self._data["poll"]["poll_answers"]:
+			if answer["id"] == poll_answer_id:
+				answer["vote_count"] +=1;
+				break;
+		return data
 
 	def hide(self):
 		"""
@@ -693,6 +713,8 @@ class Post():
 			raise Exception('{0}: Failed to subscribe to post'
 							.format(request.status_code))
 
+		self._data.update({"participation" : True})
+
 	def unsubscribe(self):
 		"""
 		->	POST /posts/123/participation HTTP/1.1
@@ -706,6 +728,8 @@ class Post():
 		if request.status_code != 200:
 			raise Exception('{0}: Failed to unsubscribe to post'
 							.format(request.status_code))
+
+		self._data.update({"participation" : False})
 
 	def report(self):
 		"""
@@ -738,6 +762,8 @@ class Post():
 		if request.status_code != 204:
 			raise errors.PostError('{0}: Comment could not be deleted'
 								   .format(request.status_code))
+
+		self.comments.delete(comment_id)
 
 	def delete_like(self):
 		"""This function removes a like from a post

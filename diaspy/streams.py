@@ -131,6 +131,21 @@ class Generic():
 		"""
 		self._stream = []
 
+	def deletePostGuid(self, guid):
+		"""Deleted post from stream by guid
+
+		:param guid: guid of the post to delete
+		:type guid: str
+
+		NOTE: This affects local object only! So no request will be made to a
+		pod. This can be used if you tried to update a Post() and it failed then
+		you know the post is deleted.
+		"""
+		for index, post in enumerate(self._stream):
+			if post.guid == guid:
+				self._stream.pop(index);
+				break;
+
 	def purge(self):
 		"""Removes all unexistent posts from stream.
 		"""
@@ -273,7 +288,7 @@ class Stream(Generic):
 		:param photo: filename of photo to post
 		:type photo: str
 
-		:param photos: id of photo to post (obtained from _photoupload())
+		:param photos: id of photo to post (obtained from photoupload())
 		:type photos: int
 
 		:param provider_display_name: name of provider displayed under the post
@@ -294,7 +309,7 @@ class Stream(Generic):
 		data['aspect_ids'] = aspect_ids
 		data['status_message'] = ({'text': text,
 								'provider_display_name': provider_display_name})
-		if photo: data['photos'] = self._photoupload(photo)
+		if photo: data['photos'] = self.photoupload(photo)
 		if photos: data['photos'] = photos
 		if poll_question and poll_answers:
 			data['poll_question'] = poll_question
@@ -312,9 +327,23 @@ class Stream(Generic):
 		post_json = request.json()
 		post = Post(self._connection, id=post_json['id'],
 					guid=post_json['guid'], post_data=post_json)
+		self._stream.insert(0, post);
 		return post
 
-	def _photoupload(self, filename, aspects=[]):
+	def deletephoto(self, id):
+		"""Remove photo from the pod (if decided not needed anymore).
+
+		:param id: photo id to delete
+		:type id: int
+		"""
+		data = {'authenticity_token': repr(self._connection)}
+		request = self._connection.delete('photos/{0}'.format(id),
+										data=data,
+										headers={'accept': 'application/json'})
+		if request.status_code != 204:
+			raise errors.StreamError('{0}: Photo could not be deleted'.format(request.status_code))
+
+	def photoupload(self, filename, aspects=[]):
 		"""Uploads picture to the pod.
 
 		:param filename: path to picture file
