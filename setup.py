@@ -21,7 +21,7 @@ setup(
         'Topic :: Utilities',
     ],
     packages=find_packages(),
-    install_requires=['requests', 'dateutil'],
+    install_requires=['requests', 'python-dateutil'],
     extras_require={
         'beautifulsoup4': ["beautifulsoup4>=3.2.1"]
     }
