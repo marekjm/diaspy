@@ -524,6 +524,8 @@ class Post():
 
 	def _setdata(self, data):
 		self._data = data
+		self.guid = data["guid"]
+		self.id = data["id"]
 		if not bool(self.comments) and data['interactions'].get('comments', []):
 			self.comments.set_json(data['interactions'].get('comments', []))
 
