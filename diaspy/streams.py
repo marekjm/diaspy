@@ -513,6 +513,6 @@ class Tag(Generic):
 		:param tag: tag name
 		:type tag: str
 		"""
+		location = 'tags/{0}.json'.format(tag)
+		super().__init__(connection, location.format(tag), fetch=fetch)
 		self._connection = connection
-		self._location = 'tags/{0}.json'.format(tag)
-		if fetch: self.fill()
