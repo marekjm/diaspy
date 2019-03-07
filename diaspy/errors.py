@@ -72,10 +72,6 @@ class SearchError(DiaspyError):
 	"""
 	pass
 
-class NotificationError(DiaspyError):
-	"""Exception raised when something related to notifications goes wrong.
-	"""
-	pass
 
 class ConversationError(DiaspyError):
 	"""Exception raised when something related to conversations goes wrong.

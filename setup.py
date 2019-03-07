@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='diaspy-api',
-    version='0.6.1.dev',
+    version='0.6.0',
     author='Marek Marecki',
     author_email='marekjm@ozro.pw',
     url='https://github.com/marekjm/diaspy',

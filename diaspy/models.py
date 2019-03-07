@@ -212,11 +212,8 @@ class Notification():
 		"""
 		headers = {'x-csrf-token': repr(self._connection)}
 		params = {'set_unread': json.dumps(unread)}
-		response = self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
-		if response.status_code != 200:
-			raise errors.NotificationError('Cannot mark notification: {0}'.format(response.status_code))
+		self._connection.put('notifications/{0}'.format(self['id']), params=params, headers=headers)
 		self._data['unread'] = unread
-		self.unread = unread
 
 
 class Conversation():
@@ -428,11 +425,6 @@ class Comment():
 		"""
 		return self._data['author'][key]
 
-	def authordata(self):
-		"""Returns all author data of the comment.
-		"""
-		return self._data['author']
-
 class Comments():
 	def __init__(self, comments=[]):
 		self._comments = comments
@@ -452,12 +444,6 @@ class Comments():
 
 	def ids(self):
 		return [c.id for c in self._comments]
-
-	def delete(self, comment_id):
-		for index, comment in enumerate(self._comments):
-			if comment.id == comment_id:
-				self._comments.pop(index);
-				break;
 
 	def add(self, comment):
 		""" Expects Comment() object
@@ -506,11 +492,16 @@ class Post():
 		self.guid = guid
 		self._data = {}
 		self.comments = Comments()
-		if post_data: self._setdata(post_data)
-		elif fetch: self._fetchdata()
+		if post_data:
+			self._data = post_data
+
+		if fetch: self._fetchdata()
 		if comments:
 			if not self._data: self._fetchdata()
 			self._fetchcomments()
+		else:
+			if not self._data: self._fetchdata()
+			self.comments.set_json( self.data()['interactions']['comments'] )
 
 	def __repr__(self):
 		"""Returns string containing more information then str().
@@ -522,13 +513,6 @@ class Post():
 		"""
 		return self._data['text']
 
-	def _setdata(self, data):
-		self._data = data
-		self.guid = data["guid"]
-		self.id = data["id"]
-		if not bool(self.comments) and data['interactions'].get('comments', []):
-			self.comments.set_json(data['interactions'].get('comments', []))
-
 	def _fetchdata(self):
 		"""This function retrieves data of the post.
 
@@ -539,7 +523,8 @@ class Post():
 		request = self._connection.get('posts/{0}.json'.format(id))
 		if request.status_code != 200:
 			raise errors.PostError('{0}: could not fetch data for post: {1}'.format(request.status_code, id))
-		elif request: self._setdata(request.json());
+		elif request:
+			self._data = request.json()
 		return self.data()['guid']
 
 	def _fetchcomments(self):
@@ -555,33 +540,12 @@ class Post():
 			else:
 				self.comments.set([Comment(c) for c in request.json()])
 
-	def _fetchlikes(self):
-		id = self.data()['id']
-		request = self._connection.get('posts/{0}/likes.json'.format(id))
-		if request.status_code != 200:
-			raise errors.PostError('{0}: could not fetch likes for post: {1}'.format(request.status_code, id))
-		json = request.json();
-		if json: self._data['interactions']['likes'] = request.json();
-		return self._data['interactions']['likes'];
-
-	def _fetchreshares(self):
-		id = self.data()['id']
-		request = self._connection.get('posts/{0}/reshares.json'.format(id))
-		if request.status_code != 200:
-			raise errors.PostError('{0}: could not fetch likes for post: {1}'.format(request.status_code, id))
-
-		json = request.json();
-		if json: self._data['interactions']['reshares'] = request.json();
-		return self._data['interactions']['reshares'];
-
-	def fetchlikes(self): return self._fetchlikes();
-	def fetchreshares(self): return self._fetchreshares();
-
 	def fetch(self, comments = False):
 		"""Fetches post data.
 		"""
 		self._fetchdata()
-		if comments: self._fetchcomments()
+		if comments:
+			self._fetchcomments()
 		return self
 
 	def data(self, data = None):
@@ -597,7 +561,7 @@ class Post():
 		"""
 		data = {'authenticity_token': repr(self._connection)}
 
-		request = self._connection.post('posts/{0}/likes'.format(self.id),	
+		request = self._connection.post('posts/{0}/likes'.format(self.id),    
 										data=data,
 										headers={'accept': 'application/json'})
 
@@ -607,8 +571,7 @@ class Post():
 
 		likes_json = request.json()
 		if likes_json:
-			self._data['interactions']['likes'].insert(0, likes_json)
-			self._data['interactions']['likes_count'] = str(int(self._data['interactions']['likes_count'])+1)
+			self._data['interactions']['likes'] = [likes_json]
 		return likes_json
 
 	def reshare(self):
@@ -622,11 +585,6 @@ class Post():
 										headers={'accept': 'application/json'})
 		if request.status_code != 201:
 			raise Exception('{0}: Post could not be reshared'.format(request.status_code))
-
-		reshares_json = request.json()
-		if reshares_json:
-			self._data['interactions']['reshares'].insert(0, reshares_json)
-			self._data['interactions']['reshares_count'] = str(int(self._data['interactions']['reshares_count'])+1)
 		return request.json()
 
 	def comment(self, text):
@@ -644,9 +602,7 @@ class Post():
 		if request.status_code != 201:
 			raise Exception('{0}: Comment could not be posted.'
 							.format(request.status_code))
-		comment = Comment(request.json())
-		self.comments.add(comment);
-		return comment
+		return Comment(request.json())
 
 	def vote_poll(self, poll_answer_id):
 		"""This function votes on a post's poll
@@ -665,22 +621,13 @@ class Post():
 		if request.status_code != 201:
 			raise Exception('{0}: Vote on poll failed.'
 							.format(request.status_code))
-
-		data = request.json()
-		self._data["poll"]["participation_count"] += 1
-		self._data["poll_participation_answer_id"] = data["poll_participation"]["poll_answer_id"]
-		
-		for answer in self._data["poll"]["poll_answers"]:
-			if answer["id"] == poll_answer_id:
-				answer["vote_count"] +=1;
-				break;
-		return data
+		return request.json()
 
 	def hide(self):
 		"""
-		->	PUT /share_visibilities/42 HTTP/1.1
+		->    PUT /share_visibilities/42 HTTP/1.1
 			  post_id=123
-		<-	HTTP/1.1 200 OK
+		<-    HTTP/1.1 200 OK
 		"""
 		headers = {'x-csrf-token': repr(self._connection)}
 		params = {'post_id': json.dumps(self.id)}
@@ -691,9 +638,9 @@ class Post():
 
 	def mute(self):
 		"""
-		->	POST /blocks HTTP/1.1
+		->    POST /blocks HTTP/1.1
 			{"block":{"person_id":123}}
-		<-	HTTP/1.1 204 No Content 
+		<-    HTTP/1.1 204 No Content 
 		"""
 		headers = {'content-type':'application/json', 'x-csrf-token': repr(self._connection)}
 		data = json.dumps({ 'block': { 'person_id' : self._data['author']['id'] } })
@@ -704,8 +651,8 @@ class Post():
 
 	def subscribe(self):
 		"""
-		->	POST /posts/123/participation HTTP/1.1
-		<-	HTTP/1.1 201 Created
+		->    POST /posts/123/participation HTTP/1.1
+		<-    HTTP/1.1 201 Created
 		"""
 		headers = {'x-csrf-token': repr(self._connection)}
 		data = {}
@@ -715,13 +662,11 @@ class Post():
 			raise Exception('{0}: Failed to subscribe to post'
 							.format(request.status_code))
 
-		self._data.update({"participation" : True})
-
 	def unsubscribe(self):
 		"""
-		->	POST /posts/123/participation HTTP/1.1
+		->    POST /posts/123/participation HTTP/1.1
 			  _method=delete
-		<-	HTTP/1.1 200 OK
+		<-    HTTP/1.1 200 OK
 		"""
 		headers = {'x-csrf-token': repr(self._connection)}
 		data = { "_method": "delete" }
@@ -730,8 +675,6 @@ class Post():
 		if request.status_code != 200:
 			raise Exception('{0}: Failed to unsubscribe to post'
 							.format(request.status_code))
-
-		self._data.update({"participation" : False})
 
 	def report(self):
 		"""
@@ -765,8 +708,6 @@ class Post():
 			raise errors.PostError('{0}: Comment could not be deleted'
 								   .format(request.status_code))
 
-		self.comments.delete(comment_id)
-
 	def delete_like(self):
 		"""This function removes a like from a post
 		"""
@@ -777,32 +718,8 @@ class Post():
 			raise errors.PostError('{0}: Like could not be removed.'
 								   .format(request.status_code))
 
-		self._data['interactions']['likes'].pop(0);
-		self._data['interactions']['likes_count'] = str(int(self._data['interactions']['likes_count'])-1)
-
 	def author(self, key='name'):
 		"""Returns author of the post.
 		:param key: all keys available in data['author']
 		"""
 		return self._data['author'][key]
-
-class FollowedTag():
-	"""This class represents a followed tag.
-	`diaspy.tagFollowings.TagFollowings()` uses it.
-	"""
-	def __init__(self, connection, id, name, taggings_count):
-		self._connection = connection
-		self._id, self._name, self._taggings_count = id, name, taggings_count
-
-	def id(self): return self._id
-	def name(self): return self._name
-	def count(self): return self._taggings_count
-
-	def delete(self):
-		data = {'authenticity_token': repr(self._connection)}
-		request = self._connection.delete('tag_followings/{0}'.format(self._id),
-										data=data,
-										headers={'accept': 'application/json'})
-		if request.status_code != 204:
-			raise errors.TagError('{0}: Tag could not be deleted.'
-								   .format(request.status_code))

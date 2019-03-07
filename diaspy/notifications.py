@@ -19,8 +19,6 @@ class Notifications():
 		self._notifications = self.get()
 		self.page = 1
 
-	def __len__(self): return len(self._notifications);
-
 	def __iter__(self):
 		return iter(self._notifications)
 
@@ -31,8 +29,6 @@ class Notifications():
 		self._data['unread_count'] = notifications['unread_count']
 		self._data['unread_count_by_type'] = notifications['unread_count_by_type']
 		return [Notification(self._connection, n) for n in notifications.get('notification_list', [])]
-
-	def data(self): return self._data;
 
 	def last(self):
 		"""Returns list of most recent notifications.
@@ -52,10 +48,13 @@ class Notifications():
 		data = self._data
 		for n in new_notifications:
 			if n.id not in ids:
+				if n.unread:
+					data['unread_count'] +=1
+					data['unread_count_by_type'][n.type] +=1
 				notifications.append(n)
 				ids.append(n.id)
 		self._notifications = notifications
-		self._data.update(data);
+		self._data = data
 
 	def _update(self, new_notifications):
 		ids = [notification.id for notification in self._notifications]
@@ -68,6 +67,9 @@ class Notifications():
 
 		for i in range(len(new_notifications)):
 			if new_notifications[-i].id not in ids:
+				if new_notifications[-i].unread:
+					data['unread_count'] +=1
+					data['unread_count_by_type'][new_notifications[-i].type] +=1
 				notifications = [new_notifications[-i]] + notifications
 				ids.append(new_notifications[-i].id)
 		self._notifications = notifications
@@ -82,7 +84,8 @@ class Notifications():
 		if not page: page = self.page + 1
 		self.page = page
 		result = self.get(per_page=per_page, page=page)
-		if result: self._expand( result )
+		if result:
+			self._expand( result )
 
 	def get(self, per_page=5, page=1):
 		"""Returns list of notifications.

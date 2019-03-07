@@ -8,7 +8,6 @@ import diaspy.conversations as conversations
 import diaspy.people as people
 import diaspy.notifications as notifications
 import diaspy.settings as settings
-import diaspy.tagFollowings as tagFollowings
 
 
-__version__ = '0.6.1.dev'
+__version__ = '0.6.0'
