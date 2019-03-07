@@ -27,6 +27,47 @@ up-to-date than manual and if conflicts appear they should follow the order:
 
 ----
 
+#### Version `0.6.1.dev` (not final changelog for this version, still in development)
+
+* __upd__:  `diaspy.models.Post.like()`, `diaspy.models.Post.delete_like()`, `diaspy.models.Post.reshare()` will now update data (count and likes/reshares) without doing another request.
+* __upd__:  Add `Comment()` to `diaspy.models.Post.comments` on `diaspy.models.Post.comment()`
+* __upd__:  Delete `Comment()` from `diaspy.models.Post.comments` on `diaspy.models.Post.delete_comment()`
+* __upd__:  Update `diaspy.models.Post._data["poll"]["participation_count"]` and `diaspy.models.Post._data["poll_participation_answer_id"]` after `diaspy.models.Post.vote_poll()`
+* __upd__:  Update `diaspy.models.Post._data["participation"]` on `diaspy.models.Post.subscribe()` and `diaspy.models.Post.unsubscribe()`
+* __upd__:  Removed `verify` keyword from `diaspy.connection.Connection` it's methods, it's now done through `**requestKwargs`. Default is still `True`.
+* __upd__:  `diaspy.streams.Stream._photoupload()` to more public method `diaspy.streams.Stream.photoupload()`
+* __upd__:  Update `diaspy.models.Notification.unread` and `diaspy.models.Notification._data['unread']` on `diasply.models.Notification.mark()`
+
+
+* __fix__:  `diaspy.models.Post.__init__()` checking on different fetch states was a mess.
+* __fix__:  `diaspy.streams.Asepcts.filter()` location fix.
+* __fix__:  Don't update `diaspy.notifications.Notifications` it's `unread_count_by_type` and `unread_count` on `diaspy.notifications.Notifications._expand()` and `diaspy.notifications.Notifications._update()` since it's already done in `diaspy.notifications.Notifications._finalize()`
+
+
+* __new__:  `diaspy.tagFollowings.TagFollowings()` which represents the tags followed by the user.
+* __new__:  `diaspy.models.FollowedTag()` which represents a tag followed by the user. It is used by `diaspy.tagFollowings.TagFollowings()`.
+* __new__:  It is now possible to give `**requestKwargs` to `diaspy.connection.Connection()` which will be used for every `request` unless directly overwritten by given the function you call different key-worded arguments.
+* __new__:  `diaspy.connection.Connection()` now does check if the `pod` you are connecting to has `Camo` enabled or not. Call `diaspy.connection.Connection.camo()` to receive `True` or `False`.
+* __new__:  `diaspy.models.Comment.authordata()` which will return all author data instead of `diaspy.models.Comment.author()` which will only return data for a certain key.
+* __new__:  `diaspy.streams.Public()`
+* __new__:  `diaspy.models.Post.fetchlikes()`.
+* __new__:  `diaspy.models.Post.fetchreshares()`
+* __new__:  `diaspy.streams.Generic.deletePostGuid()` deletes `Post` with given `guid` from the local stream object. (If you manualy update a post and find that it's been deleted, call this with the `guid` of the deleted `Post`)
+* __new__:  `diaspy.streams.Stream.deletephoto()`
+* __new__:  `diaspy.notifications.Notifications.__len__()`
+* __new__:  `diaspy.notifications.Notifications.data()`
+* __new__:  `diaspy.models.Comments.delete()` deletes comment by `id`.
+* __new__:  `diaspy.errors.NotificationError`
+
+* __rem__:  `diaspy.streams.FollowedTags.get()` since it wasn’t doing anything usefull.
+
+* __dep__:  `diaspy.streams.FollowedTags.remove()` Use `diaspy.tagFollowings.TagFollowings[“tagName”].delete()` instead.
+* __dep__:  `diaspy.streams.FollowedTags.add()` Use diaspy.tagFollowings.TagFollowings.follow() instead.
+
+
+----
+
+
 #### Version `0.6.0`
 
 In this release some bugs due to Diaspora changes where adressed, it also 

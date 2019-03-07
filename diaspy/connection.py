@@ -27,7 +27,7 @@ class Connection():
 	_userinfo_regex_2 = re.compile(r'gon.user=({.*?});gon.')
 	_verify_SSL = True
 
-	def __init__(self, pod, username, password, schema='https'):
+	def __init__(self, pod, username, password, schema='https', **requestsKwargs):
 		"""
 		:param pod: The complete url of the diaspora pod to use.
 		:type pod: str
@@ -35,6 +35,8 @@ class Connection():
 		:type username: str
 		:param password: The password used to log in.
 		:type password: str
+		:param requestsKwargs: default kwargs for requests (proxy, timeout, etc)
+		:type requestsKwargs: keyworded arguments
 		"""
 		self.pod = pod
 		self._session = requests.Session()
@@ -43,14 +45,23 @@ class Connection():
 		self._token = ''
 		self._diaspora_session = ''
 		self._fetch_token_from = 'stream'
+		self._requests_kwargs = {'verify':self._verify_SSL}
+		if requestsKwargs: self._requests_kwargs.update(requestsKwargs)
+
+		self._camo_enabled = False
 		try: self._setlogin(username, password)
 		except requests.exceptions.MissingSchema:
 			self.pod = '{0}://{1}'.format(schema, self.pod)
 			warnings.warn('schema was missing')
+
 			try: self._setlogin(username, password)
 			except Exception as e:
 				raise errors.LoginError('cannot create login data (caused by: {0})'.format(e))
 		self._cookies = self._fetchcookies()
+
+	def __bool__(self):
+		if self._token: return True
+		return False
 
 	def _fetchcookies(self):
 		request = self.get('stream')
@@ -63,6 +74,16 @@ class Connection():
 		instead of calling a specified method.
 		"""
 		return self._fetchtoken()
+
+	def requestsKwargs(self):
+		"""Returns keyworded arguments set to use for all requests.
+		"""
+		return self._requests_kwargs
+
+	def setRequestsKwargs(self, **requestsKwargs):
+		"""Sets keyworded arguments that will be used for earch request.
+		"""
+		self._requests_kwargs = requestsKwargs
 
 	def get(self, string, headers={}, params={}, direct=False, **kwargs):
 		"""This method gets data from session.
@@ -78,7 +99,8 @@ class Connection():
 		"""
 		if not direct: url = '{0}/{1}'.format(self.pod, string)
 		else: url = string
-		return self._session.get(url, params=params, headers=headers, verify=self._verify_SSL, **kwargs)
+		if not kwargs: kwargs = self._requests_kwargs
+		return self._session.get(url, params=params, headers=headers, **kwargs)
 
 	def tokenFrom(self, location):
 		"""Sets location for the *next* fetch of CSRF token.
@@ -110,7 +132,8 @@ class Connection():
 		string = '{0}/{1}'.format(self.pod, string)
 		if 'X-CSRF-Token' not in headers:
 			headers['X-CSRF-Token'] = self.get_token()
-		request = self._session.post(string, data, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
+		if not kwargs: kwargs = self._requests_kwargs
+		request = self._session.post(string, data, headers=headers, params=params, **kwargs)
 		return request
 
 	def put(self, string, data=None, headers={}, params={}, **kwargs):
@@ -119,8 +142,9 @@ class Connection():
 		string = '{0}/{1}'.format(self.pod, string)
 		if 'X-CSRF-Token' not in headers:
 			headers['X-CSRF-Token'] = self.get_token()
+		if not kwargs: kwargs = self._requests_kwargs
 		if data is not None: request = self._session.put(string, data, headers=headers, params=params, **kwargs)
-		else: request = self._session.put(string, headers=headers, params=params, verify=self._verify_SSL, **kwargs)
+		else: request = self._session.put(string, headers=headers, params=params, **kwargs)
 		return request
 
 	def delete(self, string, data = None, headers={}, **kwargs):
@@ -136,8 +160,17 @@ class Connection():
 		string = '{0}/{1}'.format(self.pod, string)
 		if 'X-CSRF-Token' not in headers:
 			headers['X-CSRF-Token'] = self.get_token()
-		request = self._session.delete(string, data=data, headers=headers, verify=self._verify_SSL, **kwargs)
+		if not kwargs: kwargs = self._requests_kwargs
+		request = self._session.delete(string, data=data, headers=headers, **kwargs)
 		return request
+
+	def _checkCamo(self):
+		response = self._session.head("{0}/camo/".format(self.pod),
+										**self._requests_kwargs)
+		if response.status_code == 200: self._camo_enabled = True
+		else: self._camo_enabled = False
+
+	def camo(self): return self._camo_enabled;
 
 	def _setlogin(self, username, password):
 		"""This function is used to set data for login.
@@ -158,6 +191,7 @@ class Connection():
 							allow_redirects=False)
 		if request.status_code != 302:
 			raise errors.LoginError('{0}: login failed'.format(request.status_code))
+		self._checkCamo()
 
 	def login(self, remember_me=1):
 		"""This function is used to log in to a pod.
@@ -176,6 +210,9 @@ class Connection():
 		"""
 		self.get('users/sign_out')
 		self.token = ''
+		self._userdata = {}
+		self._diaspora_session = ''
+		self._camo_enabled = False
 
 	def podswitch(self, pod, username, password, login=True):
 		"""Switches pod from current to another one.
@@ -223,8 +260,7 @@ class Connection():
 		"""
 		return self._diaspora_session
 
-	def userdata(self):
-		return self._userdata
+	def userdata(self): return self._userdata
 
 	def getUserData(self):
 		"""Returns user data.
@@ -241,3 +277,4 @@ class Connection():
 		"""Sets whether there should be an error if a SSL-Certificate could not be verified.
 		"""
 		self._verify_SSL = verify
+		self._requests_kwargs.update({'verify':verify})
