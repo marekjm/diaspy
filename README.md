@@ -3,7 +3,7 @@
 [![Diaspy on PyPI](https://badge.fury.io/py/diaspy-api.png)](https://pypi.python.org/pypi/diaspy-api)
 
 `diaspy` is a set of modules which form an Python interface to the API of
-Disapora\* social network. 
+Diaspora\* social network. 
 
 Test suite will cause problems when run with 2.x so testing should be done 
 using python3 interpreter.
@@ -12,7 +12,7 @@ Object oriented design of `diaspy` makes it easily reusable by other
 developers who want to use only part of the interface and create derivative
 works from it.
 
-Developrs who don't like the design of `diaspy` and want to create something better
+Developers who don't like the design of `diaspy` and want to create something better
 can use only `diaspy.connection.Connection()` object as it is capable of
 doing everything. Other modules are just layers that provide easier access to
 parts of the Diaspora\* API.
