@@ -19,6 +19,9 @@ class Notifications():
 		self._notifications = self.get()
 		self.page = 1
 
+	def __len__(self):
+		return len(self._notifications)
+
 	def __iter__(self):
 		return iter(self._notifications)
 
@@ -39,7 +42,7 @@ class Notifications():
 		request = self._connection.get('notifications.json', headers=headers, params=params)
 
 		if request.status_code != 200:
-			raise Exception('status code: {0}: cannot retreive notifications'.format(request.status_code))
+			raise Exception('status code: {0}: cannot retrieve notifications'.format(request.status_code))
 		return self._finalise(request.json())
 
 	def _expand(self, new_notifications):
