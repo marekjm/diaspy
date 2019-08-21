@@ -12,7 +12,7 @@ from diaspy import search
 
 
 def sephandle(handle):
-	"""Separate Diaspora* handle into pod pod and user.
+	"""Separate Diaspora* handle into pod and user.
 
 	:returns: two-tuple (pod, user)
 	"""
@@ -235,7 +235,7 @@ class User():
 		if request.status_code != 204: raise errors.UserError('could not delete photo_id: {0}'.format(photo_id))
 
 class Me():
-	"""Object represetnting current user.
+	"""Object representing the current user.
 	"""
 	_userinfo_regex = re.compile(r'window.current_user_attributes = ({.*})')
 	_userinfo_regex_2 = re.compile(r'gon.user=({.*});gon.preloads')
