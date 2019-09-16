@@ -8,12 +8,12 @@ MUST NOT import anything.
 
 import json
 import copy
+import re
 
 BS4_SUPPORT=False
 try:
 	from bs4 import BeautifulSoup
 except ImportError:
-	import re
 	print("[diaspy] BeautifulSoup not found, falling back on regex.")
 else: BS4_SUPPORT=True
 
@@ -135,10 +135,9 @@ class Aspect():
 class Notification():
 	"""This class represents single notification.
 	"""
-	if not BS4_SUPPORT:
-		_who_regexp = re.compile(r'/people/([0-9a-f]+)["\']{1} class=["\']{1}hovercardable')
-		_aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
-		_htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
+	_who_regexp = re.compile(r'/people/([0-9a-f]+)["\']{1} class=["\']{1}hovercardable')
+	_aboutid_regexp = re.compile(r'/posts/[0-9a-f]+')
+	_htmltag_regexp = re.compile('</?[a-z]+( *[a-z_-]+=["\'].*?["\'])* */?>')
 
 	def __init__(self, connection, data):
 		self._connection = connection
@@ -180,12 +179,10 @@ class Notification():
 			soup = BeautifulSoup(self._data['note_html'], 'lxml')
 			id = soup.find('a', {"data-ref": True})
 			if id: return id['data-ref']
-			else: return self.who()[0]
-		else:
-			about = self._aboutid_regexp.search(self._data['note_html'])
-			if about is None: about = self.who()[0]
-			else: about = int(about.group(0)[7:])
-			return about
+		about = self._aboutid_regexp.search(self._data['note_html'])
+		if about is None: about = self.who()[0]
+		else: about = int(about.group(0)[7:])
+		return about
 
 	def who(self):
 		"""Returns list of guids of the users who caused you to get the notification.
