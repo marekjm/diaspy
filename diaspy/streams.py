@@ -5,7 +5,7 @@ Documentation for D* JSON API taken from:
 http://pad.spored.de/ro/r.qWmvhSZg7rk4OQam
 """
 
-
+import os
 import json
 import time
 from diaspy.models import Post, Aspect
@@ -280,23 +280,24 @@ class Stream(Generic):
 		post = Post(self._connection, id=post_json['id'], guid=post_json['guid'], post_data=post_json)
 		return post
 
-	def _photoupload(self, filename, aspects=[]):
+	def _photoupload(self, filepath, aspects=[]):
 		"""Uploads picture to the pod.
 
-		:param filename: path to picture file
-		:type filename: str
+		:param filepath: path to picture file
+		:type filepath: str
 		:param aspect_ids: list of ids of aspects to which you want to upload this photo
 		:type aspect_ids: list of integers
 
 		:returns: id of the photo being uploaded
 		"""
-		data = open(filename, 'rb')
+		data = open(filepath, 'rb')
 		image = data.read()
 		data.close()
 
 		params = {}
 		params['photo[pending]'] = 'true'
 		params['set_profile_image'] = ''
+		filename=os.path.basename(filepath)
 		params['qqfile'] = filename
 		if not aspects: aspects = self._connection.getUserData()['aspects']
 		for i, aspect in enumerate(aspects):
